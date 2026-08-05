@@ -7,6 +7,7 @@ const navItems = [
   { path: '/', label: '清單' },
   { path: '/board', label: '看板' },
   { path: '/calendar', label: '行事曆' },
+  { path: '/dashboard', label: '儀表板' },
 ]
 </script>
 
