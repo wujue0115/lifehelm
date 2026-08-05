@@ -58,6 +58,7 @@ export function localDataPlugin(): Plugin {
                 statusId: body?.statusId ?? board[0]?.id ?? 'todo',
                 priority: body?.priority ?? 'medium',
                 tags: body?.tags ?? [],
+                startDate: body?.startDate ?? null,
                 dueDate: body?.dueDate ?? null,
                 createdAt: now,
                 updatedAt: now,

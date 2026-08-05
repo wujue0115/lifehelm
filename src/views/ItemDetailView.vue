@@ -18,6 +18,7 @@ const form = reactive({
   statusId: '',
   priority: 'medium' as Priority,
   tagsText: '',
+  startDate: '',
   dueDate: '',
 })
 
@@ -32,6 +33,7 @@ function applyItemToForm(item: WorkItem): void {
   form.statusId = item.statusId
   form.priority = item.priority
   form.tagsText = item.tags.join(', ')
+  form.startDate = item.startDate ? item.startDate.slice(0, 10) : ''
   form.dueDate = item.dueDate ? item.dueDate.slice(0, 10) : ''
 }
 
@@ -68,6 +70,10 @@ async function handleSubmit(): Promise<void> {
     errorMessage.value = '標題不可為空'
     return
   }
+  if (form.startDate && form.dueDate && form.startDate > form.dueDate) {
+    errorMessage.value = '開始日期不可晚於結束日期'
+    return
+  }
   saving.value = true
   errorMessage.value = null
   const payload = {
@@ -79,6 +85,7 @@ async function handleSubmit(): Promise<void> {
       .split(',')
       .map((tag) => tag.trim())
       .filter(Boolean),
+    startDate: form.startDate ? new Date(form.startDate).toISOString() : null,
     dueDate: form.dueDate ? new Date(form.dueDate).toISOString() : null,
   }
   try {
@@ -145,7 +152,12 @@ async function handleDelete(): Promise<void> {
           </label>
 
           <label class="field">
-            <span class="type-micro-cap">截止日</span>
+            <span class="type-micro-cap">開始日期</span>
+            <input v-model="form.startDate" class="input type-body-md" type="date" />
+          </label>
+
+          <label class="field">
+            <span class="type-micro-cap">結束日期</span>
             <input v-model="form.dueDate" class="input type-body-md" type="date" />
           </label>
         </div>
