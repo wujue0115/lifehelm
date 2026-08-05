@@ -3,7 +3,10 @@ import { ref } from 'vue'
 
 const open = ref(false)
 
-const navItems = [{ path: '/', label: '清單' }]
+const navItems = [
+  { path: '/', label: '清單' },
+  { path: '/board', label: '看板' },
+]
 </script>
 
 <template>
