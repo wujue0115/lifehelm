@@ -4,6 +4,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { useWorkItemsStore } from '@/stores/workItems'
 import type { Priority, WorkItem } from '@/types/work-item'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
+import CommentList from '@/components/CommentList.vue'
+import AttachmentList from '@/components/AttachmentList.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -11,6 +13,7 @@ const store = useWorkItemsStore()
 
 const isNew = computed(() => route.name === 'item-new')
 const itemId = computed(() => (typeof route.params.id === 'string' ? route.params.id : undefined))
+const currentItem = computed(() => store.items.find((item) => item.id === itemId.value))
 
 const form = reactive({
   title: '',
@@ -186,6 +189,11 @@ async function handleDelete(): Promise<void> {
           </button>
         </div>
       </form>
+
+      <div v-if="!isNew && currentItem" class="sub-sections">
+        <AttachmentList :item-id="currentItem.id" :attachments="currentItem.attachments" />
+        <CommentList :item-id="currentItem.id" :comments="currentItem.comments" />
+      </div>
     </template>
 
     <ConfirmDialog
@@ -249,5 +257,14 @@ async function handleDelete(): Promise<void> {
 
 .error {
   font-weight: 700;
+}
+
+.sub-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  margin-top: 32px;
+  padding-top: 32px;
+  border-top: 1px solid var(--color-hairline-on-light);
 }
 </style>

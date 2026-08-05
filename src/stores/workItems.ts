@@ -36,11 +36,14 @@ export const useWorkItemsStore = defineStore('workItems', () => {
     return created
   }
 
-  async function updateItem(id: string, input: Partial<WorkItem>): Promise<WorkItem> {
-    const updated = await api.updateItem(id, input)
-    const index = items.value.findIndex((item) => item.id === id)
+  function applyUpdatedItem(updated: WorkItem): WorkItem {
+    const index = items.value.findIndex((item) => item.id === updated.id)
     if (index !== -1) items.value[index] = updated
     return updated
+  }
+
+  async function updateItem(id: string, input: Partial<WorkItem>): Promise<WorkItem> {
+    return applyUpdatedItem(await api.updateItem(id, input))
   }
 
   async function deleteItem(id: string): Promise<void> {
@@ -50,6 +53,27 @@ export const useWorkItemsStore = defineStore('workItems', () => {
 
   async function updateBoard(columns: BoardColumn[]): Promise<void> {
     board.value = await api.updateBoard(columns)
+  }
+
+  async function addComment(itemId: string, text: string): Promise<WorkItem> {
+    return applyUpdatedItem(await api.addComment(itemId, text))
+  }
+
+  async function deleteComment(itemId: string, commentId: string): Promise<WorkItem> {
+    return applyUpdatedItem(await api.deleteComment(itemId, commentId))
+  }
+
+  async function addAttachment(
+    itemId: string,
+    filename: string,
+    mimeType: string,
+    dataBase64: string,
+  ): Promise<WorkItem> {
+    return applyUpdatedItem(await api.addAttachment(itemId, filename, mimeType, dataBase64))
+  }
+
+  async function deleteAttachment(itemId: string, attachmentId: string): Promise<WorkItem> {
+    return applyUpdatedItem(await api.deleteAttachment(itemId, attachmentId))
   }
 
   return {
@@ -65,5 +89,9 @@ export const useWorkItemsStore = defineStore('workItems', () => {
     updateItem,
     deleteItem,
     updateBoard,
+    addComment,
+    deleteComment,
+    addAttachment,
+    deleteAttachment,
   }
 })
