@@ -1,8 +1,15 @@
 import { randomUUID } from 'node:crypto'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { Plugin } from 'vite'
-import type { BoardColumn, WorkItem } from '../src/types/work-item.js'
-import { readJsonFile, readJsonFileOrSeed, writeJsonFile } from './dataStore.js'
+import type { AttachmentMeta, BoardColumn, Comment, WorkItem } from '../src/types/work-item.js'
+import {
+  deleteAttachmentFile,
+  readAttachmentFile,
+  readJsonFile,
+  readJsonFileOrSeed,
+  writeAttachmentFile,
+  writeJsonFile,
+} from './dataStore.js'
 
 const ITEMS_FILE = 'items.json'
 const BOARD_FILE = 'board.json'
@@ -99,10 +106,140 @@ export function localDataPlugin(): Plugin {
             }
             if (method === 'DELETE') {
               if (index === -1) return sendJson(res, 404, { error: 'not found' })
-              items.splice(index, 1)
+              const [removed] = items.splice(index, 1)
               await writeJsonFile(ITEMS_FILE, items)
+              if (removed) {
+                for (const attachment of removed.attachments) {
+                  await deleteAttachmentFile(attachment.id)
+                }
+              }
               return sendNoContent(res)
             }
+          }
+
+          if (segments[0] === 'items' && segments.length === 3 && segments[2] === 'comments') {
+            const id = segments[1]
+            const items = await readJsonFile<WorkItem[]>(ITEMS_FILE, [])
+            const index = items.findIndex((item) => item.id === id)
+            if (index === -1) return sendJson(res, 404, { error: 'not found' })
+            const existing = items[index]
+            if (!existing) return sendJson(res, 404, { error: 'not found' })
+
+            if (method === 'POST') {
+              const body = (await readBody(req)) as { text?: string } | undefined
+              const text = body?.text?.trim()
+              if (!text) return sendJson(res, 400, { error: 'text is required' })
+              const comment: Comment = {
+                id: randomUUID(),
+                text,
+                createdAt: new Date().toISOString(),
+              }
+              const updated: WorkItem = {
+                ...existing,
+                comments: [...existing.comments, comment],
+                updatedAt: new Date().toISOString(),
+              }
+              items[index] = updated
+              await writeJsonFile(ITEMS_FILE, items)
+              return sendJson(res, 201, updated)
+            }
+          }
+
+          if (segments[0] === 'items' && segments.length === 4 && segments[2] === 'comments') {
+            const id = segments[1]
+            const commentId = segments[3]
+            const items = await readJsonFile<WorkItem[]>(ITEMS_FILE, [])
+            const index = items.findIndex((item) => item.id === id)
+            if (index === -1) return sendJson(res, 404, { error: 'not found' })
+            const existing = items[index]
+            if (!existing) return sendJson(res, 404, { error: 'not found' })
+
+            if (method === 'DELETE') {
+              const updated: WorkItem = {
+                ...existing,
+                comments: existing.comments.filter((comment) => comment.id !== commentId),
+                updatedAt: new Date().toISOString(),
+              }
+              items[index] = updated
+              await writeJsonFile(ITEMS_FILE, items)
+              return sendJson(res, 200, updated)
+            }
+          }
+
+          if (segments[0] === 'items' && segments.length === 3 && segments[2] === 'attachments') {
+            const id = segments[1]
+            const items = await readJsonFile<WorkItem[]>(ITEMS_FILE, [])
+            const index = items.findIndex((item) => item.id === id)
+            if (index === -1) return sendJson(res, 404, { error: 'not found' })
+            const existing = items[index]
+            if (!existing) return sendJson(res, 404, { error: 'not found' })
+
+            if (method === 'POST') {
+              const body = (await readBody(req)) as
+                | { filename?: string; mimeType?: string; dataBase64?: string }
+                | undefined
+              if (!body?.filename || !body.dataBase64) {
+                return sendJson(res, 400, { error: 'filename and dataBase64 are required' })
+              }
+              const attachmentId = randomUUID()
+              const meta: AttachmentMeta = {
+                id: attachmentId,
+                filename: body.filename,
+                mimeType: body.mimeType ?? 'application/octet-stream',
+                size: Buffer.byteLength(body.dataBase64, 'base64'),
+                uploadedAt: new Date().toISOString(),
+              }
+              await writeAttachmentFile({ ...meta, dataBase64: body.dataBase64 })
+              const updated: WorkItem = {
+                ...existing,
+                attachments: [...existing.attachments, meta],
+                updatedAt: new Date().toISOString(),
+              }
+              items[index] = updated
+              await writeJsonFile(ITEMS_FILE, items)
+              return sendJson(res, 201, updated)
+            }
+          }
+
+          if (segments[0] === 'items' && segments.length === 4 && segments[2] === 'attachments') {
+            const id = segments[1]
+            const attachmentId = segments[3]
+            const items = await readJsonFile<WorkItem[]>(ITEMS_FILE, [])
+            const index = items.findIndex((item) => item.id === id)
+            if (index === -1) return sendJson(res, 404, { error: 'not found' })
+            const existing = items[index]
+            if (!existing) return sendJson(res, 404, { error: 'not found' })
+
+            if (method === 'DELETE') {
+              await deleteAttachmentFile(attachmentId)
+              const updated: WorkItem = {
+                ...existing,
+                attachments: existing.attachments.filter(
+                  (attachment) => attachment.id !== attachmentId,
+                ),
+                updatedAt: new Date().toISOString(),
+              }
+              items[index] = updated
+              await writeJsonFile(ITEMS_FILE, items)
+              return sendJson(res, 200, updated)
+            }
+          }
+
+          if (segments[0] === 'attachments' && segments.length === 2 && method === 'GET') {
+            const attachmentId = segments[1]
+            const stored = await readAttachmentFile(attachmentId)
+            if (!stored) return sendJson(res, 404, { error: 'not found' })
+            const buffer = Buffer.from(stored.dataBase64, 'base64')
+            const asciiFallback = stored.filename.replace(/[^\x20-\x7E]/g, '_')
+            res.statusCode = 200
+            res.setHeader('Content-Type', stored.mimeType)
+            res.setHeader(
+              'Content-Disposition',
+              `attachment; filename="${asciiFallback}"; filename*=UTF-8''${encodeURIComponent(stored.filename)}`,
+            )
+            res.setHeader('Content-Length', buffer.length)
+            res.end(buffer)
+            return
           }
 
           if (segments[0] === 'board' && segments.length === 1) {

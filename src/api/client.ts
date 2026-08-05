@@ -25,4 +25,21 @@ export const api = {
   getBoard: () => request<BoardColumn[]>('/api/board'),
   updateBoard: (columns: BoardColumn[]) =>
     request<BoardColumn[]>('/api/board', { method: 'PUT', body: JSON.stringify(columns) }),
+
+  addComment: (itemId: string, text: string) =>
+    request<WorkItem>(`/api/items/${itemId}/comments`, {
+      method: 'POST',
+      body: JSON.stringify({ text }),
+    }),
+  deleteComment: (itemId: string, commentId: string) =>
+    request<WorkItem>(`/api/items/${itemId}/comments/${commentId}`, { method: 'DELETE' }),
+
+  addAttachment: (itemId: string, filename: string, mimeType: string, dataBase64: string) =>
+    request<WorkItem>(`/api/items/${itemId}/attachments`, {
+      method: 'POST',
+      body: JSON.stringify({ filename, mimeType, dataBase64 }),
+    }),
+  deleteAttachment: (itemId: string, attachmentId: string) =>
+    request<WorkItem>(`/api/items/${itemId}/attachments/${attachmentId}`, { method: 'DELETE' }),
+  attachmentUrl: (attachmentId: string) => `/api/attachments/${attachmentId}`,
 }
