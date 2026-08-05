@@ -14,6 +14,11 @@ const router = createRouter({
       component: () => import('@/views/BoardView.vue'),
     },
     {
+      path: '/calendar',
+      name: 'calendar',
+      component: () => import('@/views/CalendarView.vue'),
+    },
+    {
       path: '/items/new',
       name: 'item-new',
       component: () => import('@/views/ItemDetailView.vue'),

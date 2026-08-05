@@ -1,16 +1,12 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import type { WorkItem } from '@/types/work-item'
 import StatusBadge from './StatusBadge.vue'
 import PriorityBadge from './PriorityBadge.vue'
 import TagPill from './TagPill.vue'
+import DueDateLabel from './DueDateLabel.vue'
 
-const props = defineProps<{ item: WorkItem; statusName: string; isCompleted: boolean }>()
+defineProps<{ item: WorkItem; statusName: string; isCompleted: boolean }>()
 const emit = defineEmits<{ delete: [id: string] }>()
-
-const dueDateLabel = computed(() =>
-  props.item.dueDate ? new Date(props.item.dueDate).toLocaleDateString('zh-TW') : '—',
-)
 </script>
 
 <template>
@@ -23,7 +19,13 @@ const dueDateLabel = computed(() =>
     <td>
       <TagPill v-for="tag in item.tags" :key="tag" :label="tag" />
     </td>
-    <td class="type-body-md">{{ dueDateLabel }}</td>
+    <td>
+      <DueDateLabel
+        :start-date="item.startDate"
+        :due-date="item.dueDate"
+        :is-completed="isCompleted"
+      />
+    </td>
     <td class="actions">
       <RouterLink :to="`/items/${item.id}`" class="type-button-cap link">編輯</RouterLink>
       <button type="button" class="type-button-cap link" @click="emit('delete', item.id)">

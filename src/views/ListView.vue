@@ -27,8 +27,6 @@ const statusNameById = computed(() => {
   return map
 })
 
-const lastColumnId = computed(() => store.sortedBoard[store.sortedBoard.length - 1]?.id)
-
 const allTags = computed(() => {
   const tagSet = new Set<string>()
   for (const item of store.items) {
@@ -137,7 +135,7 @@ async function confirmDelete(): Promise<void> {
             <th>狀態</th>
             <th @click="toggleSort('priority')">優先級</th>
             <th>標籤</th>
-            <th @click="toggleSort('dueDate')">截止日</th>
+            <th @click="toggleSort('dueDate')">日期</th>
             <th>操作</th>
           </tr>
         </thead>
@@ -147,7 +145,7 @@ async function confirmDelete(): Promise<void> {
             :key="item.id"
             :item="item"
             :status-name="statusNameById.get(item.statusId) ?? item.statusId"
-            :is-completed="item.statusId === lastColumnId"
+            :is-completed="store.isItemCompleted(item)"
             @delete="requestDelete"
           />
         </tbody>

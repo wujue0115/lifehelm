@@ -35,6 +35,7 @@ export interface WorkItem {
   statusId: string
   priority: Priority
   tags: string[]
+  startDate: string | null
   dueDate: string | null
   createdAt: string
   updatedAt: string

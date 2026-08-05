@@ -6,6 +6,7 @@ const open = ref(false)
 const navItems = [
   { path: '/', label: '清單' },
   { path: '/board', label: '看板' },
+  { path: '/calendar', label: '行事曆' },
 ]
 </script>
 

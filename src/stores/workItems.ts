@@ -10,6 +10,11 @@ export const useWorkItemsStore = defineStore('workItems', () => {
   const error = ref<string | null>(null)
 
   const sortedBoard = computed(() => [...board.value].sort((a, b) => a.order - b.order))
+  const lastColumnId = computed(() => sortedBoard.value[sortedBoard.value.length - 1]?.id)
+
+  function isItemCompleted(item: WorkItem): boolean {
+    return item.statusId === lastColumnId.value
+  }
 
   async function fetchAll(): Promise<void> {
     loading.value = true
@@ -51,6 +56,8 @@ export const useWorkItemsStore = defineStore('workItems', () => {
     items,
     board,
     sortedBoard,
+    lastColumnId,
+    isItemCompleted,
     loading,
     error,
     fetchAll,

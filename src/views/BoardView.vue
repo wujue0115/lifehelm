@@ -121,6 +121,7 @@ async function removeColumn(columnId: string): Promise<void> {
               v-for="item in localColumns[column.id] ?? []"
               :key="item.id"
               :item="item"
+              :is-completed="column.id === store.lastColumnId"
             />
           </VueDraggable>
         </div>
