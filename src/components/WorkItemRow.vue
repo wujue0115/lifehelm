@@ -11,7 +11,7 @@ const emit = defineEmits<{ delete: [id: string] }>()
 
 <template>
   <tr class="row">
-    <td class="type-body-md">
+    <td class="type-body-sm">
       <RouterLink :to="`/items/${item.id}`" class="title-link">{{ item.title }}</RouterLink>
     </td>
     <td><StatusBadge :name="statusName" :completed="isCompleted" /></td>
@@ -27,8 +27,8 @@ const emit = defineEmits<{ delete: [id: string] }>()
       />
     </td>
     <td class="actions">
-      <RouterLink :to="`/items/${item.id}`" class="type-button-cap link">編輯</RouterLink>
-      <button type="button" class="type-button-cap link" @click="emit('delete', item.id)">
+      <RouterLink :to="`/items/${item.id}`" class="btn btn-ghost action-btn">編輯</RouterLink>
+      <button type="button" class="btn btn-ghost action-btn" @click="emit('delete', item.id)">
         刪除
       </button>
     </td>
@@ -37,31 +37,36 @@ const emit = defineEmits<{ delete: [id: string] }>()
 
 <style scoped>
 .row {
-  border-bottom: 1px solid var(--color-hairline-on-light);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.row:hover {
+  background: var(--color-surface-hover);
 }
 
 .row td {
-  padding: 12px 8px;
+  padding: 10px 12px;
   vertical-align: middle;
 }
 
 .title-link {
   color: var(--color-ink);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.title-link:hover {
   text-decoration: underline;
 }
 
 .actions {
   display: flex;
-  gap: 16px;
+  gap: 4px;
   white-space: nowrap;
 }
 
-.link {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--color-ink);
-  text-decoration: underline;
-  padding: 0;
+.action-btn {
+  min-height: 28px;
+  padding: 4px 10px;
 }
 </style>

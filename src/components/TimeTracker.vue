@@ -112,36 +112,30 @@ async function removeEntry(entryId: string): Promise<void> {
 
 <template>
   <div class="time-tracker">
-    <h2 class="type-button-cap section-title">時間追蹤</h2>
-    <p v-if="errorMessage" class="type-body-md error">{{ errorMessage }}</p>
+    <h2 class="type-section-title">時間追蹤</h2>
+    <p v-if="errorMessage" class="type-body error">{{ errorMessage }}</p>
 
     <div class="summary">
-      <span class="type-body-md total">累積時數：{{ formatDuration(totalSeconds) }}</span>
+      <span class="type-body total">累積時數：{{ formatDuration(totalSeconds) }}</span>
       <button
         v-if="!runningEntry"
         type="button"
-        class="btn btn-filled-cool type-button-cap"
+        class="btn btn-primary"
         :disabled="busy"
         @click="startTimer"
       >
         開始計時
       </button>
-      <button
-        v-else
-        type="button"
-        class="btn btn-ghost-on-light type-button-cap"
-        :disabled="busy"
-        @click="stopTimer"
-      >
+      <button v-else type="button" class="btn btn-secondary" :disabled="busy" @click="stopTimer">
         停止計時（{{ formatDuration(runningElapsedSeconds) }}）
       </button>
     </div>
 
-    <p v-if="completedEntries.length === 0" class="type-body-md empty">尚無時間紀錄</p>
+    <p v-if="completedEntries.length === 0" class="type-body empty">尚無時間紀錄</p>
     <ul v-else class="entries">
       <li v-for="entry in completedEntries" :key="entry.id" class="entry">
         <div class="entry-body">
-          <span class="type-body-md range">
+          <span class="type-body-sm range">
             {{ formatDateTime(entry.startedAt) }} → {{ formatDateTime(entry.endedAt ?? '') }}
           </span>
           <span class="type-caption duration">{{
@@ -149,7 +143,7 @@ async function removeEntry(entryId: string): Promise<void> {
           }}</span>
           <span v-if="entry.note" class="type-caption note">{{ entry.note }}</span>
         </div>
-        <button type="button" class="type-caption remove" @click="removeEntry(entry.id)">
+        <button type="button" class="btn btn-ghost remove" @click="removeEntry(entry.id)">
           刪除
         </button>
       </li>
@@ -157,7 +151,7 @@ async function removeEntry(entryId: string): Promise<void> {
 
     <button
       type="button"
-      class="type-button-cap manual-toggle"
+      class="btn btn-ghost manual-toggle"
       @click="showManualForm = !showManualForm"
     >
       {{ showManualForm ? '取消手動新增' : '+ 手動新增紀錄' }}
@@ -165,20 +159,18 @@ async function removeEntry(entryId: string): Promise<void> {
 
     <form v-if="showManualForm" class="manual-form" @submit.prevent="submitManualEntry">
       <label class="field">
-        <span class="type-micro-cap">開始時間</span>
-        <input v-model="manualStart" class="input type-body-md" type="datetime-local" />
+        <span class="type-label">開始時間</span>
+        <input v-model="manualStart" class="input type-body" type="datetime-local" />
       </label>
       <label class="field">
-        <span class="type-micro-cap">結束時間</span>
-        <input v-model="manualEnd" class="input type-body-md" type="datetime-local" />
+        <span class="type-label">結束時間</span>
+        <input v-model="manualEnd" class="input type-body" type="datetime-local" />
       </label>
       <label class="field">
-        <span class="type-micro-cap">備註</span>
-        <input v-model="manualNote" class="input type-body-md" type="text" />
+        <span class="type-label">備註</span>
+        <input v-model="manualNote" class="input type-body" type="text" />
       </label>
-      <button type="submit" class="btn btn-filled-cool type-button-cap" :disabled="busy">
-        新增
-      </button>
+      <button type="submit" class="btn btn-primary" :disabled="busy">新增</button>
     </form>
   </div>
 </template>
@@ -187,11 +179,7 @@ async function removeEntry(entryId: string): Promise<void> {
 .time-tracker {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-}
-
-.section-title {
-  color: var(--color-ink-mute);
+  gap: var(--space-sm);
 }
 
 .error {
@@ -201,16 +189,16 @@ async function removeEntry(entryId: string): Promise<void> {
 .summary {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: var(--space-md);
   flex-wrap: wrap;
 }
 
 .total {
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .empty {
-  color: var(--color-ink-mute);
+  color: var(--color-ink-muted);
 }
 
 .entries {
@@ -219,57 +207,49 @@ async function removeEntry(entryId: string): Promise<void> {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-xs);
 }
 
 .entry {
   display: flex;
   align-items: center;
-  gap: 12px;
-  border-bottom: 1px solid var(--color-hairline-on-light);
-  padding-bottom: 8px;
+  gap: var(--space-sm);
+  border-bottom: 1px solid var(--color-border-subtle);
+  padding-bottom: var(--space-xs);
   flex-wrap: wrap;
 }
 
 .entry-body {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-sm);
   flex-wrap: wrap;
 }
 
 .duration {
-  color: var(--color-ink-mute);
+  color: var(--color-ink-secondary);
 }
 
 .note {
-  color: var(--color-ink-mute);
+  color: var(--color-ink-muted);
   font-style: italic;
 }
 
 .remove {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--color-ink-mute);
-  text-decoration: underline;
-  padding: 0;
+  min-height: 28px;
+  padding: 4px 10px;
   margin-left: auto;
 }
 
 .manual-toggle {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--color-ink-mute);
-  text-decoration: underline;
-  padding: 0;
+  min-height: 28px;
+  padding: 4px 10px;
   align-self: flex-start;
 }
 
 .manual-form {
   display: flex;
-  gap: 12px;
+  gap: var(--space-sm);
   flex-wrap: wrap;
   align-items: flex-end;
 }
@@ -281,6 +261,6 @@ async function removeEntry(entryId: string): Promise<void> {
 }
 
 .field span {
-  color: var(--color-ink-mute);
+  color: var(--color-ink-secondary);
 }
 </style>

@@ -62,14 +62,14 @@ async function removeAttachment(attachmentId: string): Promise<void> {
 
 <template>
   <div class="attachment-list">
-    <h2 class="type-button-cap section-title">附件</h2>
-    <p v-if="errorMessage" class="type-body-md error">{{ errorMessage }}</p>
-    <p v-if="attachments.length === 0" class="type-body-md empty">尚無附件</p>
+    <h2 class="type-section-title">附件</h2>
+    <p v-if="errorMessage" class="type-body error">{{ errorMessage }}</p>
+    <p v-if="attachments.length === 0" class="type-body empty">尚無附件</p>
     <ul v-else class="attachments">
       <li v-for="attachment in attachments" :key="attachment.id" class="attachment">
         <a
           :href="api.attachmentUrl(attachment.id)"
-          class="type-body-md filename"
+          class="type-body filename"
           target="_blank"
           rel="noopener"
         >
@@ -78,13 +78,13 @@ async function removeAttachment(attachmentId: string): Promise<void> {
         <span class="type-caption meta">
           {{ formatSize(attachment.size) }} · {{ formatDate(attachment.uploadedAt) }}
         </span>
-        <button type="button" class="type-caption remove" @click="removeAttachment(attachment.id)">
+        <button type="button" class="btn btn-ghost remove" @click="removeAttachment(attachment.id)">
           刪除
         </button>
       </li>
     </ul>
 
-    <label class="btn btn-ghost-on-light type-button-cap upload-btn">
+    <label class="btn btn-secondary upload-btn">
       {{ uploading ? '上傳中…' : '+ 新增附件' }}
       <input type="file" class="file-input" :disabled="uploading" @change="handleFileSelected" />
     </label>
@@ -95,15 +95,11 @@ async function removeAttachment(attachmentId: string): Promise<void> {
 .attachment-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-}
-
-.section-title {
-  color: var(--color-ink-mute);
+  gap: var(--space-sm);
 }
 
 .empty {
-  color: var(--color-ink-mute);
+  color: var(--color-ink-muted);
 }
 
 .error {
@@ -116,34 +112,35 @@ async function removeAttachment(attachmentId: string): Promise<void> {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-xs);
 }
 
 .attachment {
   display: flex;
   align-items: center;
-  gap: 12px;
-  border-bottom: 1px solid var(--color-hairline-on-light);
-  padding-bottom: 8px;
+  gap: var(--space-sm);
+  border-bottom: 1px solid var(--color-border-subtle);
+  padding-bottom: var(--space-xs);
   flex-wrap: wrap;
 }
 
 .filename {
   color: var(--color-ink);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.filename:hover {
   text-decoration: underline;
 }
 
 .meta {
-  color: var(--color-ink-mute);
+  color: var(--color-ink-muted);
 }
 
 .remove {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--color-ink-mute);
-  text-decoration: underline;
-  padding: 0;
+  min-height: 28px;
+  padding: 4px 10px;
   margin-left: auto;
 }
 

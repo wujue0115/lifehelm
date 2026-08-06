@@ -28,40 +28,36 @@ const priorityOrder: Priority[] = ['urgent', 'high', 'medium', 'low']
 
 <template>
   <main class="dashboard-view">
-    <div class="header">
-      <h1 class="type-display-lg">統計儀表板</h1>
-    </div>
-
-    <p v-if="store.loading" class="type-body-md">載入中…</p>
+    <p v-if="store.loading" class="type-body">載入中…</p>
     <template v-else>
       <div class="summary-grid">
         <div class="summary-card">
-          <span class="type-micro-cap">總項目數</span>
+          <span class="type-label">總項目數</span>
           <span class="value">{{ stats.total }}</span>
         </div>
         <div class="summary-card">
-          <span class="type-micro-cap">完成率</span>
+          <span class="type-label">完成率</span>
           <span class="value">{{ stats.completionRate }}%</span>
         </div>
         <div class="summary-card" :class="{ warn: stats.overdueCount > 0 }">
-          <span class="type-micro-cap">已逾期</span>
+          <span class="type-label">已逾期</span>
           <span class="value">{{ stats.overdueCount }}</span>
         </div>
         <div class="summary-card">
-          <span class="type-micro-cap">今天到期</span>
+          <span class="type-label">今天到期</span>
           <span class="value">{{ stats.dueTodayCount }}</span>
         </div>
         <div class="summary-card">
-          <span class="type-micro-cap">累積時數</span>
+          <span class="type-label">累積時數</span>
           <span class="value duration-value">{{ formatDuration(stats.totalTrackedSeconds) }}</span>
         </div>
       </div>
 
-      <section class="section">
-        <h2 class="type-button-cap section-title">各狀態數量</h2>
+      <section class="section card">
+        <h2 class="type-section-title">各狀態數量</h2>
         <div class="bar-list">
           <div v-for="status in stats.statusCounts" :key="status.columnId" class="bar-row">
-            <span class="type-body-md bar-label">{{ status.name }}</span>
+            <span class="type-body-sm bar-label">{{ status.name }}</span>
             <div class="bar-track">
               <div
                 class="bar-fill"
@@ -73,11 +69,11 @@ const priorityOrder: Priority[] = ['urgent', 'high', 'medium', 'low']
         </div>
       </section>
 
-      <section class="section">
-        <h2 class="type-button-cap section-title">優先級分佈</h2>
+      <section class="section card">
+        <h2 class="type-section-title">優先級分佈</h2>
         <div class="bar-list">
           <div v-for="key in priorityOrder" :key="key" class="bar-row">
-            <span class="type-body-md bar-label">{{ priorityLabels[key] }}</span>
+            <span class="type-body-sm bar-label">{{ priorityLabels[key] }}</span>
             <div class="bar-track">
               <div
                 class="bar-fill"
@@ -89,12 +85,12 @@ const priorityOrder: Priority[] = ['urgent', 'high', 'medium', 'low']
         </div>
       </section>
 
-      <section class="section">
-        <h2 class="type-button-cap section-title">標籤分佈</h2>
-        <p v-if="stats.tagCounts.length === 0" class="type-body-md empty">尚無標籤資料</p>
+      <section class="section card">
+        <h2 class="type-section-title">標籤分佈</h2>
+        <p v-if="stats.tagCounts.length === 0" class="type-body empty">尚無標籤資料</p>
         <div v-else class="bar-list">
           <div v-for="tag in stats.tagCounts" :key="tag.tag" class="bar-row">
-            <span class="type-body-md bar-label">{{ tag.tag }}</span>
+            <span class="type-body-sm bar-label">{{ tag.tag }}</span>
             <div class="bar-track">
               <div class="bar-fill" :style="{ width: `${(tag.count / maxTagCount) * 100}%` }"></div>
             </div>
@@ -108,65 +104,60 @@ const priorityOrder: Priority[] = ['urgent', 'high', 'medium', 'low']
 
 <style scoped>
 .dashboard-view {
-  padding: 32px;
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-.header {
-  margin-bottom: 24px;
+  padding: var(--space-xl);
+  max-width: 960px;
 }
 
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 16px;
-  margin-bottom: 32px;
+  gap: var(--space-md);
+  margin-bottom: var(--space-xl);
 }
 
 .summary-card {
-  border: 1px solid var(--color-hairline-on-light);
-  border-radius: var(--rounded-sm);
-  padding: 16px;
+  background: var(--color-canvas-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--rounded-md);
+  padding: var(--space-md);
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
 .summary-card.warn {
-  border: 2px solid var(--color-ink);
+  border: 1.5px solid var(--color-ink);
 }
 
 .summary-card .value {
   font-family: 'D-DIN-Bold', 'Arial Narrow', Arial, Verdana, sans-serif;
-  font-size: 40px;
+  font-size: 32px;
   font-weight: 700;
   line-height: 1.1;
 }
 
 .summary-card .duration-value {
-  font-size: 22px;
+  font-size: 20px;
 }
 
 .section {
-  margin-bottom: 32px;
+  margin-bottom: var(--space-xl);
 }
 
-.section-title {
-  color: var(--color-ink-mute);
-  margin-bottom: 12px;
+.section .type-section-title {
+  margin-bottom: var(--space-sm);
 }
 
 .bar-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-xs);
 }
 
 .bar-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-sm);
 }
 
 .bar-label {
@@ -179,9 +170,9 @@ const priorityOrder: Priority[] = ['urgent', 'high', 'medium', 'low']
 
 .bar-track {
   flex: 1;
-  background: var(--color-canvas-cool);
+  background: var(--color-canvas-app);
   border-radius: var(--rounded-xs);
-  height: 12px;
+  height: 10px;
   overflow: hidden;
 }
 
@@ -194,10 +185,10 @@ const priorityOrder: Priority[] = ['urgent', 'high', 'medium', 'low']
 .bar-count {
   width: 32px;
   text-align: right;
-  color: var(--color-ink-mute);
+  color: var(--color-ink-secondary);
 }
 
 .empty {
-  color: var(--color-ink-mute);
+  color: var(--color-ink-muted);
 }
 </style>

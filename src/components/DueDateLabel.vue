@@ -39,7 +39,7 @@ const statusLabel = computed(() => {
 <template>
   <span v-if="dateLabel" class="due-date">
     <span class="type-caption date-text">{{ dateLabel }}</span>
-    <span v-if="statusLabel" class="type-micro-cap status" :class="status">{{ statusLabel }}</span>
+    <span v-if="statusLabel" class="type-label status" :class="status">{{ statusLabel }}</span>
   </span>
   <span v-else class="type-caption date-text">—</span>
 </template>
@@ -52,27 +52,29 @@ const statusLabel = computed(() => {
 }
 
 .date-text {
-  color: var(--color-ink-mute);
+  color: var(--color-ink-muted);
 }
 
 .status {
   padding: 2px 8px;
   border-radius: var(--rounded-full);
-  border: 1px solid var(--color-ink);
+  border: 1px solid var(--color-border-subtle);
+  color: var(--color-ink-secondary);
   white-space: nowrap;
 }
 
 .status.overdue {
   background: var(--color-ink);
-  color: var(--color-on-primary);
+  color: var(--color-canvas-surface);
+  border-color: var(--color-ink);
 }
 
 .status.due-today {
-  border-width: 2px;
+  border: 1.5px solid var(--color-ink);
+  color: var(--color-ink);
 }
 
 .status.due-soon {
-  color: var(--color-ink-mute);
-  border-color: var(--color-hairline-on-light);
+  color: var(--color-ink-muted);
 }
 </style>

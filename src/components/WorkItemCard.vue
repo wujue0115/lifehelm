@@ -8,8 +8,8 @@ defineProps<{ item: WorkItem; isCompleted?: boolean }>()
 </script>
 
 <template>
-  <RouterLink :to="`/items/${item.id}`" class="card">
-    <p class="title type-body-md">{{ item.title }}</p>
+  <RouterLink :to="`/items/${item.id}`" class="work-card">
+    <p class="title type-body-sm">{{ item.title }}</p>
     <div class="meta">
       <PriorityBadge :priority="item.priority" />
       <DueDateLabel
@@ -25,19 +25,23 @@ defineProps<{ item: WorkItem; isCompleted?: boolean }>()
 </template>
 
 <style scoped>
-.card {
+.work-card {
   display: block;
-  background: var(--color-canvas-light);
-  border: 1px solid var(--color-hairline-on-light);
+  background: var(--color-canvas-surface);
+  border: 1px solid var(--color-border-subtle);
   border-radius: var(--rounded-sm);
-  padding: 12px;
+  padding: var(--space-sm);
   text-decoration: none;
   color: var(--color-ink);
   cursor: grab;
 }
 
+.work-card:hover {
+  border-color: var(--color-border-strong);
+}
+
 .title {
-  font-weight: 700;
+  font-weight: 500;
   margin: 0 0 8px;
 }
 
@@ -46,6 +50,7 @@ defineProps<{ item: WorkItem; isCompleted?: boolean }>()
   align-items: center;
   gap: 8px;
   margin-bottom: 8px;
+  flex-wrap: wrap;
 }
 
 .tags {
