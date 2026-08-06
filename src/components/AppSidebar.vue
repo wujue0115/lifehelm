@@ -296,7 +296,7 @@ function startResize(event: MouseEvent): void {
   right: -3px;
   bottom: 0;
   width: 6px;
-  cursor: col-resize;
+  cursor: ew-resize;
   z-index: 10;
 }
 
