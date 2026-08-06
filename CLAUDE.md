@@ -12,20 +12,30 @@ list), and `src/stores/counter.ts` (the template's example Pinia store) are all 
 
 `DESIGN.md` is the source of truth for every screen and component built in this app — read it
 before writing any UI, and use its design tokens (colors, typography, spacing, rounded, components)
-instead of inventing new values. It defines a SpaceX-inspired system that is deliberately austere:
+instead of inventing new values. It defines a back-office admin dashboard system:
 
-- **Black-and-white only** — no brand accent color. Photography (or, in-app, imagery) supplies the
-  only non-monochrome color. Don't introduce accent colors when building components.
-- **Uppercase display type** (D-DIN-Bold, falls back to Inter 700 + `letter-spacing`) with tight
-  vertical leading and positive letter-spacing — this is the brand's signature and isn't optional
-  for headline-tier text.
-- **Ghost-outlined pill buttons** (`{rounded.pill}`, 32px radius) are the only CTA on dark/marketing
-  surfaces — one per section, never filled, never paired with a second CTA. Filled buttons
-  (`button-filled-cool`) are reserved for shop/light-surface product actions.
-- **No shadows, blurs, or gradient overlays** — depth comes from imagery, not CSS elevation.
-- Component specs (buttons, cards, inputs, nav, footer) are defined under `components:` in
-  `DESIGN.md`'s frontmatter with references like `{colors.canvas-night}` — resolve those references
-  against the same frontmatter rather than hardcoding hex/px values in `.vue` files.
+- **Fixed left sidebar** (`src/components/AppSidebar.vue`, `{component.sidebar}`, 240px dark rail) is
+  the app's one constant piece of chrome — every screen lives in the light content column to its
+  right, under a `{component.topbar}`.
+- **Black-and-white + grayscale only** — no brand accent color. Surface hierarchy comes from
+  grayscale steps (`{colors.canvas-app}` vs `{colors.canvas-surface}` vs border tokens), not hue.
+  Don't introduce accent colors when building components.
+- **Normal-case typography, no wide tracking** — the UI is primarily Traditional Chinese, and
+  `text-transform: uppercase` / positive letter-spacing (both Latin-only conventions) have no
+  effect on CJK glyphs and are not used. Hierarchy comes from weight/size (`{typography.page-title}`
+  down to `{typography.label}`).
+- **Small-radius rectangular buttons** (`{rounded.sm}`, 6px) — `btn-primary`/`btn-secondary`/
+  `btn-ghost`. `{rounded.full}` (pill) is reserved for status badges/chips only, never buttons.
+- **No shadows, blurs, or gradients** — cards/tables separate from the page background with a 1px
+  border (`{colors.border-subtle}`/`{colors.border-strong}`), never elevation.
+- Component specs (buttons, cards, tables, sidebar, topbar) are defined under `components:` in
+  `DESIGN.md`'s frontmatter with references like `{colors.canvas-surface}` — resolve those
+  references against the same frontmatter rather than hardcoding hex/px values in `.vue` files.
+- **Dark mode** is a token swap, not a per-component concern: `src/assets/design-tokens.css`
+  defines light values in `:root` and dark overrides under `:root[data-theme="dark"]` (mirroring
+  `DESIGN.md`'s `colors:`/`colors-dark:`). `src/composables/useTheme.ts` toggles the attribute and
+  persists the choice. Never branch on theme in component script/template — just use the existing
+  `var(--color-*)` custom properties and both modes come for free.
 
 When implementing a screen, check `DESIGN.md`'s "Do's and Don'ts" and "Responsive Behavior"
 sections for the specific component you're building before styling it from scratch.

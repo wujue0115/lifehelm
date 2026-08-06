@@ -78,25 +78,21 @@ async function removeColumn(columnId: string): Promise<void> {
 
 <template>
   <main class="board-view">
-    <div class="header">
-      <h1 class="type-display-lg">看板檢視</h1>
-    </div>
-
-    <p v-if="store.loading" class="type-body-md">載入中…</p>
-    <p v-else-if="store.error" class="type-body-md error">錯誤：{{ store.error }}</p>
+    <p v-if="store.loading" class="type-body">載入中…</p>
+    <p v-else-if="store.error" class="type-body error">錯誤：{{ store.error }}</p>
     <template v-else>
-      <p v-if="boardError" class="type-body-md error">{{ boardError }}</p>
+      <p v-if="boardError" class="type-body error">{{ boardError }}</p>
       <div class="board">
         <div v-for="column in store.sortedBoard" :key="column.id" class="column">
           <div class="column-header">
             <input
               v-if="editingColumnId === column.id"
               v-model="editingName"
-              class="input type-micro-cap column-name-input"
+              class="input type-label column-name-input"
               @blur="saveColumnName"
               @keyup.enter="saveColumnName"
             />
-            <span v-else class="type-micro-cap column-name" @click="startEditColumn(column)">
+            <span v-else class="type-label column-name" @click="startEditColumn(column)">
               {{ column.name }}
             </span>
             <button
@@ -129,7 +125,7 @@ async function removeColumn(columnId: string): Promise<void> {
         <div class="column add-column">
           <input
             v-model="newColumnName"
-            class="input type-body-md"
+            class="input type-body"
             type="text"
             placeholder="+ 新增欄位"
             @keyup.enter="addColumn"
@@ -142,11 +138,7 @@ async function removeColumn(columnId: string): Promise<void> {
 
 <style scoped>
 .board-view {
-  padding: 32px;
-}
-
-.header {
-  margin-bottom: 24px;
+  padding: var(--space-xl);
 }
 
 .error {
@@ -155,15 +147,16 @@ async function removeColumn(columnId: string): Promise<void> {
 
 .board {
   display: flex;
-  gap: 16px;
+  gap: var(--space-md);
   align-items: flex-start;
   overflow-x: auto;
 }
 
 .column {
-  background: var(--color-canvas-cool);
-  border-radius: var(--rounded-sm);
-  padding: 12px;
+  background: var(--color-canvas-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--rounded-md);
+  padding: var(--space-sm);
   min-width: 260px;
   width: 260px;
   flex-shrink: 0;
@@ -173,11 +166,11 @@ async function removeColumn(columnId: string): Promise<void> {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: var(--space-sm);
 }
 
 .column-name {
-  color: var(--color-ink-mute);
+  color: var(--color-ink-secondary);
   cursor: text;
 }
 
@@ -190,7 +183,7 @@ async function removeColumn(columnId: string): Promise<void> {
   background: none;
   border: none;
   cursor: pointer;
-  color: var(--color-ink-mute);
+  color: var(--color-ink-muted);
   font-size: 18px;
   line-height: 1;
 }
@@ -198,13 +191,13 @@ async function removeColumn(columnId: string): Promise<void> {
 .column-body {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-xs);
   min-height: 60px;
 }
 
 .add-column {
   background: none;
-  border: 1px dashed var(--color-hairline-on-light);
+  border: 1px dashed var(--color-border-strong);
   display: flex;
   align-items: center;
 }

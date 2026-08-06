@@ -9,30 +9,31 @@ const label = computed(() => labels[props.priority])
 </script>
 
 <template>
-  <span class="badge type-micro-cap" :class="priority">{{ label }}</span>
+  <span class="badge type-label" :class="priority">{{ label }}</span>
 </template>
 
 <style scoped>
 .badge {
   display: inline-block;
-  padding: 4px 12px;
+  padding: 2px 10px;
   border-radius: var(--rounded-full);
-  color: var(--color-ink);
-  border: 1px solid var(--color-hairline-on-light);
+  color: var(--color-ink-secondary);
+  border: 1px solid var(--color-border-subtle);
   white-space: nowrap;
 }
 
 .badge.low {
-  color: var(--color-ink-mute);
+  color: var(--color-ink-muted);
 }
 
 .badge.high {
-  border: 2px solid var(--color-ink);
+  border: 1.5px solid var(--color-ink);
+  color: var(--color-ink);
 }
 
 .badge.urgent {
   background: var(--color-ink);
-  color: var(--color-on-primary);
+  color: var(--color-canvas-surface);
   border-color: var(--color-ink);
 }
 </style>

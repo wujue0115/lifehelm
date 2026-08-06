@@ -117,28 +117,27 @@ async function handleDelete(): Promise<void> {
 <template>
   <main class="detail-view">
     <div class="header">
-      <h1 class="type-display-lg">{{ isNew ? '新增工作項目' : '編輯工作項目' }}</h1>
-      <RouterLink to="/" class="btn btn-ghost-on-light type-button-cap">返回清單</RouterLink>
+      <RouterLink to="/" class="btn btn-secondary">‹ 返回清單</RouterLink>
     </div>
 
-    <p v-if="loading" class="type-body-md">載入中…</p>
+    <p v-if="loading" class="type-body">載入中…</p>
     <template v-else>
-      <p v-if="errorMessage" class="type-body-md error">{{ errorMessage }}</p>
-      <form class="form" @submit.prevent="handleSubmit">
+      <p v-if="errorMessage" class="type-body error">{{ errorMessage }}</p>
+      <form class="form card" @submit.prevent="handleSubmit">
         <label class="field">
-          <span class="type-micro-cap">標題</span>
-          <input v-model="form.title" class="input type-body-md" type="text" required />
+          <span class="type-label">標題</span>
+          <input v-model="form.title" class="input type-body" type="text" required />
         </label>
 
         <label class="field">
-          <span class="type-micro-cap">描述</span>
-          <textarea v-model="form.description" class="input type-body-md" rows="4"></textarea>
+          <span class="type-label">描述</span>
+          <textarea v-model="form.description" class="input type-body" rows="4"></textarea>
         </label>
 
         <div class="row">
           <label class="field">
-            <span class="type-micro-cap">狀態</span>
-            <select v-model="form.statusId" class="input type-body-md">
+            <span class="type-label">狀態</span>
+            <select v-model="form.statusId" class="input type-body">
               <option v-for="column in store.sortedBoard" :key="column.id" :value="column.id">
                 {{ column.name }}
               </option>
@@ -146,8 +145,8 @@ async function handleDelete(): Promise<void> {
           </label>
 
           <label class="field">
-            <span class="type-micro-cap">優先級</span>
-            <select v-model="form.priority" class="input type-body-md">
+            <span class="type-label">優先級</span>
+            <select v-model="form.priority" class="input type-body">
               <option value="low">低</option>
               <option value="medium">中</option>
               <option value="high">高</option>
@@ -156,34 +155,34 @@ async function handleDelete(): Promise<void> {
           </label>
 
           <label class="field">
-            <span class="type-micro-cap">開始日期</span>
-            <input v-model="form.startDate" class="input type-body-md" type="date" />
+            <span class="type-label">開始日期</span>
+            <input v-model="form.startDate" class="input type-body" type="date" />
           </label>
 
           <label class="field">
-            <span class="type-micro-cap">結束日期</span>
-            <input v-model="form.dueDate" class="input type-body-md" type="date" />
+            <span class="type-label">結束日期</span>
+            <input v-model="form.dueDate" class="input type-body" type="date" />
           </label>
         </div>
 
         <label class="field">
-          <span class="type-micro-cap">標籤（逗號分隔）</span>
+          <span class="type-label">標籤（逗號分隔）</span>
           <input
             v-model="form.tagsText"
-            class="input type-body-md"
+            class="input type-body"
             type="text"
             placeholder="例如：前端, 緊急修復"
           />
         </label>
 
         <div class="actions">
-          <button type="submit" class="btn btn-filled-cool type-button-cap" :disabled="saving">
+          <button type="submit" class="btn btn-primary" :disabled="saving">
             {{ saving ? '儲存中…' : '儲存' }}
           </button>
           <button
             v-if="!isNew"
             type="button"
-            class="btn btn-ghost-on-light type-button-cap"
+            class="btn btn-secondary"
             @click="showDeleteConfirm = true"
           >
             刪除
@@ -192,9 +191,15 @@ async function handleDelete(): Promise<void> {
       </form>
 
       <div v-if="!isNew && currentItem" class="sub-sections">
-        <TimeTracker :item-id="currentItem.id" :time-entries="currentItem.timeEntries" />
-        <AttachmentList :item-id="currentItem.id" :attachments="currentItem.attachments" />
-        <CommentList :item-id="currentItem.id" :comments="currentItem.comments" />
+        <div class="card">
+          <TimeTracker :item-id="currentItem.id" :time-entries="currentItem.timeEntries" />
+        </div>
+        <div class="card">
+          <AttachmentList :item-id="currentItem.id" :attachments="currentItem.attachments" />
+        </div>
+        <div class="card">
+          <CommentList :item-id="currentItem.id" :comments="currentItem.comments" />
+        </div>
       </div>
     </template>
 
@@ -210,24 +215,20 @@ async function handleDelete(): Promise<void> {
 
 <style scoped>
 .detail-view {
-  padding: 32px;
+  padding: var(--space-xl);
   max-width: 720px;
-  margin: 0 auto;
 }
 
 .header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 24px;
-  gap: 16px;
-  flex-wrap: wrap;
+  margin-bottom: var(--space-md);
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--space-md);
 }
 
 .field {
@@ -237,12 +238,12 @@ async function handleDelete(): Promise<void> {
 }
 
 .field span {
-  color: var(--color-ink-mute);
+  color: var(--color-ink-secondary);
 }
 
 .row {
   display: flex;
-  gap: 16px;
+  gap: var(--space-md);
   flex-wrap: wrap;
 }
 
@@ -253,7 +254,7 @@ async function handleDelete(): Promise<void> {
 
 .actions {
   display: flex;
-  gap: 12px;
+  gap: var(--space-sm);
   margin-top: 8px;
 }
 
@@ -264,9 +265,7 @@ async function handleDelete(): Promise<void> {
 .sub-sections {
   display: flex;
   flex-direction: column;
-  gap: 32px;
-  margin-top: 32px;
-  padding-top: 32px;
-  border-top: 1px solid var(--color-hairline-on-light);
+  gap: var(--space-md);
+  margin-top: var(--space-md);
 }
 </style>

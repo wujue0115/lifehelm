@@ -156,27 +156,17 @@ const weekdayLabels = ['日', '一', '二', '三', '四', '五', '六']
 
 <template>
   <main class="calendar-view">
-    <div class="header">
-      <h1 class="type-display-lg">行事曆檢視</h1>
-    </div>
-
     <div class="toolbar">
-      <button type="button" class="btn btn-ghost-on-light type-button-cap" @click="prevMonth">
-        ‹ 上個月
-      </button>
-      <span class="type-body-md month-label">{{ monthLabel }}</span>
-      <button type="button" class="btn btn-ghost-on-light type-button-cap" @click="nextMonth">
-        下個月 ›
-      </button>
-      <button type="button" class="btn btn-filled-cool type-button-cap" @click="goToday">
-        今天
-      </button>
+      <button type="button" class="btn btn-secondary" @click="prevMonth">‹ 上個月</button>
+      <span class="type-body month-label">{{ monthLabel }}</span>
+      <button type="button" class="btn btn-secondary" @click="nextMonth">下個月 ›</button>
+      <button type="button" class="btn btn-primary" @click="goToday">今天</button>
     </div>
 
-    <p v-if="store.loading" class="type-body-md">載入中…</p>
+    <p v-if="store.loading" class="type-body">載入中…</p>
     <template v-else>
       <div class="weekday-row">
-        <span v-for="label in weekdayLabels" :key="label" class="type-micro-cap weekday">{{
+        <span v-for="label in weekdayLabels" :key="label" class="type-label weekday">{{
           label
         }}</span>
       </div>
@@ -226,41 +216,41 @@ const weekdayLabels = ['日', '一', '二', '三', '四', '五', '六']
 
 <style scoped>
 .calendar-view {
-  padding: 32px;
-}
-
-.header {
-  margin-bottom: 24px;
+  padding: var(--space-xl);
 }
 
 .toolbar {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 24px;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
   flex-wrap: wrap;
 }
 
 .month-label {
   font-weight: 700;
-  min-width: 140px;
+  min-width: 120px;
   text-align: center;
 }
 
 .weekday-row {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  margin-bottom: 8px;
+  margin-bottom: var(--space-xs);
 }
 
 .weekday {
   text-align: center;
-  color: var(--color-ink-mute);
+  color: var(--color-ink-secondary);
 }
 
 .calendar {
   display: flex;
   flex-direction: column;
+  background: var(--color-canvas-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--rounded-md);
+  overflow: hidden;
 }
 
 .week {
@@ -268,15 +258,15 @@ const weekdayLabels = ['日', '一', '二', '三', '四', '五', '六']
   grid-template-columns: repeat(7, 1fr);
   column-gap: 0;
   row-gap: 4px;
-  border-top: 1px solid var(--color-hairline-on-light);
+  border-top: 1px solid var(--color-border-subtle);
 }
 
-.week:last-child {
-  border-bottom: 1px solid var(--color-hairline-on-light);
+.week:first-child {
+  border-top: none;
 }
 
 .day-bg {
-  border-right: 1px solid var(--color-hairline-on-light);
+  border-right: 1px solid var(--color-border-subtle);
   padding: 4px;
 }
 
@@ -285,21 +275,21 @@ const weekdayLabels = ['日', '一', '二', '三', '四', '五', '六']
 }
 
 .day-bg.out-of-month {
-  opacity: 0.35;
+  opacity: 0.4;
 }
 
 .day-bg.today .day-number {
   font-weight: 700;
-  text-decoration: underline;
+  color: var(--color-ink);
 }
 
 .day-number {
-  color: var(--color-ink-mute);
+  color: var(--color-ink-muted);
 }
 
 .bar-segment {
   align-self: center;
-  background: var(--color-canvas-cool);
+  background: var(--color-canvas-app);
   color: var(--color-ink);
   text-decoration: none;
   padding: 2px 4px;
@@ -324,7 +314,7 @@ const weekdayLabels = ['日', '一', '二', '三', '四', '五', '六']
 
 .bar-segment.overdue {
   background: var(--color-ink);
-  color: var(--color-on-primary);
+  color: var(--color-canvas-surface);
 }
 
 .bar-segment.due-today {

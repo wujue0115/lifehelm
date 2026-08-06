@@ -1,78 +1,87 @@
 ---
-version: alpha
-name: Spacex-Inspired-design-analysis
-description: An inspired interpretation of Spasex's design language — a mission-oriented aerospace brand built on pure black canvas, full-bleed photographic and video heroes of rockets and Mars landscapes, and uppercase D-DIN display type set in tight vertical leading. UI chrome is intentionally minimal a single ghost outlined pill button per band, all-caps eyebrow microtext, and a fixed top nav over photography. The system is unapologetically austere — black, white, and the imagery itself.
+version: beta
+name: Admin-Dashboard-System
+description: A functional back-office admin dashboard system — fixed left sidebar navigation, dense information-first layouts, flat bordered cards and tables, and a strictly monochrome grayscale palette. There is no accent color and no photography; hierarchy comes from typographic weight, size, and grayscale contrast alone. Text is primarily Traditional Chinese, so the system deliberately avoids uppercase display type and wide letter-spacing (both are Latin-only conventions with no visual effect on CJK glyphs).
 
 colors:
-  primary: "#000000"
-  ink: "#000000"
-  on-primary: "#ffffff"
-  on-primary-mute: "#f0f0fa"
-  canvas-night: "#000000"
-  canvas-night-soft: "#0a0a0a"
-  canvas-light: "#ffffff"
-  canvas-cool: "#f0f0fa"
-  hairline-on-dark: "#3a3a3f"
-  hairline-on-light: "#e0e0e8"
-  link-on-dark: "#ffffff"
-  link-blue-fallback: "#0000ee"
-  ink-mute: "#5a5a5f"
+  ink: "#09090b"
+  ink-secondary: "#52525b"
+  ink-muted: "#a1a1aa"
+  canvas-app: "#f4f4f5"
+  canvas-surface: "#ffffff"
+  canvas-sidebar: "#ffffff"
+  on-sidebar: "#09090b"
+  on-sidebar-muted: "#52525b"
+  sidebar-hover: "#ececef"
+  sidebar-active: "#e4e4e7"
+  border-subtle: "#e4e4e7"
+  border-strong: "#d4d4d8"
+  surface-hover: "#ececef"
+
+colors-dark:
+  ink: "#f4f4f5"
+  ink-secondary: "#a1a1aa"
+  ink-muted: "#71717a"
+  canvas-app: "#0a0a0b"
+  canvas-surface: "#18181b"
+  canvas-sidebar: "#18181b"
+  on-sidebar: "#f4f4f5"
+  on-sidebar-muted: "#a1a1aa"
+  sidebar-hover: "#1f1f23"
+  sidebar-active: "#27272a"
+  border-subtle: "#27272a"
+  border-strong: "#3f3f46"
+  surface-hover: "#1f1f23"
 
 typography:
-  display-xxl:
+  page-title:
     fontFamily: "D-DIN-Bold, Arial Narrow, Arial, Verdana, sans-serif"
-    fontSize: 80px
+    fontSize: 24px
     fontWeight: 700
-    lineHeight: 0.95
-    letterSpacing: 1.6px
-  display-xl:
+    lineHeight: 1.3
+    letterSpacing: 0
+  section-title:
     fontFamily: "D-DIN-Bold, Arial Narrow, Arial, Verdana, sans-serif"
-    fontSize: 60px
+    fontSize: 15px
     fontWeight: 700
-    lineHeight: 1.2
-    letterSpacing: 1.2px
-  display-lg:
-    fontFamily: "D-DIN-Bold, Arial Narrow, Arial, Verdana, sans-serif"
-    fontSize: 48px
-    fontWeight: 700
-    lineHeight: 1.25
-    letterSpacing: 0.96px
-  body-lg:
+    lineHeight: 1.4
+    letterSpacing: 0
+  body:
     fontFamily: "D-DIN, Arial, Verdana, sans-serif"
-    fontSize: 16px
+    fontSize: 14px
     fontWeight: 400
-    lineHeight: 1.7
-    letterSpacing: 0.32px
-  body-md:
+    lineHeight: 1.6
+    letterSpacing: 0
+  body-sm:
     fontFamily: "D-DIN, Arial, Verdana, sans-serif"
-    fontSize: 16px
+    fontSize: 13px
     fontWeight: 400
     lineHeight: 1.5
-    letterSpacing: 0.32px
-  button-cap:
-    fontFamily: "D-DIN, Arial, Verdana, sans-serif"
-    fontSize: 13.008px
-    fontWeight: 700
-    lineHeight: 0.94
-    letterSpacing: 1.17px
-  micro-cap:
+    letterSpacing: 0
+  caption:
     fontFamily: "D-DIN, Arial, Verdana, sans-serif"
     fontSize: 12px
     fontWeight: 400
-    lineHeight: 2.0
-    letterSpacing: 0.96px
-  caption:
+    lineHeight: 1.4
+    letterSpacing: 0
+  label:
     fontFamily: "D-DIN, Arial, Verdana, sans-serif"
-    fontSize: 13.008px
-    fontWeight: 400
-    lineHeight: 1.5
+    fontSize: 11px
+    fontWeight: 600
+    lineHeight: 1.3
+    letterSpacing: 0.2px
+  nav-item:
+    fontFamily: "D-DIN, Arial, Verdana, sans-serif"
+    fontSize: 14px
+    fontWeight: 500
+    lineHeight: 1.4
     letterSpacing: 0
 
 rounded:
   xs: 4px
-  sm: 8px
-  md: 16px
-  pill: 32px
+  sm: 6px
+  md: 10px
+  lg: 14px
   full: 9999px
 
 spacing:
@@ -86,168 +95,146 @@ spacing:
   huge: 48px
 
 components:
-  button-ghost-on-dark:
-    backgroundColor: "{colors.canvas-night}"
-    textColor: "{colors.on-primary}"
-    typography: "{typography.button-cap}"
-    rounded: "{rounded.pill}"
-    padding: 18px 24px
-  button-ghost-on-light:
-    backgroundColor: "{colors.canvas-light}"
-    textColor: "{colors.ink}"
-    typography: "{typography.button-cap}"
-    rounded: "{rounded.pill}"
-    padding: 18px 24px
-  button-filled-cool:
-    backgroundColor: "{colors.canvas-cool}"
-    textColor: "{colors.ink}"
-    typography: "{typography.button-cap}"
-    rounded: "{rounded.pill}"
-    padding: 18px 24px
-  text-input:
-    backgroundColor: "{colors.canvas-light}"
-    textColor: "{colors.ink}"
-    typography: "{typography.body-md}"
-    rounded: "{rounded.xs}"
-    padding: 12px 16px
-  card-photo-band:
-    backgroundColor: "{colors.canvas-night}"
-    textColor: "{colors.on-primary}"
-    typography: "{typography.body-md}"
-    rounded: "{rounded.xs}"
-    padding: 0px
-  card-shop-product:
-    backgroundColor: "{colors.canvas-light}"
-    textColor: "{colors.ink}"
-    typography: "{typography.body-md}"
+  sidebar:
+    backgroundColor: "{colors.canvas-sidebar}"
+    textColor: "{colors.on-sidebar}"
+    width: 240px
+    padding: 16px 12px
+  sidebar-nav-item:
+    backgroundColor: "transparent"
+    textColor: "{colors.on-sidebar-muted}"
+    typography: "{typography.nav-item}"
     rounded: "{rounded.sm}"
-    padding: 16px
-  nav-bar-overlay:
-    backgroundColor: "{colors.canvas-night}"
-    textColor: "{colors.on-primary}"
-    typography: "{typography.button-cap}"
-    rounded: "{rounded.xs}"
-    padding: 24px 32px
-  link-on-dark:
-    backgroundColor: "{colors.canvas-night}"
-    textColor: "{colors.link-on-dark}"
-    typography: "{typography.body-md}"
-    rounded: "{rounded.xs}"
-    padding: 0px
-  link-on-light:
-    backgroundColor: "{colors.canvas-light}"
+    padding: 8px 12px
+  topbar:
+    backgroundColor: "{colors.canvas-surface}"
     textColor: "{colors.ink}"
-    typography: "{typography.body-md}"
+    typography: "{typography.page-title}"
+    padding: 0px 24px
+  btn-primary:
+    backgroundColor: "{colors.ink}"
+    textColor: "{colors.canvas-surface}"
+    typography: "{typography.body-sm}"
+    rounded: "{rounded.sm}"
+    padding: 8px 16px
+  btn-secondary:
+    backgroundColor: "{colors.canvas-surface}"
+    textColor: "{colors.ink}"
+    typography: "{typography.body-sm}"
+    rounded: "{rounded.sm}"
+    padding: 8px 16px
+  btn-ghost:
+    backgroundColor: "transparent"
+    textColor: "{colors.ink-secondary}"
+    typography: "{typography.body-sm}"
+    rounded: "{rounded.sm}"
+    padding: 8px 16px
+  text-input:
+    backgroundColor: "{colors.canvas-surface}"
+    textColor: "{colors.ink}"
+    typography: "{typography.body}"
     rounded: "{rounded.xs}"
+    padding: 8px 12px
+  card:
+    backgroundColor: "{colors.canvas-surface}"
+    textColor: "{colors.ink}"
+    typography: "{typography.body}"
+    rounded: "{rounded.md}"
+    padding: 16px
+  data-table:
+    backgroundColor: "{colors.canvas-surface}"
+    textColor: "{colors.ink}"
+    typography: "{typography.body-sm}"
+    rounded: "{rounded.md}"
     padding: 0px
-  footer-dark:
-    backgroundColor: "{colors.canvas-night}"
-    textColor: "{colors.on-primary}"
-    typography: "{typography.caption}"
-    rounded: "{rounded.xs}"
-    padding: 32px 24px
+  status-badge:
+    backgroundColor: "{colors.canvas-surface}"
+    textColor: "{colors.ink}"
+    typography: "{typography.label}"
+    rounded: "{rounded.full}"
+    padding: 2px 10px
 ---
 
 ## Overview
 
-Spasex's design language is an exercise in negation: pure black canvas, white display type set in tight vertical leading and uppercase, full-bleed photography or autoplaying rocket-launch video as the only chrome. There is no brand color beyond black-and-white; there are no decorative shapes; there are no card grids or pricing tables on the marketing pages. Every band is a single full-viewport photograph or video paired with one all-caps headline at `{typography.display-xxl}` (80px D-DIN-Bold) and one ghost-outlined pill CTA. The composition is closer to a film title card than a SaaS landing page.
+This is a functional back-office admin dashboard, not a marketing site: the job is to let one person scan, filter, and edit a list of work items as fast as possible. There is no hero imagery, no full-bleed photography, no single-CTA-per-band composition. Instead the system borrows the layout grammar of tools like Linear, Vercel's dashboard, and classic admin templates — a fixed dark sidebar for wayfinding, a light content canvas for data, flat 1px-bordered cards and tables for structure, and typographic weight/size (not color) for hierarchy.
 
-The brand's depth is photographic. Mars landscapes, rocket exhaust plumes, the F9 booster on a launchpad at sunset — these are the design system. Type sits over them at high opacity with no scrim, no gradient overlay; the photographs are graded so the type lands cleanly. When type does need a background, it sits on `{colors.canvas-night-soft}` (a barely-lifted near-black) with a 1px hairline in `{colors.hairline-on-dark}`.
+The palette stays strictly monochrome — black, white, and a grayscale ramp in between — the same "no accent color" discipline as before, just repurposed: grayscale now does the job that used to belong to photography, building surface hierarchy (`{colors.canvas-app}` page background vs `{colors.canvas-surface}` card/table white) and interactive state (`{colors.surface-hover}`, `{colors.sidebar-hover}`) instead of chromatic branding.
 
-Typography splits between **D-DIN-Bold** for display tiers (uppercase, tight tracking, condensed feel) and **D-DIN** regular for body and button labels. There is no third family — even pricing on the shop site uses the same two cuts. The display sizes are unusually tight in vertical leading (0.95–1.25) and unusually loose in horizontal tracking (1.6px positive at 80px) — the brand feels engineered rather than designed.
+**Why no uppercase / wide tracking:** the previous iteration of this system used uppercase D-DIN-Bold with positive letter-spacing as its typographic signature. That convention is Latin-script-only — `text-transform: uppercase` has no effect on Chinese characters, and wide positive letter-spacing between CJK glyphs reads as broken, not premium. Since this app's UI text is primarily Traditional Chinese, the system now defaults every tier to normal case and zero-to-minimal letter-spacing, reserving weight and size as the only signals.
 
 **Key Characteristics:**
-- Single canvas: pure `{colors.canvas-night}` (`#000000`) for marketing; `{colors.canvas-light}` only on the shop site.
-- Display tier in uppercase D-DIN-Bold with positive horizontal tracking (1.6px at 80px) — the brand's typographic signature.
-- Full-bleed photography or autoplaying video as the dominant decorative element; type sits directly on imagery with no scrim.
-- Single ghost-outlined pill CTA per band, at `{rounded.pill}` 32px radius — never filled, never accent-colored.
-- All-caps eyebrow microtext (`{typography.micro-cap}` and `{typography.button-cap}`) with positive 0.96–1.17px tracking — every chrome element shouts in caps.
-- Fixed top nav overlaid on photography — no opaque background, just white-on-image.
-- Tight 0.95 line-height on the 80px display — vertical compression is the engineering aesthetic.
+- Fixed 240px dark left sidebar (`{colors.canvas-sidebar}`) for navigation; everything else lives in a light content column.
+- Strictly monochrome grayscale — no brand accent color, same discipline as the previous iteration, now expressed as tonal steps instead of photography.
+- Normal-case typography throughout — no forced uppercase, no wide letter-spacing (CJK-appropriate).
+- Small-radius rectangular buttons (`{rounded.sm}` 6px) for actions; full-pill radius (`{rounded.full}`) reserved for status badges/chips, not buttons.
+- Flat 1px-bordered cards and tables — no shadows, no blurs, no gradients. Depth is a border and a shade of gray, never elevation.
+- Dense spacing — 14px default body text, 36px control height, built for scanning rows of data, not for a single hero message.
 
 ## Colors
 
-> **Source pages:** home (`/`), `/shop`, `/vehicles/starship`, `/humanspaceflight/overview`, `/mission`.
-
-### Brand & Accent
-The brand has no accent colors. Black and white do all the chromatic work; photography supplies every other hue.
-
 ### Surface
-- **Canvas Night** (`{colors.canvas-night}` — `#000000`): Default marketing canvas. Pure black, no tint.
-- **Canvas Night Soft** (`{colors.canvas-night-soft}` — `#0a0a0a`): Barely-lifted near-black for content sections that need a subtle separation from the pure-black hero.
-- **Canvas Light** (`{colors.canvas-light}` — `#ffffff`): The shop site's product surface.
-- **Canvas Cool** (`{colors.canvas-cool}` — `#f0f0fa`): A pale cool-blue-white used as the secondary surface on the shop site and as the hover-canvas of certain ghost buttons.
-- **Hairline on Dark** (`{colors.hairline-on-dark}` — `#3a3a3f`): 1px borders on dark surface chrome.
-- **Hairline on Light** (`{colors.hairline-on-light}` — `#e0e0e8`): Borders on shop-site cards.
+- **Canvas App** (`{colors.canvas-app}` — `#f4f4f5`): The page background behind cards/tables — a barely-off-white that separates content blocks from their container without a border.
+- **Canvas Surface** (`{colors.canvas-surface}` — `#ffffff`): Card, table, topbar, and form panel background. Pure white, always paired with a `{colors.border-subtle}` or `{colors.border-strong}` border since there's no shadow to separate it from `{colors.canvas-app}`.
+- **Canvas Sidebar** (`{colors.canvas-sidebar}` — `#0a0a0a`): The one dark surface in the system — the fixed left navigation rail.
+- **Sidebar Hover / Active** (`{colors.sidebar-hover}` — `#18181b`, `{colors.sidebar-active}` — `#27272a`): Two tonal steps up from the sidebar canvas for hover and selected nav items — never a color change, just lightness.
+- **Surface Hover** (`{colors.surface-hover}` — `#ececef`): Table row / menu item hover on light surfaces.
+- **Border Subtle** (`{colors.border-subtle}` — `#e4e4e7`): Default 1px border on cards and table row dividers.
+- **Border Strong** (`{colors.border-strong}` — `#d4d4d8`): Table header underline, input borders — anywhere a border needs to read slightly more structural.
 
 ### Text
-- **On Primary** (`{colors.on-primary}` — `#ffffff`): Default text on dark canvas; the dominant text color across the marketing site.
-- **On Primary Mute** (`{colors.on-primary-mute}` — `#f0f0fa`): Slightly cooled-white used for secondary text on dark surfaces — barely distinguishable from `{colors.on-primary}` but enough to suggest a hierarchy.
-- **Ink** (`{colors.ink}` — `#000000`): Default text on light surfaces (shop site).
-- **Ink Mute** (`{colors.ink-mute}` — `#5a5a5f`): Secondary text on light surfaces.
+- **Ink** (`{colors.ink}` — `#09090b`): Primary text on light surfaces (near-black, not pure black — softer on dense text).
+- **Ink Secondary** (`{colors.ink-secondary}` — `#52525b`): Secondary text — labels, metadata, table header text.
+- **Ink Muted** (`{colors.ink-muted}` — `#a1a1aa`): Placeholder, disabled, and lowest-priority text.
+- **On Sidebar** (`{colors.on-sidebar}` — `#ffffff`): Active nav item text on the dark sidebar.
+- **On Sidebar Muted** (`{colors.on-sidebar-muted}` — `#a1a1aa`): Inactive nav item text.
 
-### Link
-- **Link on Dark** (`{colors.link-on-dark}` — `#ffffff`): Underlined inline link on dark canvas.
-- **Link Blue Fallback** (`{colors.link-blue-fallback}` — `#0000ee`): The browser default that appears in unstyled fallback contexts — documented for completeness, not used as a brand color.
+### Dark Mode
+The system ships both a light palette (`colors:`) and a dark palette (`colors-dark:`) in the frontmatter, and **every** surface token flips between them, sidebar included — `ink`/`ink-secondary`/`ink-muted`, `canvas-app`/`canvas-surface`, `canvas-sidebar`/`on-sidebar`/`on-sidebar-muted`/`sidebar-hover`/`sidebar-active`, `border-subtle`/`border-strong`, and `surface-hover`. The sidebar always takes the same value as `canvas-surface` in whichever mode is active (white in light mode, `#18181b` in dark mode) — it's a "surface," not a permanently-dark brand element, so it needs to contrast against `canvas-app` in both modes rather than going muddy (in dark mode, a permanently-`#0a0a0a` sidebar next to a `#0a0a0b` page background would be visually indistinguishable). In code this is implemented as CSS custom properties overridden under a `:root[data-theme="dark"]` selector (`src/assets/design-tokens.css`), toggled by `useTheme()` (`src/composables/useTheme.ts`), which persists the explicit choice to `localStorage` and otherwise defaults to the OS `prefers-color-scheme`. Components never branch on theme in script — they just reference the same `var(--color-*)` custom properties in both modes.
 
 ## Typography
 
 ### Font Family
-
-The display tier is **D-DIN-Bold** — a condensed industrial sans inspired by the German DIN 1451 standard (used on autobahn road signage and engineering blueprints). When unavailable, fall back to **Arial Narrow**, then Arial, then Verdana — the fallback chain prioritizes width compression over ornament.
-
-The UI tier is **D-DIN** (regular weight) — the same family at standard width — used for body, button labels, and captions.
-
-D-DIN is freely available from the **DIN Type Foundry** (and a free version under the same name is widely distributed). For maximum brand fidelity, use D-DIN directly; as a substitute, **Inter** at heavy weights (700+) with letter-spacing of 1.6px positive tracking approximates the rhythm. Avoid serif or humanist sans alternatives.
+Same two-cut family as before: **D-DIN-Bold** for titles, **D-DIN** regular for everything else, falling back to **Arial Narrow → Arial → Verdana**. The difference from the previous iteration is entirely in how the sizes and case are used, not the family itself.
 
 ### Hierarchy
 
-| Token | Size | Weight | Line Height | Letter Spacing | Use |
-|---|---|---|---|---|---|
-| `{typography.display-xxl}` | 80px | 700 | 0.95 | 1.6px | Hero headline (uppercase) |
-| `{typography.display-xl}` | 60px | 700 | 1.2 | 1.2px | Section opener (uppercase) |
-| `{typography.display-lg}` | 48px | 700 | 1.25 | 0.96px | Sub-section heading (uppercase) |
-| `{typography.body-lg}` | 16px | 400 | 1.7 | 0.32px | Marketing body lead |
-| `{typography.body-md}` | 16px | 400 | 1.5 | 0.32px | Default UI body |
-| `{typography.button-cap}` | 13.008px | 700 | 0.94 | 1.17px | All-caps button label |
-| `{typography.micro-cap}` | 12px | 400 | 2.0 | 0.96px | All-caps eyebrow / nav item |
-| `{typography.caption}` | 13.008px | 400 | 1.5 | 0 | Helper / footer text |
+| Token | Size | Weight | Line Height | Use |
+|---|---|---|---|---|
+| `{typography.page-title}` | 24px | 700 | 1.3 | Page `<h1>` (e.g. "清單檢視") — normal case |
+| `{typography.section-title}` | 15px | 700 | 1.4 | Card/section headers (e.g. "各狀態數量") |
+| `{typography.body}` | 14px | 400 | 1.6 | Default UI text, form inputs |
+| `{typography.body-sm}` | 13px | 400 | 1.5 | Table cell text, secondary copy |
+| `{typography.caption}` | 12px | 400 | 1.4 | Timestamps, helper text |
+| `{typography.label}` | 11px | 600 | 1.3 | Table column headers, form field labels, badge text |
+| `{typography.nav-item}` | 14px | 500 | 1.4 | Sidebar navigation item text |
 
 ### Principles
-- **Uppercase across display.** Every display tier renders in uppercase. The brand never uses sentence-case display headlines.
-- **Tight vertical leading on display.** 0.95 at 80px and 1.2 at 60px — the type stacks engineer-tight.
-- **Wide horizontal tracking.** Positive 0.96–1.6px tracking on display sizes; positive 0.96–1.17px on caps eyebrows. The wide tracking is the brand's signature optical air.
-- **No mono.** Code blocks are not part of the brand's typographic system.
-
-### Note on Font Substitutes
-**D-DIN** is freely available (the original DIN-style face under that name is widely distributed). When unavailable, use **Inter** at 700 weight with `letter-spacing: 1.6px`, `text-transform: uppercase`, and `line-height: 0.95` for display sizes — this matches the rhythm. Avoid Helvetica or Arial at default weights — the brand needs the condensed industrial cut. Avoid serif fallbacks entirely.
+- **Normal case everywhere.** No forced uppercase on any tier — CJK text has no case to transform.
+- **Weight and size carry hierarchy, not tracking.** Letter-spacing stays at 0 (or a barely-there 0.2px on `{typography.label}` for the handful of Latin/numeral labels) instead of the previous system's wide positive tracking.
+- **Dense by default.** 14px body instead of 16px — admin surfaces prioritize fitting more rows on screen over marketing-style generous type.
+- **No mono.** Still not part of this system's typographic palette.
 
 ## Layout
 
 ### Spacing System
-- **Base unit**: 8px (with denser sub-units 4 / 12 / 16 / 18 / 24).
-- **Tokens**: `{spacing.xxs}` 4px · `{spacing.xs}` 8px · `{spacing.sm}` 12px · `{spacing.md}` 16px · `{spacing.lg}` 18px · `{spacing.xl}` 24px · `{spacing.xxl}` 32px · `{spacing.huge}` 48px.
-- **Section padding**: full-viewport bands on marketing — no internal padding above/below; the photograph IS the section. On the shop site, sections use 48–64px vertical padding.
+Unchanged from the previous iteration: `{spacing.xxs}` 4px · `{spacing.xs}` 8px · `{spacing.sm}` 12px · `{spacing.md}` 16px · `{spacing.lg}` 18px · `{spacing.xl}` 24px · `{spacing.xxl}` 32px · `{spacing.huge}` 48px.
+
+### Shell Structure
+The app shell is two columns: a fixed 240px `{component.sidebar}` on the left, and a flexible right column containing a 56px `{component.topbar}` and a scrollable content area (`{colors.canvas-app}` background). There is no full-viewport hero band anymore — every screen lives inside the content column with `{spacing.xl}` (24px) padding.
 
 ### Grid & Container
-- Marketing pages have no container — every band is full-viewport-width, full-viewport-height (or close to it) with photography filling the entire frame.
-- Shop product grid: 4-up at desktop, 2-up at tablet, 1-up at mobile.
-- Type sits inside an inner ~1200px reading column centered horizontally over the full-bleed photograph.
-
-### Whitespace Philosophy
-The marketing pages have minimal traditional whitespace — the photograph occupies all space. "Whitespace" here means the dark sky in a rocket photograph or the empty stretch of Martian terrain. Negative space is photographic, not a UI choice. On the shop site whitespace returns to standard 32px grid gutters.
+- Content column has no max-width constraint beyond the viewport minus the sidebar — dashboards use available width for tables and multi-column card grids.
+- Card grids (dashboard summary cards) stair-step via `repeat(auto-fit, minmax(160px, 1fr))` — as many columns as fit, no fixed breakpoint count.
 
 ## Elevation & Depth
 
 | Level | Treatment | Use |
 |---|---|---|
-| 0 | Flat | Default — and the only level on marketing surfaces |
-| 1 | Photographic — full-bleed image or video | The primary depth medium; photographs do all the lifting |
+| 0 | Flat | Default — the only level in this system |
+| 1 | 1px border (`{colors.border-subtle}` or `{colors.border-strong}`) | The sole separation technique between a card/table and the app background |
 
-The brand does not use drop shadows, blurs, glows, or gradient overlays. Depth is photographic: a rocket launching at twilight has natural atmospheric depth that no CSS shadow could simulate. When type needs separation from imagery, the image is graded darker rather than scrimmed.
-
-### Decorative Depth
-Photography and autoplaying rocket-launch video are the only decorative depth. There are no illustrations, no icons beyond a few minimal SVG arrow chevrons in nav and CTA hover states.
+No drop shadows, blurs, glows, or gradients — same discipline as the previous iteration, just without photography to justify it. Here the reasoning is simpler: admin surfaces should look calm and flat, and a border reads as structural while a shadow reads as decorative.
 
 ## Shapes
 
@@ -255,76 +242,73 @@ Photography and autoplaying rocket-launch video are the only decorative depth. T
 
 | Token | Value | Use |
 |---|---|---|
-| `{rounded.xs}` | 4px | Form inputs (shop site) |
-| `{rounded.sm}` | 8px | Shop product card chrome, video frames |
-| `{rounded.md}` | 16px | Larger surface chrome |
-| `{rounded.pill}` | 32px | Ghost outlined pill CTAs (the brand's signature button shape) |
-| `{rounded.full}` | 9999px | Circular play-button overlays on video frames |
+| `{rounded.xs}` | 4px | Form inputs |
+| `{rounded.sm}` | 6px | Buttons — the default interactive-element radius |
+| `{rounded.md}` | 10px | Cards, tables, panels |
+| `{rounded.lg}` | 14px | Modals/dialogs |
+| `{rounded.full}` | 9999px | Status badges/chips and avatar circles only — never buttons |
 
-### Photography Geometry
-Every photograph is full-viewport-bleed, edge-to-edge, never inset in a card on the marketing site. On the shop site, product photography sits inside `{rounded.sm}` 8px containers with no shadow. Aspect ratios on marketing photography vary with the source image — there is no enforced ratio; the photograph leads.
+The previous system's signature 32px pill button is gone. Admin dashboards use small-radius rectangular buttons; pill/full radius is reserved for status chips, which is where it reads as "state," not "action."
 
 ## Components
 
 ### Buttons
 
-**`button-ghost-on-dark`** — the universal CTA on marketing surfaces.
-- Background `{colors.canvas-night}` (transparent against the photographed canvas), 1px solid `{colors.on-primary}` border, text `{colors.on-primary}`, type `{typography.button-cap}` (uppercase, 13px / 700 / 1.17px tracking), padding `{spacing.lg} {spacing.xl}` (18px 24px), rounded `{rounded.pill}` 32px.
+**`btn-primary`** — the primary action in any given context (save, create).
+- Background `{colors.ink}`, text `{colors.canvas-surface}` (white-on-near-black), type `{typography.body-sm}`, padding `{spacing.xs} {spacing.md}` (8px 16px), rounded `{rounded.sm}` 6px, min-height 36px.
 
-**`button-ghost-on-light`** — the same button on shop / light pages.
-- Background `{colors.canvas-light}` (transparent against light canvas), 1px solid `{colors.ink}` border, text `{colors.ink}`, otherwise identical.
+**`btn-secondary`** — secondary actions (cancel, back, destructive).
+- Background `{colors.canvas-surface}`, 1px `{colors.border-strong}` border, text `{colors.ink}`, otherwise identical geometry to `btn-primary`.
 
-**`button-filled-cool`** — fill variant on shop product cards.
-- Background `{colors.canvas-cool}`, text `{colors.ink}`, same pill geometry. Used as "Add to cart" or similar product CTAs.
+**`btn-ghost`** — lowest-emphasis inline actions (row-level edit/delete links).
+- Transparent background, text `{colors.ink-secondary}`, background lifts to `{colors.surface-hover}` on hover, no border.
 
 ### Cards & Containers
 
-**`card-photo-band`** — full-bleed photographic band on marketing pages.
-- Background `{colors.canvas-night}`, padding 0, rounded `{rounded.xs}`. The photograph fills the entire band; type and CTA sit overlaid.
+**`card`** — the default content container.
+- Background `{colors.canvas-surface}`, 1px `{colors.border-subtle}` border, rounded `{rounded.md}` 10px, padding `{spacing.md}` 16px. Used for dashboard summary tiles, form panels, and detail sections.
 
-**`card-shop-product`** — product card on the shop site.
-- Background `{colors.canvas-light}`, padding `{spacing.md}` 16px, rounded `{rounded.sm}` 8px, 1px `{colors.hairline-on-light}` border. Product photo on top, name in `{typography.body-md}`, price in `{typography.body-md}` 700 weight, "Add to cart" button at the bottom.
+**`data-table`** — tabular list views.
+- Background `{colors.canvas-surface}`, rounded `{rounded.md}` 10px. Header row uses `{typography.label}` text in `{colors.ink-secondary}` with a `{colors.border-strong}` bottom border; body rows use `{typography.body-sm}`, `{colors.border-subtle}` row dividers, and `{colors.surface-hover}` on hover.
 
 ### Inputs & Forms
 
-**`text-input`** — form input on the shop site.
-- Background `{colors.canvas-light}`, text `{colors.ink}`, type `{typography.body-md}`, padding `{spacing.sm} {spacing.md}` (12px 16px), rounded `{rounded.xs}` 4px, 1px `{colors.hairline-on-light}` border.
+**`text-input`** — form input.
+- Background `{colors.canvas-surface}`, text `{colors.ink}`, type `{typography.body}`, padding `{spacing.xs} {spacing.sm}` (8px 12px), rounded `{rounded.xs}` 4px, 1px `{colors.border-strong}` border, min-height 36px.
 
 ### Navigation
 
-**`nav-bar-overlay`** — top nav across the marketing site.
-- Background `{colors.canvas-night}` (transparent over the hero photo), text `{colors.on-primary}`, type `{typography.button-cap}` (uppercase). Logo wordmark on the left at ~147×19px, nav items horizontal in caps, padding `{spacing.xl} {spacing.xxl}` (24px 32px). The nav is fixed/sticky on scroll, retaining the overlay treatment.
+**`sidebar`** — fixed left navigation rail.
+- Background `{colors.canvas-sidebar}`, default width 240px (user-resizable, see below), padding `{spacing.md} {spacing.sm}`. Holds a top row (app name + collapse toggle), a vertical list of `sidebar-nav-item` entries (each pairing a small inline-SVG glyph with `{typography.nav-item}` text), and a theme toggle pinned to the bottom via `margin-top: auto`.
+- **Resizable**: the sidebar's right edge is a permanently-visible 1px `{colors.border-strong}` divider (thickening and darkening to `{colors.ink-secondary}` on hover) that doubles as the drag handle — `cursor: col-resize`, drag to set any width between 180px and 400px. The divider stays visible (but non-interactive) when collapsed. The choice persists to `localStorage` (`src/composables/useSidebar.ts`). Because the sidebar now shares `canvas-surface`'s color with the content cards, this divider is what actually separates sidebar from content — don't rely on a color difference alone.
+- **Collapsible**: a chevron toggle next to the app name collapses the sidebar to a fixed 64px icon-only rail (labels hidden, nav items center their icon) — independent of viewport width, and also persisted. On first load with no stored preference, it defaults collapsed if the viewport is under 1024px.
+
+**`sidebar-nav-item`** — a single navigation entry.
+- Default: transparent background, text `{colors.on-sidebar-muted}`. Hover: background `{colors.sidebar-hover}`. Active (current route): background `{colors.sidebar-active}`, text `{colors.on-sidebar}`, plus a 3px `{colors.on-sidebar}` left-edge indicator bar. Rounded `{rounded.sm}`, padding `{spacing.xs} {spacing.sm}`.
+
+**`topbar`** — top bar in the content column.
+- Background `{colors.canvas-surface}`, 1px `{colors.border-subtle}` bottom border, height 56px, padding `0 {spacing.xl}` (0 24px), holds the current page's `{typography.page-title}`.
 
 ### Signature Components
 
-**Full-Bleed Photo / Video Hero** — every marketing band is a full-viewport photograph or autoplaying rocket-launch video. Type and CTA sit overlaid on the photograph at high opacity with no scrim. The photograph is graded so type lands cleanly without an overlay layer.
-
-**Uppercase Display Headline** — the 80px D-DIN-Bold uppercase headline with 1.6px positive tracking is the brand's most recognizable typographic moment. Always uppercase, always bold-weight, always positively tracked.
-
-**`link-on-dark`** — inline links on dark canvas.
-- Text `{colors.link-on-dark}` (white) with persistent underline.
-
-**`link-on-light`** — inline links on light canvas.
-- Text `{colors.ink}` with persistent underline.
-
-**`footer-dark`** — site-wide footer.
-- Background `{colors.canvas-night}`, text `{colors.on-primary}`, type `{typography.caption}`, padding `{spacing.xxl} {spacing.xl}` (32px 24px). Holds nav columns in `{typography.micro-cap}` (uppercase), and a small legal/copyright row at the bottom.
+**`status-badge`** — used for work-item status/priority/tag chips.
+- Rounded `{rounded.full}` (the one place pill radius survives), padding 2px 10px, type `{typography.label}`. Default: `{colors.canvas-surface}` background with a `{colors.ink}` (or `{colors.border-strong}` for lower-emphasis variants) border. "Completed"/highest-emphasis states invert to solid `{colors.ink}` background with `{colors.canvas-surface}` text — grayscale intensity signals state, never color.
 
 ## Do's and Don'ts
 
 ### Do
-- Use full-bleed photography or autoplaying video as the dominant decorative element on every marketing band.
-- Render display tiers in uppercase D-DIN-Bold with positive 0.96–1.6px letter-spacing — the wide tracking is the signature.
-- Use a single `{button-ghost-on-dark}` per band — the brand does NOT show two CTAs side by side on marketing surfaces.
-- Pair every photograph with type that respects the imagery — no scrims, no gradients, no overlays. Grade the photo, not the canvas.
-- Keep nav overlay-style (transparent, white-on-image) on marketing pages.
+- Keep the sidebar fixed and dark on every screen — it's the one constant piece of chrome.
+- Use weight and size (not color, not letter-spacing) to build hierarchy in Chinese UI text.
+- Border every card/table against `{colors.canvas-app}` — there's no shadow to do that job.
+- Reserve `{rounded.full}` for status chips; every button and input stays rectangular with `{rounded.sm}`/`{rounded.xs}`.
+- Keep the palette to ink/canvas/border grayscale steps — no brand accent color.
 
 ### Don't
-- Don't introduce brand accent colors — black, white, and photography are the entire palette.
-- Don't use drop shadows or gradient overlays on dark canvas — they fight the photography.
-- Don't render display tiers in sentence-case or title-case — uppercase is the brand.
-- Don't put filled buttons on marketing surfaces — the ghost outlined pill is the only marketing CTA.
-- Don't use serif or humanist sans alternatives — the condensed industrial DIN cut is non-negotiable.
+- Don't force `uppercase` on any text tier — it has no effect on CJK and reads as broken when it does apply to the rare Latin string.
+- Don't bring back the 32px pill button for primary/secondary actions — that shape is a status-badge signal only now.
+- Don't add drop shadows or gradients to lift cards off the background — use a border instead.
+- Don't introduce a brand accent color for charts or status — grayscale intensity (outline vs. filled `{colors.ink}`) is the only signal available.
+- Don't widen letter-spacing on body or label text to "match the old brand feel" — it actively hurts CJK legibility.
 
 ## Responsive Behavior
 
@@ -332,32 +316,24 @@ Every photograph is full-viewport-bleed, edge-to-edge, never inset in a card on 
 
 | Name | Width | Key Changes |
 |---|---|---|
-| Wide | ≥ 1500px | Full hero photograph; max-content type column at 1200px |
-| Desktop | 1280–1499px | Default desktop layout |
-| Laptop | 961–1279px | Type column tightens; photo crops adjust |
-| Tablet | 768–960px | Display drops 80 → 60px; nav compresses |
-| Mobile | 600–767px | Display drops to 48px; ghost button retains pill shape |
-| Small Mobile | < 600px | Display drops to 40px; nav becomes hamburger |
+| Desktop | ≥ 1024px | Sidebar defaults expanded (user-resizable 180–400px, icon + label) |
+| Compact | < 1024px | Sidebar defaults collapsed to an icon-only rail (64px); labels hide |
+
+The sidebar's expanded/collapsed state and width are user-controlled and persisted (`localStorage`) once touched — the breakpoint above only decides the *first-load default* when no preference is stored yet, it doesn't force a state on every resize.
 
 ### Touch Targets
-- Ghost pill buttons hit ≥ 50×50px due to the 18px vertical padding × 13px line-height. WCAG AAA compliant.
-- Form fields stay at the 44px minimum height.
+- Buttons and inputs hold a 36px minimum height — dense but still comfortably clickable for a desktop-first admin tool (this system is not optimized for a 44–50px marketing touch target).
 
 ### Collapsing Strategy
-- Display sizes stair-step 80 → 60 → 48 → 40px through the breakpoints.
-- Photography re-crops to focal subject on smaller widths (rocket centered, Mars landscape centered).
-- Top nav collapses to hamburger below 768px; menu retains the dark overlay treatment.
-- Shop product grid stair-steps 4-up → 2-up → 1-up.
-
-### Image Behavior
-Marketing photography uses `srcset` for desktop / tablet / mobile with art-direction crops at major breakpoints. Mobile crops favor the central focal subject; wide crops favor environmental context (full launch pad, full Martian horizon).
+- The sidebar is the only piece of chrome that collapses, and it collapses to icons via an explicit toggle rather than hiding behind a hamburger menu or a viewport-only media query — admin tools keep primary navigation reachable and under the user's control at every width.
+- Dashboard card grids reflow via `auto-fit` rather than stepping through named breakpoints.
+- Data tables scroll horizontally on narrow viewports rather than reflowing into cards.
 
 ## Iteration Guide
 
 1. Focus on ONE component at a time.
-2. Reference component names and tokens directly (`{colors.canvas-night}`, `{button-ghost-on-dark}`, `{rounded.pill}`).
-3. Run `npx @google/design.md lint DESIGN.md` after edits.
-4. Add new variants as separate entries.
-5. Default body to `{typography.body-md}`; reserve `{typography.body-lg}` for marketing leads.
-6. The black-and-white-only rule is load-bearing — adding a brand accent color breaks the system.
-7. Ghost pill is the only marketing CTA; filled buttons live exclusively on the shop site.
+2. Reference component names and tokens directly (`{colors.ink}`, `{btn-primary}`, `{rounded.sm}`).
+3. Add new variants as separate entries rather than overloading an existing one.
+4. Default body to `{typography.body}`; reserve `{typography.body-sm}` for table cells and secondary copy.
+5. The monochrome-only rule is still load-bearing — adding a brand accent color breaks the system just as much as it did in the previous iteration.
+6. `{rounded.full}` is reserved for status badges — don't apply it to buttons or inputs.

@@ -89,68 +89,61 @@ async function confirmDelete(): Promise<void> {
 
 <template>
   <main class="list-view">
-    <div class="header">
-      <h1 class="type-display-lg">清單檢視</h1>
-      <RouterLink to="/items/new" class="btn btn-filled-cool type-button-cap"
-        >+ 新增項目</RouterLink
-      >
+    <div class="toolbar">
+      <div class="filters">
+        <input v-model="search" class="input type-body" type="text" placeholder="搜尋標題或描述…" />
+        <select v-model="statusFilter" class="input type-body">
+          <option value="all">所有狀態</option>
+          <option v-for="column in store.sortedBoard" :key="column.id" :value="column.id">
+            {{ column.name }}
+          </option>
+        </select>
+        <select v-model="priorityFilter" class="input type-body">
+          <option value="all">所有優先級</option>
+          <option value="low">低</option>
+          <option value="medium">中</option>
+          <option value="high">高</option>
+          <option value="urgent">緊急</option>
+        </select>
+        <select v-model="tagFilter" class="input type-body">
+          <option value="all">所有標籤</option>
+          <option v-for="tag in allTags" :key="tag" :value="tag">{{ tag }}</option>
+        </select>
+      </div>
+      <RouterLink to="/items/new" class="btn btn-primary">+ 新增項目</RouterLink>
     </div>
 
-    <div class="filters">
-      <input
-        v-model="search"
-        class="input type-body-md"
-        type="text"
-        placeholder="搜尋標題或描述…"
-      />
-      <select v-model="statusFilter" class="input type-body-md">
-        <option value="all">所有狀態</option>
-        <option v-for="column in store.sortedBoard" :key="column.id" :value="column.id">
-          {{ column.name }}
-        </option>
-      </select>
-      <select v-model="priorityFilter" class="input type-body-md">
-        <option value="all">所有優先級</option>
-        <option value="low">低</option>
-        <option value="medium">中</option>
-        <option value="high">高</option>
-        <option value="urgent">緊急</option>
-      </select>
-      <select v-model="tagFilter" class="input type-body-md">
-        <option value="all">所有標籤</option>
-        <option v-for="tag in allTags" :key="tag" :value="tag">{{ tag }}</option>
-      </select>
-    </div>
-
-    <p v-if="store.loading" class="type-body-md">載入中…</p>
-    <p v-else-if="store.error" class="type-body-md error">錯誤：{{ store.error }}</p>
+    <p v-if="store.loading" class="type-body">載入中…</p>
+    <p v-else-if="store.error" class="type-body error">錯誤：{{ store.error }}</p>
     <template v-else>
       <p class="count type-caption">
         共 {{ sortedItems.length }} / {{ store.items.length }} 筆工作項目
       </p>
-      <table v-if="sortedItems.length" class="table">
-        <thead>
-          <tr class="type-micro-cap">
-            <th @click="toggleSort('title')">標題</th>
-            <th>狀態</th>
-            <th @click="toggleSort('priority')">優先級</th>
-            <th>標籤</th>
-            <th @click="toggleSort('dueDate')">日期</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          <WorkItemRow
-            v-for="item in sortedItems"
-            :key="item.id"
-            :item="item"
-            :status-name="statusNameById.get(item.statusId) ?? item.statusId"
-            :is-completed="store.isItemCompleted(item)"
-            @delete="requestDelete"
-          />
-        </tbody>
-      </table>
-      <p v-else class="type-body-md empty">沒有符合條件的工作項目。</p>
+      <div class="table-card">
+        <table v-if="sortedItems.length" class="table">
+          <thead>
+            <tr class="type-label">
+              <th @click="toggleSort('title')">標題</th>
+              <th>狀態</th>
+              <th @click="toggleSort('priority')">優先級</th>
+              <th>標籤</th>
+              <th @click="toggleSort('dueDate')">日期</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <WorkItemRow
+              v-for="item in sortedItems"
+              :key="item.id"
+              :item="item"
+              :status-name="statusNameById.get(item.statusId) ?? item.statusId"
+              :is-completed="store.isItemCompleted(item)"
+              @delete="requestDelete"
+            />
+          </tbody>
+        </table>
+        <p v-else class="type-body empty">沒有符合條件的工作項目。</p>
+      </div>
     </template>
 
     <ConfirmDialog
@@ -165,34 +158,38 @@ async function confirmDelete(): Promise<void> {
 
 <style scoped>
 .list-view {
-  padding: 32px;
-  max-width: 1200px;
-  margin: 0 auto;
+  padding: var(--space-xl);
 }
 
-.header {
+.toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 24px;
-  gap: 16px;
+  margin-bottom: var(--space-md);
+  gap: var(--space-md);
   flex-wrap: wrap;
 }
 
 .filters {
   display: flex;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: var(--space-xs);
   flex-wrap: wrap;
 }
 
 .filters .input {
-  min-width: 160px;
+  min-width: 140px;
 }
 
 .count {
-  color: var(--color-ink-mute);
-  margin-bottom: 8px;
+  color: var(--color-ink-secondary);
+  margin-bottom: var(--space-sm);
+}
+
+.table-card {
+  background: var(--color-canvas-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--rounded-md);
+  overflow: hidden;
 }
 
 .table {
@@ -202,15 +199,15 @@ async function confirmDelete(): Promise<void> {
 
 .table th {
   text-align: left;
-  padding: 8px;
-  color: var(--color-ink-mute);
+  padding: 10px 12px;
+  color: var(--color-ink-secondary);
   cursor: pointer;
-  border-bottom: 1px solid var(--color-ink);
+  border-bottom: 1px solid var(--color-border-strong);
 }
 
 .empty {
-  color: var(--color-ink-mute);
-  padding: 32px 0;
+  color: var(--color-ink-muted);
+  padding: var(--space-xxl) 0;
   text-align: center;
 }
 

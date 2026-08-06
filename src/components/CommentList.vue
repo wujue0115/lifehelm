@@ -32,15 +32,15 @@ async function removeComment(commentId: string): Promise<void> {
 
 <template>
   <div class="comment-list">
-    <h2 class="type-button-cap section-title">留言</h2>
-    <p v-if="comments.length === 0" class="type-body-md empty">尚無留言</p>
+    <h2 class="type-section-title">留言</h2>
+    <p v-if="comments.length === 0" class="type-body empty">尚無留言</p>
     <ul v-else class="comments">
       <li v-for="comment in comments" :key="comment.id" class="comment">
         <div class="comment-body">
-          <p class="type-body-md text">{{ comment.text }}</p>
+          <p class="type-body text">{{ comment.text }}</p>
           <span class="type-caption meta">{{ formatDate(comment.createdAt) }}</span>
         </div>
-        <button type="button" class="type-caption remove" @click="removeComment(comment.id)">
+        <button type="button" class="btn btn-ghost remove" @click="removeComment(comment.id)">
           刪除
         </button>
       </li>
@@ -49,13 +49,13 @@ async function removeComment(commentId: string): Promise<void> {
     <form class="new-comment" @submit.prevent="submitComment">
       <textarea
         v-model="newCommentText"
-        class="input type-body-md"
+        class="input type-body"
         rows="2"
         placeholder="新增留言…"
       ></textarea>
       <button
         type="submit"
-        class="btn btn-filled-cool type-button-cap"
+        class="btn btn-primary"
         :disabled="submitting || !newCommentText.trim()"
       >
         送出
@@ -68,15 +68,11 @@ async function removeComment(commentId: string): Promise<void> {
 .comment-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-}
-
-.section-title {
-  color: var(--color-ink-mute);
+  gap: var(--space-sm);
 }
 
 .empty {
-  color: var(--color-ink-mute);
+  color: var(--color-ink-muted);
 }
 
 .comments {
@@ -85,15 +81,15 @@ async function removeComment(commentId: string): Promise<void> {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-sm);
 }
 
 .comment {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
-  border-bottom: 1px solid var(--color-hairline-on-light);
-  padding-bottom: 12px;
+  gap: var(--space-sm);
+  border-bottom: 1px solid var(--color-border-subtle);
+  padding-bottom: var(--space-sm);
 }
 
 .comment-body {
@@ -107,23 +103,19 @@ async function removeComment(commentId: string): Promise<void> {
 }
 
 .meta {
-  color: var(--color-ink-mute);
+  color: var(--color-ink-muted);
 }
 
 .remove {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--color-ink-mute);
-  text-decoration: underline;
-  padding: 0;
+  min-height: 28px;
+  padding: 4px 10px;
   height: fit-content;
 }
 
 .new-comment {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-xs);
   align-items: flex-start;
 }
 </style>

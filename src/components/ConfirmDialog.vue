@@ -6,19 +6,11 @@ const emit = defineEmits<{ confirm: []; cancel: [] }>()
 <template>
   <div v-if="open" class="overlay" @click.self="emit('cancel')">
     <div class="panel">
-      <h2 class="type-body-md title">{{ title }}</h2>
-      <p class="type-body-md">{{ message }}</p>
+      <h2 class="type-section-title title">{{ title }}</h2>
+      <p class="type-body">{{ message }}</p>
       <div class="actions">
-        <button
-          type="button"
-          class="btn btn-ghost-on-light type-button-cap"
-          @click="emit('cancel')"
-        >
-          取消
-        </button>
-        <button type="button" class="btn btn-filled-cool type-button-cap" @click="emit('confirm')">
-          確認
-        </button>
+        <button type="button" class="btn btn-secondary" @click="emit('cancel')">取消</button>
+        <button type="button" class="btn btn-primary" @click="emit('confirm')">確認</button>
       </div>
     </div>
   </div>
@@ -36,23 +28,22 @@ const emit = defineEmits<{ confirm: []; cancel: [] }>()
 }
 
 .panel {
-  background: var(--color-canvas-light);
-  border: 1px solid var(--color-ink);
-  border-radius: var(--rounded-sm);
-  padding: 24px;
+  background: var(--color-canvas-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--rounded-lg);
+  padding: var(--space-xl);
   max-width: 400px;
   width: 90%;
 }
 
 .title {
-  font-weight: 700;
   margin: 0 0 8px;
 }
 
 .actions {
   display: flex;
-  gap: 12px;
+  gap: var(--space-sm);
   justify-content: flex-end;
-  margin-top: 16px;
+  margin-top: var(--space-md);
 }
 </style>

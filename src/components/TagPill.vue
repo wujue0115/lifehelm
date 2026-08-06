@@ -3,7 +3,7 @@ defineProps<{ label: string }>()
 </script>
 
 <template>
-  <span class="tag type-micro-cap">{{ label }}</span>
+  <span class="tag type-label">{{ label }}</span>
 </template>
 
 <style scoped>
@@ -11,8 +11,8 @@ defineProps<{ label: string }>()
   display: inline-block;
   padding: 2px 10px;
   border-radius: var(--rounded-full);
-  background: var(--color-canvas-cool);
-  color: var(--color-ink-mute);
+  background: var(--color-canvas-app);
+  color: var(--color-ink-secondary);
   margin-right: 4px;
   white-space: nowrap;
 }
