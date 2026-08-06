@@ -1,7 +1,13 @@
 import { randomUUID } from 'node:crypto'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { Plugin } from 'vite'
-import type { AttachmentMeta, BoardColumn, Comment, WorkItem } from '../src/types/work-item.js'
+import type {
+  AttachmentMeta,
+  BoardColumn,
+  Comment,
+  TimeEntry,
+  WorkItem,
+} from '../src/types/work-item.js'
 import {
   deleteAttachmentFile,
   readAttachmentFile,
@@ -240,6 +246,104 @@ export function localDataPlugin(): Plugin {
             res.setHeader('Content-Length', buffer.length)
             res.end(buffer)
             return
+          }
+
+          if (segments[0] === 'items' && segments.length === 3 && segments[2] === 'time-entries') {
+            const id = segments[1]
+            const items = await readJsonFile<WorkItem[]>(ITEMS_FILE, [])
+            const index = items.findIndex((item) => item.id === id)
+            if (index === -1) return sendJson(res, 404, { error: 'not found' })
+            const existing = items[index]
+            if (!existing) return sendJson(res, 404, { error: 'not found' })
+
+            if (method === 'POST') {
+              const body = (await readBody(req)) as Partial<TimeEntry> | undefined
+              const startedAt = body?.startedAt ?? new Date().toISOString()
+              const endedAt = body?.endedAt ?? null
+              const durationSeconds = endedAt
+                ? Math.max(
+                    0,
+                    Math.round(
+                      (new Date(endedAt).getTime() - new Date(startedAt).getTime()) / 1000,
+                    ),
+                  )
+                : null
+              const entry: TimeEntry = {
+                id: randomUUID(),
+                startedAt,
+                endedAt,
+                durationSeconds,
+                note: body?.note ?? '',
+              }
+              const updated: WorkItem = {
+                ...existing,
+                timeEntries: [...existing.timeEntries, entry],
+                updatedAt: new Date().toISOString(),
+              }
+              items[index] = updated
+              await writeJsonFile(ITEMS_FILE, items)
+              return sendJson(res, 201, updated)
+            }
+          }
+
+          if (segments[0] === 'items' && segments.length === 4 && segments[2] === 'time-entries') {
+            const id = segments[1]
+            const entryId = segments[3]
+            const items = await readJsonFile<WorkItem[]>(ITEMS_FILE, [])
+            const index = items.findIndex((item) => item.id === id)
+            if (index === -1) return sendJson(res, 404, { error: 'not found' })
+            const existing = items[index]
+            if (!existing) return sendJson(res, 404, { error: 'not found' })
+
+            if (method === 'PUT') {
+              const entryIndex = existing.timeEntries.findIndex((entry) => entry.id === entryId)
+              if (entryIndex === -1) return sendJson(res, 404, { error: 'not found' })
+              const entry = existing.timeEntries[entryIndex]
+              if (!entry) return sendJson(res, 404, { error: 'not found' })
+
+              const body = (await readBody(req)) as Partial<TimeEntry> | undefined
+              const startedAt = body?.startedAt ?? entry.startedAt
+              const endedAt =
+                body?.endedAt !== undefined
+                  ? body.endedAt
+                  : (entry.endedAt ?? new Date().toISOString())
+              const note = body?.note ?? entry.note
+              const durationSeconds = endedAt
+                ? Math.max(
+                    0,
+                    Math.round(
+                      (new Date(endedAt).getTime() - new Date(startedAt).getTime()) / 1000,
+                    ),
+                  )
+                : null
+              const updatedEntry: TimeEntry = {
+                id: entry.id,
+                startedAt,
+                endedAt,
+                durationSeconds,
+                note,
+              }
+              const timeEntries = [...existing.timeEntries]
+              timeEntries[entryIndex] = updatedEntry
+              const updated: WorkItem = {
+                ...existing,
+                timeEntries,
+                updatedAt: new Date().toISOString(),
+              }
+              items[index] = updated
+              await writeJsonFile(ITEMS_FILE, items)
+              return sendJson(res, 200, updated)
+            }
+            if (method === 'DELETE') {
+              const updated: WorkItem = {
+                ...existing,
+                timeEntries: existing.timeEntries.filter((entry) => entry.id !== entryId),
+                updatedAt: new Date().toISOString(),
+              }
+              items[index] = updated
+              await writeJsonFile(ITEMS_FILE, items)
+              return sendJson(res, 200, updated)
+            }
           }
 
           if (segments[0] === 'board' && segments.length === 1) {

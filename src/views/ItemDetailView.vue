@@ -6,6 +6,7 @@ import type { Priority, WorkItem } from '@/types/work-item'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import CommentList from '@/components/CommentList.vue'
 import AttachmentList from '@/components/AttachmentList.vue'
+import TimeTracker from '@/components/TimeTracker.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -191,6 +192,7 @@ async function handleDelete(): Promise<void> {
       </form>
 
       <div v-if="!isNew && currentItem" class="sub-sections">
+        <TimeTracker :item-id="currentItem.id" :time-entries="currentItem.timeEntries" />
         <AttachmentList :item-id="currentItem.id" :attachments="currentItem.attachments" />
         <CommentList :item-id="currentItem.id" :comments="currentItem.comments" />
       </div>

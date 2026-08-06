@@ -1,4 +1,4 @@
-import type { BoardColumn, WorkItem } from '@/types/work-item'
+import type { BoardColumn, TimeEntry, WorkItem } from '@/types/work-item'
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, {
@@ -42,4 +42,17 @@ export const api = {
   deleteAttachment: (itemId: string, attachmentId: string) =>
     request<WorkItem>(`/api/items/${itemId}/attachments/${attachmentId}`, { method: 'DELETE' }),
   attachmentUrl: (attachmentId: string) => `/api/attachments/${attachmentId}`,
+
+  addTimeEntry: (itemId: string, input?: Partial<TimeEntry>) =>
+    request<WorkItem>(`/api/items/${itemId}/time-entries`, {
+      method: 'POST',
+      body: JSON.stringify(input ?? {}),
+    }),
+  updateTimeEntry: (itemId: string, entryId: string, input: Partial<TimeEntry>) =>
+    request<WorkItem>(`/api/items/${itemId}/time-entries/${entryId}`, {
+      method: 'PUT',
+      body: JSON.stringify(input),
+    }),
+  deleteTimeEntry: (itemId: string, entryId: string) =>
+    request<WorkItem>(`/api/items/${itemId}/time-entries/${entryId}`, { method: 'DELETE' }),
 }
