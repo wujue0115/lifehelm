@@ -1,9 +1,13 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { useTheme } from '@/composables/useTheme'
 import { useSidebar, SIDEBAR_COLLAPSED_WIDTH } from '@/composables/useSidebar'
+import { useLocale } from '@/composables/useLocale'
 
+const { t } = useI18n()
 const { theme, toggleTheme } = useTheme()
 const { width, collapsed, toggleCollapsed, setWidth } = useSidebar()
+const { locale, toggleLocale } = useLocale()
 
 function startResize(event: MouseEvent): void {
   if (collapsed.value) return
@@ -31,11 +35,11 @@ function startResize(event: MouseEvent): void {
     :style="{ width: `${collapsed ? SIDEBAR_COLLAPSED_WIDTH : width}px` }"
   >
     <div class="brand">
-      <span class="type-section-title brand-name">Work Manager</span>
+      <span class="type-section-title brand-name">{{ t('brand') }}</span>
       <button
         type="button"
         class="collapse-toggle"
-        :title="collapsed ? '展開側邊欄' : '收合側邊欄'"
+        :title="collapsed ? t('sidebar.expand') : t('sidebar.collapse')"
         @click="toggleCollapsed"
       >
         <svg
@@ -83,7 +87,7 @@ function startResize(event: MouseEvent): void {
           <line x1="3" y1="10" x2="17" y2="10" />
           <line x1="3" y1="15" x2="17" y2="15" />
         </svg>
-        <span class="label">清單</span>
+        <span class="label">{{ t('nav.list') }}</span>
       </RouterLink>
 
       <RouterLink to="/board" class="nav-item type-nav-item" active-class="active">
@@ -102,7 +106,7 @@ function startResize(event: MouseEvent): void {
           <rect x="8" y="3.5" width="4" height="9" rx="1" />
           <rect x="13.5" y="3.5" width="4" height="11" rx="1" />
         </svg>
-        <span class="label">看板</span>
+        <span class="label">{{ t('nav.board') }}</span>
       </RouterLink>
 
       <RouterLink to="/calendar" class="nav-item type-nav-item" active-class="active">
@@ -122,7 +126,7 @@ function startResize(event: MouseEvent): void {
           <line x1="6" y1="2.5" x2="6" y2="5.5" />
           <line x1="14" y1="2.5" x2="14" y2="5.5" />
         </svg>
-        <span class="label">行事曆</span>
+        <span class="label">{{ t('nav.calendar') }}</span>
       </RouterLink>
 
       <RouterLink to="/dashboard" class="nav-item type-nav-item" active-class="active">
@@ -141,14 +145,38 @@ function startResize(event: MouseEvent): void {
           <line x1="10" y1="16" x2="10" y2="5" />
           <line x1="16" y1="16" x2="16" y2="12" />
         </svg>
-        <span class="label">儀表板</span>
+        <span class="label">{{ t('nav.dashboard') }}</span>
       </RouterLink>
     </nav>
 
     <button
       type="button"
+      class="nav-item type-nav-item locale-toggle"
+      :title="t('locale.switch')"
+      @click="toggleLocale"
+    >
+      <svg
+        class="icon"
+        viewBox="0 0 20 20"
+        width="18"
+        height="18"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.6"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <circle cx="10" cy="10" r="7.5" />
+        <path d="M2.5 10h15" />
+        <path d="M10 2.5c2.2 2.2 2.2 13 0 15c-2.2-2-2.2-13 0-15z" />
+      </svg>
+      <span class="label">{{ locale === 'zh-TW' ? 'English' : '繁體中文' }}</span>
+    </button>
+
+    <button
+      type="button"
       class="nav-item type-nav-item theme-toggle"
-      :title="theme === 'dark' ? '切換至淺色模式' : '切換至深色模式'"
+      :title="theme === 'dark' ? t('theme.toLight') : t('theme.toDark')"
       @click="toggleTheme"
     >
       <svg
@@ -186,13 +214,13 @@ function startResize(event: MouseEvent): void {
       >
         <path d="M15.5 12.5A6.5 6.5 0 0 1 7.5 4.5a6.5 6.5 0 1 0 8 8z" />
       </svg>
-      <span class="label">{{ theme === 'dark' ? '淺色模式' : '深色模式' }}</span>
+      <span class="label">{{ theme === 'dark' ? t('theme.light') : t('theme.dark') }}</span>
     </button>
 
     <div
       class="resize-handle"
       :class="{ disabled: collapsed }"
-      title="拖曳調整寬度"
+      :title="t('sidebar.resize')"
       @mousedown="startResize"
     ></div>
   </aside>
@@ -281,12 +309,20 @@ function startResize(event: MouseEvent): void {
   flex-shrink: 0;
 }
 
-.theme-toggle {
+.locale-toggle {
   background: none;
   border: none;
   width: 100%;
   cursor: pointer;
   margin-top: auto;
+  font-family: inherit;
+}
+
+.theme-toggle {
+  background: none;
+  border: none;
+  width: 100%;
+  cursor: pointer;
   font-family: inherit;
 }
 
@@ -296,7 +332,7 @@ function startResize(event: MouseEvent): void {
   right: -3px;
   bottom: 0;
   width: 6px;
-  cursor: ew-resize;
+  cursor: col-resize;
   z-index: 10;
 }
 
@@ -350,6 +386,7 @@ function startResize(event: MouseEvent): void {
   left: 0;
 }
 
+.sidebar.collapsed .locale-toggle,
 .sidebar.collapsed .theme-toggle {
   display: flex;
   justify-content: center;

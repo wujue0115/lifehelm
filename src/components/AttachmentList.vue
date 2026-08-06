@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useWorkItemsStore } from '@/stores/workItems'
 import { api } from '@/api/client'
 import type { AttachmentMeta } from '@/types/work-item'
 
 const props = defineProps<{ itemId: string; attachments: AttachmentMeta[] }>()
 
+const { t, locale } = useI18n()
 const store = useWorkItemsStore()
 const uploading = ref(false)
 const errorMessage = ref<string | null>(null)
@@ -17,7 +19,7 @@ function formatSize(bytes: number): string {
 }
 
 function formatDate(value: string): string {
-  return new Date(value).toLocaleString('zh-TW')
+  return new Date(value).toLocaleString(locale.value)
 }
 
 function readFileAsBase64(file: File): Promise<string> {
@@ -62,9 +64,9 @@ async function removeAttachment(attachmentId: string): Promise<void> {
 
 <template>
   <div class="attachment-list">
-    <h2 class="type-section-title">附件</h2>
+    <h2 class="type-section-title">{{ t('attachments.title') }}</h2>
     <p v-if="errorMessage" class="type-body error">{{ errorMessage }}</p>
-    <p v-if="attachments.length === 0" class="type-body empty">尚無附件</p>
+    <p v-if="attachments.length === 0" class="type-body empty">{{ t('attachments.empty') }}</p>
     <ul v-else class="attachments">
       <li v-for="attachment in attachments" :key="attachment.id" class="attachment">
         <a
@@ -79,13 +81,13 @@ async function removeAttachment(attachmentId: string): Promise<void> {
           {{ formatSize(attachment.size) }} · {{ formatDate(attachment.uploadedAt) }}
         </span>
         <button type="button" class="btn btn-ghost remove" @click="removeAttachment(attachment.id)">
-          刪除
+          {{ t('common.delete') }}
         </button>
       </li>
     </ul>
 
     <label class="btn btn-secondary upload-btn">
-      {{ uploading ? '上傳中…' : '+ 新增附件' }}
+      {{ uploading ? t('attachments.uploading') : t('attachments.add') }}
       <input type="file" class="file-input" :disabled="uploading" @change="handleFileSelected" />
     </label>
   </div>

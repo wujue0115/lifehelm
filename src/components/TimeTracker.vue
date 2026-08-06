@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useWorkItemsStore } from '@/stores/workItems'
 import type { TimeEntry } from '@/types/work-item'
 import { formatDuration } from '@/utils/duration'
 
 const props = defineProps<{ itemId: string; timeEntries: TimeEntry[] }>()
 
+const { t, locale } = useI18n()
 const store = useWorkItemsStore()
 const now = ref(Date.now())
 let timer: ReturnType<typeof setInterval> | undefined
@@ -40,7 +42,7 @@ const completedEntries = computed(() =>
 )
 
 function formatDateTime(value: string): string {
-  return new Date(value).toLocaleString('zh-TW')
+  return new Date(value).toLocaleString(locale.value)
 }
 
 onMounted(() => {
@@ -81,13 +83,13 @@ async function stopTimer(): Promise<void> {
 
 async function submitManualEntry(): Promise<void> {
   if (!manualStart.value || !manualEnd.value) {
-    errorMessage.value = '請輸入開始與結束時間'
+    errorMessage.value = t('timeTracker.manualMissingFields')
     return
   }
   const startedAt = new Date(manualStart.value).toISOString()
   const endedAt = new Date(manualEnd.value).toISOString()
   if (endedAt <= startedAt) {
-    errorMessage.value = '結束時間必須晚於開始時間'
+    errorMessage.value = t('timeTracker.manualInvalidRange')
     return
   }
   busy.value = true
@@ -112,11 +114,13 @@ async function removeEntry(entryId: string): Promise<void> {
 
 <template>
   <div class="time-tracker">
-    <h2 class="type-section-title">時間追蹤</h2>
+    <h2 class="type-section-title">{{ t('timeTracker.title') }}</h2>
     <p v-if="errorMessage" class="type-body error">{{ errorMessage }}</p>
 
     <div class="summary">
-      <span class="type-body total">累積時數：{{ formatDuration(totalSeconds) }}</span>
+      <span class="type-body total">{{
+        t('timeTracker.total', { duration: formatDuration(totalSeconds, t) })
+      }}</span>
       <button
         v-if="!runningEntry"
         type="button"
@@ -124,14 +128,14 @@ async function removeEntry(entryId: string): Promise<void> {
         :disabled="busy"
         @click="startTimer"
       >
-        開始計時
+        {{ t('timeTracker.start') }}
       </button>
       <button v-else type="button" class="btn btn-secondary" :disabled="busy" @click="stopTimer">
-        停止計時（{{ formatDuration(runningElapsedSeconds) }}）
+        {{ t('timeTracker.stop', { duration: formatDuration(runningElapsedSeconds, t) }) }}
       </button>
     </div>
 
-    <p v-if="completedEntries.length === 0" class="type-body empty">尚無時間紀錄</p>
+    <p v-if="completedEntries.length === 0" class="type-body empty">{{ t('timeTracker.empty') }}</p>
     <ul v-else class="entries">
       <li v-for="entry in completedEntries" :key="entry.id" class="entry">
         <div class="entry-body">
@@ -139,12 +143,12 @@ async function removeEntry(entryId: string): Promise<void> {
             {{ formatDateTime(entry.startedAt) }} → {{ formatDateTime(entry.endedAt ?? '') }}
           </span>
           <span class="type-caption duration">{{
-            formatDuration(entry.durationSeconds ?? 0)
+            formatDuration(entry.durationSeconds ?? 0, t)
           }}</span>
           <span v-if="entry.note" class="type-caption note">{{ entry.note }}</span>
         </div>
         <button type="button" class="btn btn-ghost remove" @click="removeEntry(entry.id)">
-          刪除
+          {{ t('common.delete') }}
         </button>
       </li>
     </ul>
@@ -154,23 +158,25 @@ async function removeEntry(entryId: string): Promise<void> {
       class="btn btn-ghost manual-toggle"
       @click="showManualForm = !showManualForm"
     >
-      {{ showManualForm ? '取消手動新增' : '+ 手動新增紀錄' }}
+      {{ showManualForm ? t('timeTracker.cancelManual') : t('timeTracker.addManual') }}
     </button>
 
     <form v-if="showManualForm" class="manual-form" @submit.prevent="submitManualEntry">
       <label class="field">
-        <span class="type-label">開始時間</span>
+        <span class="type-label">{{ t('timeTracker.fieldStart') }}</span>
         <input v-model="manualStart" class="input type-body" type="datetime-local" />
       </label>
       <label class="field">
-        <span class="type-label">結束時間</span>
+        <span class="type-label">{{ t('timeTracker.fieldEnd') }}</span>
         <input v-model="manualEnd" class="input type-body" type="datetime-local" />
       </label>
       <label class="field">
-        <span class="type-label">備註</span>
+        <span class="type-label">{{ t('timeTracker.fieldNote') }}</span>
         <input v-model="manualNote" class="input type-body" type="text" />
       </label>
-      <button type="submit" class="btn btn-primary" :disabled="busy">新增</button>
+      <button type="submit" class="btn btn-primary" :disabled="busy">
+        {{ t('timeTracker.add') }}
+      </button>
     </form>
   </div>
 </template>

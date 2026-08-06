@@ -1,16 +1,18 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useWorkItemsStore } from '@/stores/workItems'
 import type { Comment } from '@/types/work-item'
 
 const props = defineProps<{ itemId: string; comments: Comment[] }>()
 
+const { t, locale } = useI18n()
 const store = useWorkItemsStore()
 const newCommentText = ref('')
 const submitting = ref(false)
 
 function formatDate(value: string): string {
-  return new Date(value).toLocaleString('zh-TW')
+  return new Date(value).toLocaleString(locale.value)
 }
 
 async function submitComment(): Promise<void> {
@@ -32,8 +34,8 @@ async function removeComment(commentId: string): Promise<void> {
 
 <template>
   <div class="comment-list">
-    <h2 class="type-section-title">留言</h2>
-    <p v-if="comments.length === 0" class="type-body empty">尚無留言</p>
+    <h2 class="type-section-title">{{ t('comments.title') }}</h2>
+    <p v-if="comments.length === 0" class="type-body empty">{{ t('comments.empty') }}</p>
     <ul v-else class="comments">
       <li v-for="comment in comments" :key="comment.id" class="comment">
         <div class="comment-body">
@@ -41,7 +43,7 @@ async function removeComment(commentId: string): Promise<void> {
           <span class="type-caption meta">{{ formatDate(comment.createdAt) }}</span>
         </div>
         <button type="button" class="btn btn-ghost remove" @click="removeComment(comment.id)">
-          刪除
+          {{ t('common.delete') }}
         </button>
       </li>
     </ul>
@@ -51,14 +53,14 @@ async function removeComment(commentId: string): Promise<void> {
         v-model="newCommentText"
         class="input type-body"
         rows="2"
-        placeholder="新增留言…"
+        :placeholder="t('comments.placeholder')"
       ></textarea>
       <button
         type="submit"
         class="btn btn-primary"
         :disabled="submitting || !newCommentText.trim()"
       >
-        送出
+        {{ t('comments.submit') }}
       </button>
     </form>
   </div>

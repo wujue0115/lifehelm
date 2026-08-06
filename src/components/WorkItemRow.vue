@@ -1,10 +1,12 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import type { WorkItem } from '@/types/work-item'
 import StatusBadge from './StatusBadge.vue'
 import PriorityBadge from './PriorityBadge.vue'
 import TagPill from './TagPill.vue'
 import DueDateLabel from './DueDateLabel.vue'
 
+const { t } = useI18n()
 defineProps<{ item: WorkItem; statusName: string; isCompleted: boolean }>()
 const emit = defineEmits<{ delete: [id: string] }>()
 </script>
@@ -27,9 +29,11 @@ const emit = defineEmits<{ delete: [id: string] }>()
       />
     </td>
     <td class="actions">
-      <RouterLink :to="`/items/${item.id}`" class="btn btn-ghost action-btn">編輯</RouterLink>
+      <RouterLink :to="`/items/${item.id}`" class="btn btn-ghost action-btn">{{
+        t('common.edit')
+      }}</RouterLink>
       <button type="button" class="btn btn-ghost action-btn" @click="emit('delete', item.id)">
-        刪除
+        {{ t('common.delete') }}
       </button>
     </td>
   </tr>

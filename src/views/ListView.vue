@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useWorkItemsStore } from '@/stores/workItems'
 import type { Priority } from '@/types/work-item'
 import WorkItemRow from '@/components/WorkItemRow.vue'
@@ -7,6 +8,7 @@ import ConfirmDialog from '@/components/ConfirmDialog.vue'
 
 type SortKey = 'title' | 'dueDate' | 'priority' | 'updatedAt'
 
+const { t } = useI18n()
 const store = useWorkItemsStore()
 
 const search = ref('')
@@ -91,44 +93,51 @@ async function confirmDelete(): Promise<void> {
   <main class="list-view">
     <div class="toolbar">
       <div class="filters">
-        <input v-model="search" class="input type-body" type="text" placeholder="搜尋標題或描述…" />
+        <input
+          v-model="search"
+          class="input type-body"
+          type="text"
+          :placeholder="t('list.searchPlaceholder')"
+        />
         <select v-model="statusFilter" class="input type-body">
-          <option value="all">所有狀態</option>
+          <option value="all">{{ t('list.allStatus') }}</option>
           <option v-for="column in store.sortedBoard" :key="column.id" :value="column.id">
             {{ column.name }}
           </option>
         </select>
         <select v-model="priorityFilter" class="input type-body">
-          <option value="all">所有優先級</option>
-          <option value="low">低</option>
-          <option value="medium">中</option>
-          <option value="high">高</option>
-          <option value="urgent">緊急</option>
+          <option value="all">{{ t('list.allPriority') }}</option>
+          <option value="low">{{ t('priority.low') }}</option>
+          <option value="medium">{{ t('priority.medium') }}</option>
+          <option value="high">{{ t('priority.high') }}</option>
+          <option value="urgent">{{ t('priority.urgent') }}</option>
         </select>
         <select v-model="tagFilter" class="input type-body">
-          <option value="all">所有標籤</option>
+          <option value="all">{{ t('list.allTags') }}</option>
           <option v-for="tag in allTags" :key="tag" :value="tag">{{ tag }}</option>
         </select>
       </div>
-      <RouterLink to="/items/new" class="btn btn-primary">+ 新增項目</RouterLink>
+      <RouterLink to="/items/new" class="btn btn-primary">{{ t('list.addItem') }}</RouterLink>
     </div>
 
-    <p v-if="store.loading" class="type-body">載入中…</p>
-    <p v-else-if="store.error" class="type-body error">錯誤：{{ store.error }}</p>
+    <p v-if="store.loading" class="type-body">{{ t('common.loading') }}</p>
+    <p v-else-if="store.error" class="type-body error">
+      {{ t('common.error', { message: store.error }) }}
+    </p>
     <template v-else>
       <p class="count type-caption">
-        共 {{ sortedItems.length }} / {{ store.items.length }} 筆工作項目
+        {{ t('list.count', { filtered: sortedItems.length, total: store.items.length }) }}
       </p>
       <div class="table-card">
         <table v-if="sortedItems.length" class="table">
           <thead>
             <tr class="type-label">
-              <th @click="toggleSort('title')">標題</th>
-              <th>狀態</th>
-              <th @click="toggleSort('priority')">優先級</th>
-              <th>標籤</th>
-              <th @click="toggleSort('dueDate')">日期</th>
-              <th>操作</th>
+              <th @click="toggleSort('title')">{{ t('list.columnTitle') }}</th>
+              <th>{{ t('list.columnStatus') }}</th>
+              <th @click="toggleSort('priority')">{{ t('list.columnPriority') }}</th>
+              <th>{{ t('list.columnTags') }}</th>
+              <th @click="toggleSort('dueDate')">{{ t('list.columnDate') }}</th>
+              <th>{{ t('list.columnActions') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -142,14 +151,14 @@ async function confirmDelete(): Promise<void> {
             />
           </tbody>
         </table>
-        <p v-else class="type-body empty">沒有符合條件的工作項目。</p>
+        <p v-else class="type-body empty">{{ t('list.empty') }}</p>
       </div>
     </template>
 
     <ConfirmDialog
       :open="pendingDeleteId !== null"
-      title="刪除工作項目"
-      message="確定要刪除這個工作項目嗎？此動作無法復原。"
+      :title="t('list.deleteConfirmTitle')"
+      :message="t('list.deleteConfirmMessage')"
       @confirm="confirmDelete"
       @cancel="pendingDeleteId = null"
     />

@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { Priority } from '@/types/work-item'
 
 const props = defineProps<{ priority: Priority }>()
 
-const labels: Record<Priority, string> = { low: '低', medium: '中', high: '高', urgent: '緊急' }
-const label = computed(() => labels[props.priority])
+const { t } = useI18n()
+const label = computed(() => t(`priority.${props.priority}`))
 </script>
 
 <template>

@@ -1,19 +1,23 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import AppSidebar from '@/components/AppSidebar.vue'
 import { useWorkItemsStore } from '@/stores/workItems'
 import { getDueStatus } from '@/utils/dueDate'
 
 const route = useRoute()
 const store = useWorkItemsStore()
+const { t } = useI18n()
 const dismissed = ref(false)
 
 onMounted(() => {
   store.fetchAll()
 })
 
-const pageTitle = computed(() => (typeof route.meta.title === 'string' ? route.meta.title : ''))
+const pageTitle = computed(() =>
+  typeof route.meta.titleKey === 'string' ? t(route.meta.titleKey) : '',
+)
 
 const overdueCount = computed(
   () =>
@@ -42,11 +46,22 @@ const showBanner = computed(
 
       <div v-if="showBanner" class="reminder-banner type-body-sm">
         <span>
-          <template v-if="overdueCount > 0">{{ overdueCount }} 個項目已逾期</template>
-          <template v-if="overdueCount > 0 && dueTodayCount > 0">，</template>
-          <template v-if="dueTodayCount > 0">{{ dueTodayCount }} 個項目今天到期</template>
+          <template v-if="overdueCount > 0">{{
+            t('reminder.overdueCount', { count: overdueCount })
+          }}</template>
+          <template v-if="overdueCount > 0 && dueTodayCount > 0">{{
+            t('reminder.separator')
+          }}</template>
+          <template v-if="dueTodayCount > 0">{{
+            t('reminder.dueTodayCount', { count: dueTodayCount })
+          }}</template>
         </span>
-        <button type="button" class="dismiss" aria-label="關閉提醒" @click="dismissed = true">
+        <button
+          type="button"
+          class="dismiss"
+          :aria-label="t('reminder.dismiss')"
+          @click="dismissed = true"
+        >
           ×
         </button>
       </div>

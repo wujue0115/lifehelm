@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { getDueStatus } from '@/utils/dueDate'
 
 const props = defineProps<{
@@ -8,15 +9,17 @@ const props = defineProps<{
   isCompleted?: boolean
 }>()
 
+const { t, locale } = useI18n()
+
 function formatDate(value: string): string {
-  return new Date(value).toLocaleDateString('zh-TW')
+  return new Date(value).toLocaleDateString(locale.value)
 }
 
 const dateLabel = computed(() => {
   if (props.startDate && props.dueDate) {
     return `${formatDate(props.startDate)} → ${formatDate(props.dueDate)}`
   }
-  if (props.startDate) return `${formatDate(props.startDate)} 起`
+  if (props.startDate) return t('dueDate.startSuffix', { date: formatDate(props.startDate) })
   if (props.dueDate) return formatDate(props.dueDate)
   return null
 })
@@ -25,11 +28,11 @@ const status = computed(() => getDueStatus(props.dueDate, props.isCompleted ?? f
 const statusLabel = computed(() => {
   switch (status.value) {
     case 'overdue':
-      return '已逾期'
+      return t('dueStatus.overdue')
     case 'due-today':
-      return '今天到期'
+      return t('dueStatus.dueToday')
     case 'due-soon':
-      return '即將到期'
+      return t('dueStatus.dueSoon')
     default:
       return null
   }

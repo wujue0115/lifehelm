@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useWorkItemsStore } from '@/stores/workItems'
 import type { WorkItem } from '@/types/work-item'
 import { getDueStatus } from '@/utils/dueDate'
@@ -26,6 +27,7 @@ interface Segment {
   status: string
 }
 
+const { t, locale } = useI18n()
 const store = useWorkItemsStore()
 
 onMounted(() => {
@@ -46,7 +48,7 @@ function dateKey(date: Date): string {
 const currentMonth = ref(startOfMonth(new Date()))
 
 const monthLabel = computed(() =>
-  currentMonth.value.toLocaleDateString('zh-TW', { year: 'numeric', month: 'long' }),
+  currentMonth.value.toLocaleDateString(locale.value, { year: 'numeric', month: 'long' }),
 )
 
 function prevMonth(): void {
@@ -151,19 +153,32 @@ function laneCount(segments: Segment[]): number {
   return segments.reduce((max, seg) => Math.max(max, seg.lane + 1), 0)
 }
 
-const weekdayLabels = ['日', '一', '二', '三', '四', '五', '六']
+const weekdayLabels = computed(() => {
+  // 'narrow' is unambiguous in zh-TW (單字：日一二三四五六) but collides in English
+  // (S/M/T/W/T/F/S can't distinguish Tue from Thu), so English uses 'short' instead.
+  const width = locale.value === 'zh-TW' ? 'narrow' : 'short'
+  const formatter = new Intl.DateTimeFormat(locale.value, { weekday: width })
+  // 1970-01-04 was a Sunday — a stable reference week, locale-independent.
+  return Array.from({ length: 7 }, (_, i) => formatter.format(new Date(1970, 0, 4 + i)))
+})
 </script>
 
 <template>
   <main class="calendar-view">
     <div class="toolbar">
-      <button type="button" class="btn btn-secondary" @click="prevMonth">‹ 上個月</button>
+      <button type="button" class="btn btn-secondary" @click="prevMonth">
+        {{ t('calendar.prevMonth') }}
+      </button>
       <span class="type-body month-label">{{ monthLabel }}</span>
-      <button type="button" class="btn btn-secondary" @click="nextMonth">下個月 ›</button>
-      <button type="button" class="btn btn-primary" @click="goToday">今天</button>
+      <button type="button" class="btn btn-secondary" @click="nextMonth">
+        {{ t('calendar.nextMonth') }}
+      </button>
+      <button type="button" class="btn btn-primary" @click="goToday">
+        {{ t('calendar.today') }}
+      </button>
     </div>
 
-    <p v-if="store.loading" class="type-body">載入中…</p>
+    <p v-if="store.loading" class="type-body">{{ t('common.loading') }}</p>
     <template v-else>
       <div class="weekday-row">
         <span v-for="label in weekdayLabels" :key="label" class="type-label weekday">{{
