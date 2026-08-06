@@ -2,6 +2,7 @@
 import { computed, onMounted } from 'vue'
 import { useWorkItemsStore } from '@/stores/workItems'
 import { computeStats } from '@/utils/stats'
+import { formatDuration } from '@/utils/duration'
 import type { Priority } from '@/types/work-item'
 
 const store = useWorkItemsStore()
@@ -49,6 +50,10 @@ const priorityOrder: Priority[] = ['urgent', 'high', 'medium', 'low']
         <div class="summary-card">
           <span class="type-micro-cap">今天到期</span>
           <span class="value">{{ stats.dueTodayCount }}</span>
+        </div>
+        <div class="summary-card">
+          <span class="type-micro-cap">累積時數</span>
+          <span class="value duration-value">{{ formatDuration(stats.totalTrackedSeconds) }}</span>
         </div>
       </div>
 
@@ -137,6 +142,10 @@ const priorityOrder: Priority[] = ['urgent', 'high', 'medium', 'low']
   font-size: 40px;
   font-weight: 700;
   line-height: 1.1;
+}
+
+.summary-card .duration-value {
+  font-size: 22px;
 }
 
 .section {

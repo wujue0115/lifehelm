@@ -22,6 +22,7 @@ export interface DashboardStats {
   statusCounts: StatusCount[]
   tagCounts: TagCount[]
   priorityCounts: Record<Priority, number>
+  totalTrackedSeconds: number
 }
 
 export function computeStats(items: WorkItem[], board: BoardColumn[]): DashboardStats {
@@ -37,10 +38,12 @@ export function computeStats(items: WorkItem[], board: BoardColumn[]): Dashboard
   let dueSoonCount = 0
   const priorityCounts: Record<Priority, number> = { low: 0, medium: 0, high: 0, urgent: 0 }
   const tagMap = new Map<string, number>()
+  let totalTrackedSeconds = 0
 
   for (const item of items) {
     priorityCounts[item.priority] += 1
     for (const tag of item.tags) tagMap.set(tag, (tagMap.get(tag) ?? 0) + 1)
+    for (const entry of item.timeEntries) totalTrackedSeconds += entry.durationSeconds ?? 0
 
     const isCompleted = item.statusId === lastColumnId
     const status = getDueStatus(item.dueDate, isCompleted)
@@ -69,5 +72,6 @@ export function computeStats(items: WorkItem[], board: BoardColumn[]): Dashboard
     statusCounts,
     tagCounts,
     priorityCounts,
+    totalTrackedSeconds,
   }
 }

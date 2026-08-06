@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { api } from '@/api/client'
-import type { BoardColumn, WorkItem } from '@/types/work-item'
+import type { BoardColumn, TimeEntry, WorkItem } from '@/types/work-item'
 
 export const useWorkItemsStore = defineStore('workItems', () => {
   const items = ref<WorkItem[]>([])
@@ -76,6 +76,22 @@ export const useWorkItemsStore = defineStore('workItems', () => {
     return applyUpdatedItem(await api.deleteAttachment(itemId, attachmentId))
   }
 
+  async function addTimeEntry(itemId: string, input?: Partial<TimeEntry>): Promise<WorkItem> {
+    return applyUpdatedItem(await api.addTimeEntry(itemId, input))
+  }
+
+  async function updateTimeEntry(
+    itemId: string,
+    entryId: string,
+    input: Partial<TimeEntry>,
+  ): Promise<WorkItem> {
+    return applyUpdatedItem(await api.updateTimeEntry(itemId, entryId, input))
+  }
+
+  async function deleteTimeEntry(itemId: string, entryId: string): Promise<WorkItem> {
+    return applyUpdatedItem(await api.deleteTimeEntry(itemId, entryId))
+  }
+
   return {
     items,
     board,
@@ -93,5 +109,8 @@ export const useWorkItemsStore = defineStore('workItems', () => {
     deleteComment,
     addAttachment,
     deleteAttachment,
+    addTimeEntry,
+    updateTimeEntry,
+    deleteTimeEntry,
   }
 })
