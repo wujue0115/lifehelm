@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useWorkItemsStore } from '@/stores/workItems'
 import type { Priority, WorkItem } from '@/types/work-item'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
@@ -10,6 +11,7 @@ import TimeTracker from '@/components/TimeTracker.vue'
 
 const route = useRoute()
 const router = useRouter()
+const { t } = useI18n()
 const store = useWorkItemsStore()
 
 const isNew = computed(() => route.name === 'item-new')
@@ -59,7 +61,7 @@ async function load(): Promise<void> {
     if (existing) {
       applyItemToForm(existing)
     } else {
-      errorMessage.value = '找不到這個工作項目'
+      errorMessage.value = t('itemDetail.notFound')
     }
   } finally {
     loading.value = false
@@ -71,11 +73,11 @@ watch(() => route.params.id, load)
 
 async function handleSubmit(): Promise<void> {
   if (!form.title.trim()) {
-    errorMessage.value = '標題不可為空'
+    errorMessage.value = t('itemDetail.titleRequired')
     return
   }
   if (form.startDate && form.dueDate && form.startDate > form.dueDate) {
-    errorMessage.value = '開始日期不可晚於結束日期'
+    errorMessage.value = t('itemDetail.dateRangeInvalid')
     return
   }
   saving.value = true
@@ -117,26 +119,26 @@ async function handleDelete(): Promise<void> {
 <template>
   <main class="detail-view">
     <div class="header">
-      <RouterLink to="/" class="btn btn-secondary">‹ 返回清單</RouterLink>
+      <RouterLink to="/" class="btn btn-secondary">{{ t('itemDetail.backToList') }}</RouterLink>
     </div>
 
-    <p v-if="loading" class="type-body">載入中…</p>
+    <p v-if="loading" class="type-body">{{ t('common.loading') }}</p>
     <template v-else>
       <p v-if="errorMessage" class="type-body error">{{ errorMessage }}</p>
       <form class="form card" @submit.prevent="handleSubmit">
         <label class="field">
-          <span class="type-label">標題</span>
+          <span class="type-label">{{ t('itemDetail.fieldTitle') }}</span>
           <input v-model="form.title" class="input type-body" type="text" required />
         </label>
 
         <label class="field">
-          <span class="type-label">描述</span>
+          <span class="type-label">{{ t('itemDetail.fieldDescription') }}</span>
           <textarea v-model="form.description" class="input type-body" rows="4"></textarea>
         </label>
 
         <div class="row">
           <label class="field">
-            <span class="type-label">狀態</span>
+            <span class="type-label">{{ t('itemDetail.fieldStatus') }}</span>
             <select v-model="form.statusId" class="input type-body">
               <option v-for="column in store.sortedBoard" :key="column.id" :value="column.id">
                 {{ column.name }}
@@ -145,39 +147,39 @@ async function handleDelete(): Promise<void> {
           </label>
 
           <label class="field">
-            <span class="type-label">優先級</span>
+            <span class="type-label">{{ t('itemDetail.fieldPriority') }}</span>
             <select v-model="form.priority" class="input type-body">
-              <option value="low">低</option>
-              <option value="medium">中</option>
-              <option value="high">高</option>
-              <option value="urgent">緊急</option>
+              <option value="low">{{ t('priority.low') }}</option>
+              <option value="medium">{{ t('priority.medium') }}</option>
+              <option value="high">{{ t('priority.high') }}</option>
+              <option value="urgent">{{ t('priority.urgent') }}</option>
             </select>
           </label>
 
           <label class="field">
-            <span class="type-label">開始日期</span>
+            <span class="type-label">{{ t('itemDetail.fieldStartDate') }}</span>
             <input v-model="form.startDate" class="input type-body" type="date" />
           </label>
 
           <label class="field">
-            <span class="type-label">結束日期</span>
+            <span class="type-label">{{ t('itemDetail.fieldEndDate') }}</span>
             <input v-model="form.dueDate" class="input type-body" type="date" />
           </label>
         </div>
 
         <label class="field">
-          <span class="type-label">標籤（逗號分隔）</span>
+          <span class="type-label">{{ t('itemDetail.fieldTags') }}</span>
           <input
             v-model="form.tagsText"
             class="input type-body"
             type="text"
-            placeholder="例如：前端, 緊急修復"
+            :placeholder="t('itemDetail.tagsPlaceholder')"
           />
         </label>
 
         <div class="actions">
           <button type="submit" class="btn btn-primary" :disabled="saving">
-            {{ saving ? '儲存中…' : '儲存' }}
+            {{ saving ? t('common.saving') : t('common.save') }}
           </button>
           <button
             v-if="!isNew"
@@ -185,7 +187,7 @@ async function handleDelete(): Promise<void> {
             class="btn btn-secondary"
             @click="showDeleteConfirm = true"
           >
-            刪除
+            {{ t('common.delete') }}
           </button>
         </div>
       </form>
@@ -205,8 +207,8 @@ async function handleDelete(): Promise<void> {
 
     <ConfirmDialog
       :open="showDeleteConfirm"
-      title="刪除工作項目"
-      message="確定要刪除這個工作項目嗎？此動作無法復原。"
+      :title="t('itemDetail.deleteConfirmTitle')"
+      :message="t('itemDetail.deleteConfirmMessage')"
       @confirm="handleDelete"
       @cancel="showDeleteConfirm = false"
     />

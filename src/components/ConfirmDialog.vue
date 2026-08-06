@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+
 defineProps<{ open: boolean; title: string; message: string }>()
 const emit = defineEmits<{ confirm: []; cancel: [] }>()
+const { t } = useI18n()
 </script>
 
 <template>
@@ -9,8 +12,12 @@ const emit = defineEmits<{ confirm: []; cancel: [] }>()
       <h2 class="type-section-title title">{{ title }}</h2>
       <p class="type-body">{{ message }}</p>
       <div class="actions">
-        <button type="button" class="btn btn-secondary" @click="emit('cancel')">取消</button>
-        <button type="button" class="btn btn-primary" @click="emit('confirm')">確認</button>
+        <button type="button" class="btn btn-secondary" @click="emit('cancel')">
+          {{ t('common.cancel') }}
+        </button>
+        <button type="button" class="btn btn-primary" @click="emit('confirm')">
+          {{ t('common.confirm') }}
+        </button>
       </div>
     </div>
   </div>

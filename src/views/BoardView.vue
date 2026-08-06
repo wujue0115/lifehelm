@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { VueDraggable, type DraggableEvent } from 'vue-draggable-plus'
 import { useWorkItemsStore } from '@/stores/workItems'
 import type { BoardColumn, WorkItem } from '@/types/work-item'
 import WorkItemCard from '@/components/WorkItemCard.vue'
 
+const { t } = useI18n()
 const store = useWorkItemsStore()
 
 const localColumns = ref<Record<string, WorkItem[]>>({})
@@ -68,7 +70,7 @@ async function removeColumn(columnId: string): Promise<void> {
   boardError.value = null
   const hasItems = store.items.some((item) => item.statusId === columnId)
   if (hasItems) {
-    boardError.value = '這個欄位還有工作項目，請先將項目移到其他欄位再刪除。'
+    boardError.value = t('board.deleteColumnBlocked')
     return
   }
   const updated = store.board.filter((column) => column.id !== columnId)
@@ -78,8 +80,10 @@ async function removeColumn(columnId: string): Promise<void> {
 
 <template>
   <main class="board-view">
-    <p v-if="store.loading" class="type-body">載入中…</p>
-    <p v-else-if="store.error" class="type-body error">錯誤：{{ store.error }}</p>
+    <p v-if="store.loading" class="type-body">{{ t('common.loading') }}</p>
+    <p v-else-if="store.error" class="type-body error">
+      {{ t('common.error', { message: store.error }) }}
+    </p>
     <template v-else>
       <p v-if="boardError" class="type-body error">{{ boardError }}</p>
       <div class="board">
@@ -98,7 +102,7 @@ async function removeColumn(columnId: string): Promise<void> {
             <button
               type="button"
               class="icon-btn"
-              title="刪除欄位"
+              :title="t('board.deleteColumnTitle')"
               @click="removeColumn(column.id)"
             >
               ×
@@ -127,7 +131,7 @@ async function removeColumn(columnId: string): Promise<void> {
             v-model="newColumnName"
             class="input type-body"
             type="text"
-            placeholder="+ 新增欄位"
+            :placeholder="t('board.addColumnPlaceholder')"
             @keyup.enter="addColumn"
           />
         </div>

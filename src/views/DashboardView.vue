@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useWorkItemsStore } from '@/stores/workItems'
 import { computeStats } from '@/utils/stats'
 import { formatDuration } from '@/utils/duration'
 import type { Priority } from '@/types/work-item'
 
+const { t } = useI18n()
 const store = useWorkItemsStore()
 
 onMounted(() => {
@@ -14,47 +16,45 @@ onMounted(() => {
 const stats = computed(() => computeStats(store.items, store.board))
 
 const maxStatusCount = computed(() => Math.max(1, ...stats.value.statusCounts.map((s) => s.count)))
-const maxTagCount = computed(() => Math.max(1, ...stats.value.tagCounts.map((t) => t.count)))
+const maxTagCount = computed(() =>
+  Math.max(1, ...stats.value.tagCounts.map((tagCount) => tagCount.count)),
+)
 const maxPriorityCount = computed(() => Math.max(1, ...Object.values(stats.value.priorityCounts)))
 
-const priorityLabels: Record<Priority, string> = {
-  low: '低',
-  medium: '中',
-  high: '高',
-  urgent: '緊急',
-}
 const priorityOrder: Priority[] = ['urgent', 'high', 'medium', 'low']
 </script>
 
 <template>
   <main class="dashboard-view">
-    <p v-if="store.loading" class="type-body">載入中…</p>
+    <p v-if="store.loading" class="type-body">{{ t('common.loading') }}</p>
     <template v-else>
       <div class="summary-grid">
         <div class="summary-card">
-          <span class="type-label">總項目數</span>
+          <span class="type-label">{{ t('dashboard.total') }}</span>
           <span class="value">{{ stats.total }}</span>
         </div>
         <div class="summary-card">
-          <span class="type-label">完成率</span>
+          <span class="type-label">{{ t('dashboard.completionRate') }}</span>
           <span class="value">{{ stats.completionRate }}%</span>
         </div>
         <div class="summary-card" :class="{ warn: stats.overdueCount > 0 }">
-          <span class="type-label">已逾期</span>
+          <span class="type-label">{{ t('dashboard.overdue') }}</span>
           <span class="value">{{ stats.overdueCount }}</span>
         </div>
         <div class="summary-card">
-          <span class="type-label">今天到期</span>
+          <span class="type-label">{{ t('dashboard.dueToday') }}</span>
           <span class="value">{{ stats.dueTodayCount }}</span>
         </div>
         <div class="summary-card">
-          <span class="type-label">累積時數</span>
-          <span class="value duration-value">{{ formatDuration(stats.totalTrackedSeconds) }}</span>
+          <span class="type-label">{{ t('dashboard.trackedTime') }}</span>
+          <span class="value duration-value">{{
+            formatDuration(stats.totalTrackedSeconds, t)
+          }}</span>
         </div>
       </div>
 
       <section class="section card">
-        <h2 class="type-section-title">各狀態數量</h2>
+        <h2 class="type-section-title">{{ t('dashboard.statusBreakdown') }}</h2>
         <div class="bar-list">
           <div v-for="status in stats.statusCounts" :key="status.columnId" class="bar-row">
             <span class="type-body-sm bar-label">{{ status.name }}</span>
@@ -70,10 +70,10 @@ const priorityOrder: Priority[] = ['urgent', 'high', 'medium', 'low']
       </section>
 
       <section class="section card">
-        <h2 class="type-section-title">優先級分佈</h2>
+        <h2 class="type-section-title">{{ t('dashboard.priorityBreakdown') }}</h2>
         <div class="bar-list">
           <div v-for="key in priorityOrder" :key="key" class="bar-row">
-            <span class="type-body-sm bar-label">{{ priorityLabels[key] }}</span>
+            <span class="type-body-sm bar-label">{{ t(`priority.${key}`) }}</span>
             <div class="bar-track">
               <div
                 class="bar-fill"
@@ -86,8 +86,10 @@ const priorityOrder: Priority[] = ['urgent', 'high', 'medium', 'low']
       </section>
 
       <section class="section card">
-        <h2 class="type-section-title">標籤分佈</h2>
-        <p v-if="stats.tagCounts.length === 0" class="type-body empty">尚無標籤資料</p>
+        <h2 class="type-section-title">{{ t('dashboard.tagBreakdown') }}</h2>
+        <p v-if="stats.tagCounts.length === 0" class="type-body empty">
+          {{ t('dashboard.noTags') }}
+        </p>
         <div v-else class="bar-list">
           <div v-for="tag in stats.tagCounts" :key="tag.tag" class="bar-row">
             <span class="type-body-sm bar-label">{{ tag.tag }}</span>
