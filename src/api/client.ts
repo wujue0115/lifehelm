@@ -1,4 +1,5 @@
 import type { BoardColumn, TimeEntry, WorkItem } from '@/types/work-item'
+import type { ThemeConfig } from '@/types/theme-config'
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, {
@@ -55,4 +56,8 @@ export const api = {
     }),
   deleteTimeEntry: (itemId: string, entryId: string) =>
     request<WorkItem>(`/api/items/${itemId}/time-entries/${entryId}`, { method: 'DELETE' }),
+
+  getThemeConfig: () => request<ThemeConfig>('/api/theme-config'),
+  updateThemeConfig: (config: ThemeConfig) =>
+    request<ThemeConfig>('/api/theme-config', { method: 'PUT', body: JSON.stringify(config) }),
 }

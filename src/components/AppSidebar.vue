@@ -1,13 +1,17 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTheme } from '@/composables/useTheme'
 import { useSidebar, SIDEBAR_COLLAPSED_WIDTH } from '@/composables/useSidebar'
 import { useLocale } from '@/composables/useLocale'
+import ThemeSettingsPanel from '@/components/ThemeSettingsPanel.vue'
 
 const { t } = useI18n()
 const { theme, toggleTheme } = useTheme()
 const { width, collapsed, toggleCollapsed, setWidth } = useSidebar()
 const { locale, toggleLocale } = useLocale()
+
+const showSettings = ref(false)
 
 function startResize(event: MouseEvent): void {
   if (collapsed.value) return
@@ -149,73 +153,94 @@ function startResize(event: MouseEvent): void {
       </RouterLink>
     </nav>
 
-    <button
-      type="button"
-      class="nav-item type-nav-item locale-toggle"
-      :title="t('locale.switch')"
-      @click="toggleLocale"
-    >
-      <svg
-        class="icon"
-        viewBox="0 0 20 20"
-        width="18"
-        height="18"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.6"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+    <div class="footer-nav">
+      <button
+        type="button"
+        class="nav-item type-nav-item locale-toggle"
+        :title="t('locale.switch')"
+        @click="toggleLocale"
       >
-        <circle cx="10" cy="10" r="7.5" />
-        <path d="M2.5 10h15" />
-        <path d="M10 2.5c2.2 2.2 2.2 13 0 15c-2.2-2-2.2-13 0-15z" />
-      </svg>
-      <span class="label">{{ locale === 'zh-TW' ? 'English' : '繁體中文' }}</span>
-    </button>
+        <svg
+          class="icon"
+          viewBox="0 0 20 20"
+          width="18"
+          height="18"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle cx="10" cy="10" r="7.5" />
+          <path d="M2.5 10h15" />
+          <path d="M10 2.5c2.2 2.2 2.2 13 0 15c-2.2-2-2.2-13 0-15z" />
+        </svg>
+        <span class="label">{{ locale === 'zh-TW' ? 'English' : '繁體中文' }}</span>
+      </button>
 
-    <button
-      type="button"
-      class="nav-item type-nav-item theme-toggle"
-      :title="theme === 'dark' ? t('theme.toLight') : t('theme.toDark')"
-      @click="toggleTheme"
-    >
-      <svg
-        v-if="theme === 'dark'"
-        class="icon"
-        viewBox="0 0 20 20"
-        width="18"
-        height="18"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.6"
-        stroke-linecap="round"
+      <button
+        type="button"
+        class="nav-item type-nav-item theme-toggle"
+        :title="theme === 'dark' ? t('theme.toLight') : t('theme.toDark')"
+        @click="toggleTheme"
       >
-        <circle cx="10" cy="10" r="3.5" />
-        <line x1="10" y1="2" x2="10" y2="4" />
-        <line x1="10" y1="16" x2="10" y2="18" />
-        <line x1="2" y1="10" x2="4" y2="10" />
-        <line x1="16" y1="10" x2="18" y2="10" />
-        <line x1="4.2" y1="4.2" x2="5.6" y2="5.6" />
-        <line x1="14.4" y1="14.4" x2="15.8" y2="15.8" />
-        <line x1="4.2" y1="15.8" x2="5.6" y2="14.4" />
-        <line x1="14.4" y1="5.6" x2="15.8" y2="4.2" />
-      </svg>
-      <svg
-        v-else
-        class="icon"
-        viewBox="0 0 20 20"
-        width="18"
-        height="18"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.6"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        <svg
+          v-if="theme === 'dark'"
+          class="icon"
+          viewBox="0 0 20 20"
+          width="18"
+          height="18"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+        >
+          <circle cx="10" cy="10" r="3.5" />
+          <line x1="10" y1="2" x2="10" y2="4" />
+          <line x1="10" y1="16" x2="10" y2="18" />
+          <line x1="2" y1="10" x2="4" y2="10" />
+          <line x1="16" y1="10" x2="18" y2="10" />
+          <line x1="4.2" y1="4.2" x2="5.6" y2="5.6" />
+          <line x1="14.4" y1="14.4" x2="15.8" y2="15.8" />
+          <line x1="4.2" y1="15.8" x2="5.6" y2="14.4" />
+          <line x1="14.4" y1="5.6" x2="15.8" y2="4.2" />
+        </svg>
+        <svg
+          v-else
+          class="icon"
+          viewBox="0 0 20 20"
+          width="18"
+          height="18"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M15.5 12.5A6.5 6.5 0 0 1 7.5 4.5a6.5 6.5 0 1 0 8 8z" />
+        </svg>
+        <span class="label">{{ theme === 'dark' ? t('theme.light') : t('theme.dark') }}</span>
+      </button>
+
+      <button
+        type="button"
+        class="nav-item type-nav-item settings-toggle"
+        :title="t('settings.title')"
+        @click="showSettings = !showSettings"
       >
-        <path d="M15.5 12.5A6.5 6.5 0 0 1 7.5 4.5a6.5 6.5 0 1 0 8 8z" />
-      </svg>
-      <span class="label">{{ theme === 'dark' ? t('theme.light') : t('theme.dark') }}</span>
-    </button>
+        <svg class="icon" width="18" height="18" viewBox="0 0 16 16">
+          <path d="M0 0h16v16H0z" fill="none" />
+          <path
+            fill="currentColor"
+            fill-rule="evenodd"
+            d="m14.489 8.388l-.001.006a.1.1 0 0 1-.027.028a.43.43 0 0 1-.264.082h-3.186c-3.118 0-4.68 3.77-2.476 5.974a6.5 6.5 0 1 1 5.953-6.09Zm-.292 1.616c.913 0 1.736-.618 1.79-1.529a8 8 0 1 0-7.032 7.468c1.243-.147 1.527-1.639.641-2.525c-1.26-1.26-.367-3.414 1.415-3.414zM10 5a1 1 0 1 1-2 0a1 1 0 0 1 2 0M6 7a1 1 0 1 0 0-2a1 1 0 0 0 0 2m0 2a1 1 0 1 1-2 0a1 1 0 0 1 2 0"
+            clip-rule="evenodd"
+          />
+        </svg>
+        <span class="label">{{ t('settings.title') }}</span>
+      </button>
+      <ThemeSettingsPanel v-if="showSettings" @close="showSettings = false" />
+    </div>
 
     <div
       class="resize-handle"
@@ -290,7 +315,7 @@ function startResize(event: MouseEvent): void {
 }
 
 .nav-item.active {
-  background: var(--color-sidebar-active);
+  background: color-mix(in srgb, var(--color-accent) 16%, var(--color-sidebar-active));
   color: var(--color-on-sidebar);
 }
 
@@ -302,28 +327,27 @@ function startResize(event: MouseEvent): void {
   bottom: 6px;
   width: 3px;
   border-radius: var(--rounded-full);
-  background: var(--color-on-sidebar);
+  background: var(--color-accent);
 }
 
 .icon {
   flex-shrink: 0;
 }
 
-.locale-toggle {
-  background: none;
-  border: none;
-  width: 100%;
-  cursor: pointer;
+.footer-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   margin-top: auto;
-  font-family: inherit;
 }
 
-.theme-toggle {
+.locale-toggle,
+.theme-toggle,
+.settings-toggle {
   background: none;
   border: none;
   width: 100%;
   cursor: pointer;
-  font-family: inherit;
 }
 
 .resize-handle {
@@ -374,7 +398,8 @@ function startResize(event: MouseEvent): void {
   display: none;
 }
 
-.sidebar.collapsed .nav {
+.sidebar.collapsed .nav,
+.sidebar.collapsed .footer-nav {
   width: 100%;
 }
 
@@ -387,7 +412,8 @@ function startResize(event: MouseEvent): void {
 }
 
 .sidebar.collapsed .locale-toggle,
-.sidebar.collapsed .theme-toggle {
+.sidebar.collapsed .theme-toggle,
+.sidebar.collapsed .settings-toggle {
   display: flex;
   justify-content: center;
 }

@@ -8,17 +8,28 @@ import type {
   TimeEntry,
   WorkItem,
 } from '../src/types/work-item.js'
+import type { ThemeConfig } from '../src/types/theme-config.js'
 import {
   deleteAttachmentFile,
   readAttachmentFile,
   readJsonFile,
   readJsonFileOrSeed,
+  readRootJsonFile,
   writeAttachmentFile,
   writeJsonFile,
+  writeRootJsonFile,
 } from './dataStore.js'
 
 const ITEMS_FILE = 'items.json'
 const BOARD_FILE = 'board.json'
+const THEME_CONFIG_FILE = '.config'
+
+const DEFAULT_THEME_CONFIG: ThemeConfig = {
+  accentColor: null,
+  fontId: 'default',
+  radiusScale: 1,
+  spacingScale: 1,
+}
 
 const DEFAULT_BOARD: BoardColumn[] = [
   { id: 'todo', name: '待處理', order: 0 },
@@ -356,6 +367,22 @@ export function localDataPlugin(): Plugin {
               const board = body ?? []
               await writeJsonFile(BOARD_FILE, board)
               return sendJson(res, 200, board)
+            }
+          }
+
+          if (segments[0] === 'theme-config' && segments.length === 1) {
+            if (method === 'GET') {
+              const config = await readRootJsonFile<ThemeConfig>(
+                THEME_CONFIG_FILE,
+                DEFAULT_THEME_CONFIG,
+              )
+              return sendJson(res, 200, config)
+            }
+            if (method === 'PUT') {
+              const body = (await readBody(req)) as Partial<ThemeConfig> | undefined
+              const config: ThemeConfig = { ...DEFAULT_THEME_CONFIG, ...body }
+              await writeRootJsonFile(THEME_CONFIG_FILE, config)
+              return sendJson(res, 200, config)
             }
           }
 
