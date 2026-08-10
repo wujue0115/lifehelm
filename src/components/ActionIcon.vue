@@ -1,32 +1,14 @@
 <script setup lang="ts">
-import { useId } from 'vue'
-
 defineProps<{ type: 'edit' | 'duplicate' | 'delete' }>()
-
-// SVG <mask> ids must be unique per document — this icon can render many times
-// on one page (e.g. once per row in the templates table), so a hardcoded id
-// would collide across instances.
-const maskId = useId()
 </script>
 
 <template>
-  <svg v-if="type === 'edit'" width="16" height="16" viewBox="0 0 24 24">
-    <path d="M0 0h24v24H0z" fill="none" />
-    <mask :id="maskId" width="15" height="15" x="4" y="5" fill="#000" maskUnits="userSpaceOnUse">
-      <path fill="#fff" d="M4 5h15v15H4z" />
-      <path
-        d="m13.586 7.414l-7.194 7.194c-.195.195-.292.292-.36.41c-.066.119-.1.252-.166.52l-.664 2.654c-.09.36-.135.541-.035.641s.28.055.641-.035l2.655-.664c.267-.066.4-.1.518-.167c.119-.067.216-.164.41-.359l7.195-7.194c.667-.666 1-1 1-1.414s-.333-.748-1-1.414l-.172-.172c-.667-.666-1-1-1.414-1s-.748.334-1.414 1"
-      />
-    </mask>
-    <g fill="none">
-      <path
-        stroke="currentColor"
-        stroke-width="2"
-        d="m13.586 7.414l-7.194 7.194c-.195.195-.292.292-.36.41c-.066.119-.1.252-.166.52l-.664 2.654c-.09.36-.135.541-.035.641s.28.055.641-.035l2.655-.664c.267-.066.4-.1.518-.167c.119-.067.216-.164.41-.359l7.195-7.194c.667-.666 1-1 1-1.414s-.333-.748-1-1.414l-.172-.172c-.667-.666-1-1-1.414-1s-.748.334-1.414 1Z"
-        :mask="`url(#${maskId})`"
-      />
-      <path fill="currentColor" d="m12.5 7.5l3-2l3 3l-2 3z" />
-    </g>
+  <svg v-if="type === 'edit'" width="16" height="16" viewBox="0 0 16 16">
+    <path d="M0 0h16v16H0z" fill="none" />
+    <path
+      fill="currentColor"
+      d="M14.236 1.764a2.62 2.62 0 0 0-3.707 0L2.657 9.636a2.96 2.96 0 0 0-.772 1.354l-.87 3.386a.5.5 0 0 0 .61.608l3.385-.869a2.95 2.95 0 0 0 1.354-.772l7.872-7.872a2.62 2.62 0 0 0 0-3.707m-3 .707a1.621 1.621 0 1 1 2.293 2.293l-.779.779l-2.293-2.293zM9.75 3.957l2.293 2.293l-6.386 6.386a1.95 1.95 0 0 1-.896.51l-2.567.66l.66-2.567a1.94 1.94 0 0 1 .51-.896z"
+    />
   </svg>
   <svg v-else-if="type === 'duplicate'" width="16" height="16" viewBox="0 0 512 512">
     <path d="M0 0h512v512H0z" fill="none" />
