@@ -17,6 +17,9 @@ coverage
 # Local work-item data (personal, machine-local storage)
 .data/
 
+# Local appearance/theme preferences (personal, machine-local storage)
+.config
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -36,7 +36,11 @@ const options = computed<Option[]>(() => {
     !props.modelValue.includes(trimmed) &&
     !(props.suggestions ?? []).some((tag) => tag.toLowerCase() === q)
   ) {
-    result.push({ value: trimmed, label: t('itemDetail.tagsCreateNew', { tag: trimmed }), isCreate: true })
+    result.push({
+      value: trimmed,
+      label: t('itemDetail.tagsCreateNew', { tag: trimmed }),
+      isCreate: true,
+    })
   }
 
   return result

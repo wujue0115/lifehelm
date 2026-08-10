@@ -4,6 +4,7 @@ import path from 'node:path'
 
 const DATA_DIR = path.resolve(process.cwd(), '.data')
 const ATTACHMENTS_DIR = path.join(DATA_DIR, 'attachments')
+const ROOT_DIR = process.cwd()
 
 async function ensureDataDir(): Promise<void> {
   await mkdir(DATA_DIR, { recursive: true })
@@ -36,6 +37,18 @@ export async function readJsonFileOrSeed<T>(filename: string, seed: T): Promise<
   }
   const raw = await readFile(filePath, 'utf-8')
   return JSON.parse(raw) as T
+}
+
+export async function readRootJsonFile<T>(filename: string, fallback: T): Promise<T> {
+  const filePath = path.join(ROOT_DIR, filename)
+  if (!existsSync(filePath)) return fallback
+  const raw = await readFile(filePath, 'utf-8')
+  return JSON.parse(raw) as T
+}
+
+export async function writeRootJsonFile<T>(filename: string, data: T): Promise<void> {
+  const filePath = path.join(ROOT_DIR, filename)
+  await writeFile(filePath, JSON.stringify(data, null, 2), 'utf-8')
 }
 
 export interface StoredAttachment {

@@ -3,6 +3,7 @@ import { createPinia } from 'pinia'
 
 import '@/assets/design-tokens.css'
 import '@/composables/useTheme'
+import { useThemeConfig } from '@/composables/useThemeConfig'
 import { i18n } from '@/i18n'
 import App from './App.vue'
 import router from './router'
@@ -14,3 +15,5 @@ app.use(router)
 app.use(i18n)
 
 app.mount('#app')
+
+useThemeConfig().load()

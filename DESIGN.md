@@ -1,7 +1,7 @@
 ---
 version: beta
 name: Admin-Dashboard-System
-description: A functional back-office admin dashboard system — fixed left sidebar navigation, dense information-first layouts, flat bordered cards and tables, and a strictly monochrome grayscale palette. There is no accent color and no photography; hierarchy comes from typographic weight, size, and grayscale contrast alone. Text is primarily Traditional Chinese, so the system deliberately avoids uppercase display type and wide letter-spacing (both are Latin-only conventions with no visual effect on CJK glyphs).
+description: A functional back-office admin dashboard system — fixed left sidebar navigation, dense information-first layouts, flat bordered cards and tables, and a strictly monochrome grayscale palette by default. Hierarchy comes from typographic weight, size, and grayscale contrast, not photography. A single user-configurable accent color exists as an explicit opt-in (see "Accent (user-configurable)"), off by default so a fresh install is pure grayscale. Text is primarily Traditional Chinese, so the system deliberately avoids uppercase display type and wide letter-spacing (both are Latin-only conventions with no visual effect on CJK glyphs).
 
 colors:
   ink: '#09090b'
@@ -17,6 +17,8 @@ colors:
   border-subtle: '#e4e4e7'
   border-strong: '#d4d4d8'
   surface-hover: '#ececef'
+  accent: '{colors.ink}' # user-configurable override, see "Accent (user-configurable)"
+  accent-contrast: '{colors.canvas-surface}'
 
 colors-dark:
   ink: '#f4f4f5'
@@ -32,6 +34,8 @@ colors-dark:
   border-subtle: '#27272a'
   border-strong: '#3f3f46'
   surface-hover: '#1f1f23'
+  accent: '{colors.ink}'
+  accent-contrast: '{colors.canvas-surface}'
 
 fonts:
   sans: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'PingFang TC', 'Microsoft JhengHei', 'Noto Sans TC', sans-serif"
@@ -162,14 +166,14 @@ components:
 
 This is a functional back-office admin dashboard, not a marketing site: the job is to let one person scan, filter, and edit a list of work items as fast as possible. There is no hero imagery, no full-bleed photography, no single-CTA-per-band composition. Instead the system borrows the layout grammar of tools like Linear, Vercel's dashboard, and classic admin templates — a fixed dark sidebar for wayfinding, a light content canvas for data, flat 1px-bordered cards and tables for structure, and typographic weight/size (not color) for hierarchy.
 
-The palette stays strictly monochrome — black, white, and a grayscale ramp in between — the same "no accent color" discipline as before, just repurposed: grayscale now does the job that used to belong to photography, building surface hierarchy (`{colors.canvas-app}` page background vs `{colors.canvas-surface}` card/table white) and interactive state (`{colors.surface-hover}`, `{colors.sidebar-hover}`) instead of chromatic branding.
+The palette's base state is strictly monochrome — black, white, and a grayscale ramp in between — the same "no accent color" discipline as before, just repurposed: grayscale does the job that used to belong to photography, building surface hierarchy (`{colors.canvas-app}` page background vs `{colors.canvas-surface}` card/table white) and interactive state (`{colors.surface-hover}`, `{colors.sidebar-hover}`) instead of chromatic branding. This is the *system default* a fresh install ships with; see "Accent (user-configurable)" below for the opt-in theming layer that lets a user override it.
 
 **Why no uppercase / wide tracking:** the previous iteration of this system used uppercase D-DIN-Bold with positive letter-spacing as its typographic signature. That convention is Latin-script-only — `text-transform: uppercase` has no effect on Chinese characters, and wide positive letter-spacing between CJK glyphs reads as broken, not premium. Since this app's UI text is primarily Traditional Chinese, the system now defaults every tier to normal case and zero-to-minimal letter-spacing, reserving weight and size as the only signals.
 
 **Key Characteristics:**
 
 - Fixed 240px dark left sidebar (`{colors.canvas-sidebar}`) for navigation; everything else lives in a light content column.
-- Strictly monochrome grayscale — no brand accent color, same discipline as the previous iteration, now expressed as tonal steps instead of photography.
+- Strictly monochrome grayscale by default — no brand accent color baked into the base system, same discipline as the previous iteration, now expressed as tonal steps instead of photography. A user-configurable accent color exists as an opt-in override (see "Accent (user-configurable)" under Colors) but ships off.
 - Normal-case typography throughout — no forced uppercase, no wide letter-spacing (CJK-appropriate).
 - Small-radius rectangular buttons (`{rounded.sm}` 6px) for actions; full-pill radius (`{rounded.full}`) reserved for status badges/chips, not buttons.
 - Flat 1px-bordered cards and tables — no shadows, no blurs, no gradients. Depth is a border and a shade of gray, never elevation.
@@ -198,6 +202,12 @@ The palette stays strictly monochrome — black, white, and a grayscale ramp in 
 ### Dark Mode
 
 The system ships both a light palette (`colors:`) and a dark palette (`colors-dark:`) in the frontmatter, and **every** surface token flips between them, sidebar included — `ink`/`ink-secondary`/`ink-muted`, `canvas-app`/`canvas-surface`, `canvas-sidebar`/`on-sidebar`/`on-sidebar-muted`/`sidebar-hover`/`sidebar-active`, `border-subtle`/`border-strong`, and `surface-hover`. The sidebar always takes the same value as `canvas-surface` in whichever mode is active (white in light mode, `#18181b` in dark mode) — it's a "surface," not a permanently-dark brand element, so it needs to contrast against `canvas-app` in both modes rather than going muddy (in dark mode, a permanently-`#0a0a0a` sidebar next to a `#0a0a0b` page background would be visually indistinguishable). In code this is implemented as CSS custom properties overridden under a `:root[data-theme="dark"]` selector (`src/assets/design-tokens.css`), toggled by `useTheme()` (`src/composables/useTheme.ts`), which persists the explicit choice to `localStorage` and otherwise defaults to the OS `prefers-color-scheme`. Components never branch on theme in script — they just reference the same `var(--color-*)` custom properties in both modes.
+
+### Accent (user-configurable)
+
+The base system ships with no brand accent color, but the app exposes a user-facing "tweak" panel (`src/components/ThemeSettingsPanel.vue`, opened from a trigger in the sidebar) that lets a person opt into one, along with font, corner radius, and spacing adjustments — plus a handful of built-in presets bundling all four together (`src/config/themePresets.ts`). This is a per-installation preference, not a redesign of the component specs below: every spec in this document (buttons, badges, cards) still describes the grayscale default, and accenting only touches the places explicitly wired to `{colors.accent}`/`{colors.accent-contrast}` — currently `btn-primary`, the sidebar's active-nav-item indicator/tint, and the global focus ring. Everything else (cards, tables, borders, secondary/ghost buttons) stays grayscale regardless of the chosen accent, so the monochrome discipline still governs structure; accent is limited to marking the single primary action and current location, never used for charts or status (that's still grayscale intensity per the Do's and Don'ts).
+
+Mechanically, `{colors.accent}` defaults to `{colors.ink}` and `{colors.accent-contrast}` defaults to `{colors.canvas-surface}` (`src/assets/design-tokens.css`) — so an unconfigured install is pixel-identical to the pure-grayscale system. Picking a color in the settings panel sets `--color-accent`/`--color-accent-contrast` as an inline override on `:root` (`src/composables/useThemeConfig.ts`), which wins over the stylesheet default without any component branching on theme. Radius and spacing tweaks work the same way via `--radius-scale`/`--space-scale` multipliers baked into the `{rounded.*}`/`{spacing.*}` token formulas. The resolved config persists to a project-root `.config` file (dev-only `/api/theme-config` route in `server/localDataPlugin.ts`), machine-local and gitignored, mirroring how `.data/` stores work-item data.
 
 ## Typography
 
@@ -270,7 +280,7 @@ The previous system's signature 32px pill button is gone. Admin dashboards use s
 
 **`btn-primary`** — the primary action in any given context (save, create).
 
-- Background `{colors.ink}`, text `{colors.canvas-surface}` (white-on-near-black), type `{typography.body-sm}`, padding `{spacing.xs} {spacing.md}` (8px 16px), rounded `{rounded.sm}` 6px, min-height 36px.
+- Background `{colors.accent}`, text `{colors.accent-contrast}`, type `{typography.body-sm}`, padding `{spacing.xs} {spacing.md}` (8px 16px), rounded `{rounded.sm}` 6px, min-height 36px. `{colors.accent}` defaults to `{colors.ink}` (white-on-near-black, same as the previous unaccented spec) unless the user has picked a custom accent — see "Accent (user-configurable)" under Colors.
 
 **`btn-secondary`** — secondary actions (cancel, back, destructive).
 
@@ -326,14 +336,14 @@ The previous system's signature 32px pill button is gone. Admin dashboards use s
 - Use weight and size (not color, not letter-spacing) to build hierarchy in Chinese UI text.
 - Border every card/table against `{colors.canvas-app}` — there's no shadow to do that job.
 - Reserve `{rounded.full}` for status chips; every button and input stays rectangular with `{rounded.sm}`/`{rounded.xs}`.
-- Keep the palette to ink/canvas/border grayscale steps — no brand accent color.
+- Keep the palette to ink/canvas/border grayscale steps by default — accent (`{colors.accent}`) is an explicit, user-opted-in override (see "Accent (user-configurable)"), not something a component reaches for on its own.
 
 ### Don't
 
 - Don't force `uppercase` on any text tier — it has no effect on CJK and reads as broken when it does apply to the rare Latin string.
 - Don't bring back the 32px pill button for primary/secondary actions — that shape is a status-badge signal only now.
 - Don't add drop shadows or gradients to lift cards off the background — use a border instead.
-- Don't introduce a brand accent color for charts or status — grayscale intensity (outline vs. filled `{colors.ink}`) is the only signal available.
+- Don't introduce a *new* hardcoded brand color anywhere, and don't use `{colors.accent}` for charts or status — grayscale intensity (outline vs. filled `{colors.ink}`) is still the only status signal. The one user-configurable accent lives entirely behind `{colors.accent}`/`{colors.accent-contrast}`, not scattered hex values.
 - Don't widen letter-spacing on body or label text to "match the old brand feel" — it actively hurts CJK legibility.
 
 ## Responsive Behavior
@@ -363,5 +373,5 @@ The sidebar's expanded/collapsed state and width are user-controlled and persist
 2. Reference component names and tokens directly (`{colors.ink}`, `{btn-primary}`, `{rounded.sm}`).
 3. Add new variants as separate entries rather than overloading an existing one.
 4. Default body to `{typography.body}`; reserve `{typography.body-sm}` for table cells and secondary copy.
-5. The monochrome-only rule is still load-bearing — adding a brand accent color breaks the system just as much as it did in the previous iteration.
+5. The monochrome-by-default rule is still load-bearing — don't hardcode a new brand color into a component. The only sanctioned color is the single user-configurable `{colors.accent}` token (see "Accent (user-configurable)"), and only in the few places it's already wired up.
 6. `{rounded.full}` is reserved for status badges — don't apply it to buttons or inputs.
