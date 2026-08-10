@@ -29,14 +29,6 @@ const statusNameById = computed(() => {
   return map
 })
 
-const allTags = computed(() => {
-  const tagSet = new Set<string>()
-  for (const item of store.items) {
-    for (const tag of item.tags) tagSet.add(tag)
-  }
-  return Array.from(tagSet).sort()
-})
-
 const priorityOrder: Record<Priority, number> = { low: 0, medium: 1, high: 2, urgent: 3 }
 
 const filteredItems = computed(() => {
@@ -114,7 +106,7 @@ async function confirmDelete(): Promise<void> {
         </select>
         <select v-model="tagFilter" class="input type-body">
           <option value="all">{{ t('list.allTags') }}</option>
-          <option v-for="tag in allTags" :key="tag" :value="tag">{{ tag }}</option>
+          <option v-for="tag in store.allTags" :key="tag" :value="tag">{{ tag }}</option>
         </select>
       </div>
       <RouterLink to="/items/new" class="btn btn-primary">{{ t('list.addItem') }}</RouterLink>

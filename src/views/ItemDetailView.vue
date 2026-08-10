@@ -8,6 +8,7 @@ import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import CommentList from '@/components/CommentList.vue'
 import AttachmentList from '@/components/AttachmentList.vue'
 import TimeTracker from '@/components/TimeTracker.vue'
+import TagsInput from '@/components/TagsInput.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -23,7 +24,7 @@ const form = reactive({
   description: '',
   statusId: '',
   priority: 'medium' as Priority,
-  tagsText: '',
+  tags: [] as string[],
   startDate: '',
   dueDate: '',
 })
@@ -38,7 +39,7 @@ function applyItemToForm(item: WorkItem): void {
   form.description = item.description
   form.statusId = item.statusId
   form.priority = item.priority
-  form.tagsText = item.tags.join(', ')
+  form.tags = [...item.tags]
   form.startDate = item.startDate ? item.startDate.slice(0, 10) : ''
   form.dueDate = item.dueDate ? item.dueDate.slice(0, 10) : ''
 }
@@ -87,10 +88,7 @@ async function handleSubmit(): Promise<void> {
     description: form.description.trim(),
     statusId: form.statusId,
     priority: form.priority,
-    tags: form.tagsText
-      .split(',')
-      .map((tag) => tag.trim())
-      .filter(Boolean),
+    tags: form.tags,
     startDate: form.startDate ? new Date(form.startDate).toISOString() : null,
     dueDate: form.dueDate ? new Date(form.dueDate).toISOString() : null,
   }
@@ -169,10 +167,9 @@ async function handleDelete(): Promise<void> {
 
         <label class="field">
           <span class="type-label">{{ t('itemDetail.fieldTags') }}</span>
-          <input
-            v-model="form.tagsText"
-            class="input type-body"
-            type="text"
+          <TagsInput
+            v-model="form.tags"
+            :suggestions="store.allTags"
             :placeholder="t('itemDetail.tagsPlaceholder')"
           />
         </label>

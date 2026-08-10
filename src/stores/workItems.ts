@@ -11,6 +11,13 @@ export const useWorkItemsStore = defineStore('workItems', () => {
 
   const sortedBoard = computed(() => [...board.value].sort((a, b) => a.order - b.order))
   const lastColumnId = computed(() => sortedBoard.value[sortedBoard.value.length - 1]?.id)
+  const allTags = computed(() => {
+    const tagSet = new Set<string>()
+    for (const item of items.value) {
+      for (const tag of item.tags) tagSet.add(tag)
+    }
+    return Array.from(tagSet).sort()
+  })
 
   function isItemCompleted(item: WorkItem): boolean {
     return item.statusId === lastColumnId.value
@@ -97,6 +104,7 @@ export const useWorkItemsStore = defineStore('workItems', () => {
     board,
     sortedBoard,
     lastColumnId,
+    allTags,
     isItemCompleted,
     loading,
     error,

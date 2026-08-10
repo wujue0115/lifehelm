@@ -4,74 +4,77 @@ name: Admin-Dashboard-System
 description: A functional back-office admin dashboard system — fixed left sidebar navigation, dense information-first layouts, flat bordered cards and tables, and a strictly monochrome grayscale palette. There is no accent color and no photography; hierarchy comes from typographic weight, size, and grayscale contrast alone. Text is primarily Traditional Chinese, so the system deliberately avoids uppercase display type and wide letter-spacing (both are Latin-only conventions with no visual effect on CJK glyphs).
 
 colors:
-  ink: "#09090b"
-  ink-secondary: "#52525b"
-  ink-muted: "#a1a1aa"
-  canvas-app: "#f4f4f5"
-  canvas-surface: "#ffffff"
-  canvas-sidebar: "#ffffff"
-  on-sidebar: "#09090b"
-  on-sidebar-muted: "#52525b"
-  sidebar-hover: "#ececef"
-  sidebar-active: "#e4e4e7"
-  border-subtle: "#e4e4e7"
-  border-strong: "#d4d4d8"
-  surface-hover: "#ececef"
+  ink: '#09090b'
+  ink-secondary: '#52525b'
+  ink-muted: '#a1a1aa'
+  canvas-app: '#f4f4f5'
+  canvas-surface: '#ffffff'
+  canvas-sidebar: '#ffffff'
+  on-sidebar: '#09090b'
+  on-sidebar-muted: '#52525b'
+  sidebar-hover: '#ececef'
+  sidebar-active: '#e4e4e7'
+  border-subtle: '#e4e4e7'
+  border-strong: '#d4d4d8'
+  surface-hover: '#ececef'
 
 colors-dark:
-  ink: "#f4f4f5"
-  ink-secondary: "#a1a1aa"
-  ink-muted: "#71717a"
-  canvas-app: "#0a0a0b"
-  canvas-surface: "#18181b"
-  canvas-sidebar: "#18181b"
-  on-sidebar: "#f4f4f5"
-  on-sidebar-muted: "#a1a1aa"
-  sidebar-hover: "#1f1f23"
-  sidebar-active: "#27272a"
-  border-subtle: "#27272a"
-  border-strong: "#3f3f46"
-  surface-hover: "#1f1f23"
+  ink: '#f4f4f5'
+  ink-secondary: '#a1a1aa'
+  ink-muted: '#71717a'
+  canvas-app: '#0a0a0b'
+  canvas-surface: '#18181b'
+  canvas-sidebar: '#18181b'
+  on-sidebar: '#f4f4f5'
+  on-sidebar-muted: '#a1a1aa'
+  sidebar-hover: '#1f1f23'
+  sidebar-active: '#27272a'
+  border-subtle: '#27272a'
+  border-strong: '#3f3f46'
+  surface-hover: '#1f1f23'
+
+fonts:
+  sans: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'PingFang TC', 'Microsoft JhengHei', 'Noto Sans TC', sans-serif"
 
 typography:
   page-title:
-    fontFamily: "D-DIN-Bold, Arial Narrow, Arial, Verdana, sans-serif"
+    fontFamily: '{fonts.sans}'
     fontSize: 24px
     fontWeight: 700
     lineHeight: 1.3
     letterSpacing: 0
   section-title:
-    fontFamily: "D-DIN-Bold, Arial Narrow, Arial, Verdana, sans-serif"
+    fontFamily: '{fonts.sans}'
     fontSize: 15px
     fontWeight: 700
     lineHeight: 1.4
     letterSpacing: 0
   body:
-    fontFamily: "D-DIN, Arial, Verdana, sans-serif"
+    fontFamily: '{fonts.sans}'
     fontSize: 14px
     fontWeight: 400
     lineHeight: 1.6
     letterSpacing: 0
   body-sm:
-    fontFamily: "D-DIN, Arial, Verdana, sans-serif"
+    fontFamily: '{fonts.sans}'
     fontSize: 13px
     fontWeight: 400
     lineHeight: 1.5
     letterSpacing: 0
   caption:
-    fontFamily: "D-DIN, Arial, Verdana, sans-serif"
+    fontFamily: '{fonts.sans}'
     fontSize: 12px
     fontWeight: 400
     lineHeight: 1.4
     letterSpacing: 0
   label:
-    fontFamily: "D-DIN, Arial, Verdana, sans-serif"
+    fontFamily: '{fonts.sans}'
     fontSize: 11px
     fontWeight: 600
     lineHeight: 1.3
     letterSpacing: 0.2px
   nav-item:
-    fontFamily: "D-DIN, Arial, Verdana, sans-serif"
+    fontFamily: '{fonts.sans}'
     fontSize: 14px
     fontWeight: 500
     lineHeight: 1.4
@@ -96,62 +99,62 @@ spacing:
 
 components:
   sidebar:
-    backgroundColor: "{colors.canvas-sidebar}"
-    textColor: "{colors.on-sidebar}"
+    backgroundColor: '{colors.canvas-sidebar}'
+    textColor: '{colors.on-sidebar}'
     width: 240px
     padding: 16px 12px
   sidebar-nav-item:
-    backgroundColor: "transparent"
-    textColor: "{colors.on-sidebar-muted}"
-    typography: "{typography.nav-item}"
-    rounded: "{rounded.sm}"
+    backgroundColor: 'transparent'
+    textColor: '{colors.on-sidebar-muted}'
+    typography: '{typography.nav-item}'
+    rounded: '{rounded.sm}'
     padding: 8px 12px
   topbar:
-    backgroundColor: "{colors.canvas-surface}"
-    textColor: "{colors.ink}"
-    typography: "{typography.page-title}"
+    backgroundColor: '{colors.canvas-surface}'
+    textColor: '{colors.ink}'
+    typography: '{typography.page-title}'
     padding: 0px 24px
   btn-primary:
-    backgroundColor: "{colors.ink}"
-    textColor: "{colors.canvas-surface}"
-    typography: "{typography.body-sm}"
-    rounded: "{rounded.sm}"
+    backgroundColor: '{colors.ink}'
+    textColor: '{colors.canvas-surface}'
+    typography: '{typography.body-sm}'
+    rounded: '{rounded.sm}'
     padding: 8px 16px
   btn-secondary:
-    backgroundColor: "{colors.canvas-surface}"
-    textColor: "{colors.ink}"
-    typography: "{typography.body-sm}"
-    rounded: "{rounded.sm}"
+    backgroundColor: '{colors.canvas-surface}'
+    textColor: '{colors.ink}'
+    typography: '{typography.body-sm}'
+    rounded: '{rounded.sm}'
     padding: 8px 16px
   btn-ghost:
-    backgroundColor: "transparent"
-    textColor: "{colors.ink-secondary}"
-    typography: "{typography.body-sm}"
-    rounded: "{rounded.sm}"
+    backgroundColor: 'transparent'
+    textColor: '{colors.ink-secondary}'
+    typography: '{typography.body-sm}'
+    rounded: '{rounded.sm}'
     padding: 8px 16px
   text-input:
-    backgroundColor: "{colors.canvas-surface}"
-    textColor: "{colors.ink}"
-    typography: "{typography.body}"
-    rounded: "{rounded.xs}"
+    backgroundColor: '{colors.canvas-surface}'
+    textColor: '{colors.ink}'
+    typography: '{typography.body}'
+    rounded: '{rounded.xs}'
     padding: 8px 12px
   card:
-    backgroundColor: "{colors.canvas-surface}"
-    textColor: "{colors.ink}"
-    typography: "{typography.body}"
-    rounded: "{rounded.md}"
+    backgroundColor: '{colors.canvas-surface}'
+    textColor: '{colors.ink}'
+    typography: '{typography.body}'
+    rounded: '{rounded.md}'
     padding: 16px
   data-table:
-    backgroundColor: "{colors.canvas-surface}"
-    textColor: "{colors.ink}"
-    typography: "{typography.body-sm}"
-    rounded: "{rounded.md}"
+    backgroundColor: '{colors.canvas-surface}'
+    textColor: '{colors.ink}'
+    typography: '{typography.body-sm}'
+    rounded: '{rounded.md}'
     padding: 0px
   status-badge:
-    backgroundColor: "{colors.canvas-surface}"
-    textColor: "{colors.ink}"
-    typography: "{typography.label}"
-    rounded: "{rounded.full}"
+    backgroundColor: '{colors.canvas-surface}'
+    textColor: '{colors.ink}'
+    typography: '{typography.label}'
+    rounded: '{rounded.full}'
     padding: 2px 10px
 ---
 
@@ -164,6 +167,7 @@ The palette stays strictly monochrome — black, white, and a grayscale ramp in 
 **Why no uppercase / wide tracking:** the previous iteration of this system used uppercase D-DIN-Bold with positive letter-spacing as its typographic signature. That convention is Latin-script-only — `text-transform: uppercase` has no effect on Chinese characters, and wide positive letter-spacing between CJK glyphs reads as broken, not premium. Since this app's UI text is primarily Traditional Chinese, the system now defaults every tier to normal case and zero-to-minimal letter-spacing, reserving weight and size as the only signals.
 
 **Key Characteristics:**
+
 - Fixed 240px dark left sidebar (`{colors.canvas-sidebar}`) for navigation; everything else lives in a light content column.
 - Strictly monochrome grayscale — no brand accent color, same discipline as the previous iteration, now expressed as tonal steps instead of photography.
 - Normal-case typography throughout — no forced uppercase, no wide letter-spacing (CJK-appropriate).
@@ -174,6 +178,7 @@ The palette stays strictly monochrome — black, white, and a grayscale ramp in 
 ## Colors
 
 ### Surface
+
 - **Canvas App** (`{colors.canvas-app}` — `#f4f4f5`): The page background behind cards/tables — a barely-off-white that separates content blocks from their container without a border.
 - **Canvas Surface** (`{colors.canvas-surface}` — `#ffffff`): Card, table, topbar, and form panel background. Pure white, always paired with a `{colors.border-subtle}` or `{colors.border-strong}` border since there's no shadow to separate it from `{colors.canvas-app}`.
 - **Canvas Sidebar** (`{colors.canvas-sidebar}` — `#0a0a0a`): The one dark surface in the system — the fixed left navigation rail.
@@ -183,6 +188,7 @@ The palette stays strictly monochrome — black, white, and a grayscale ramp in 
 - **Border Strong** (`{colors.border-strong}` — `#d4d4d8`): Table header underline, input borders — anywhere a border needs to read slightly more structural.
 
 ### Text
+
 - **Ink** (`{colors.ink}` — `#09090b`): Primary text on light surfaces (near-black, not pure black — softer on dense text).
 - **Ink Secondary** (`{colors.ink-secondary}` — `#52525b`): Secondary text — labels, metadata, table header text.
 - **Ink Muted** (`{colors.ink-muted}` — `#a1a1aa`): Placeholder, disabled, and lowest-priority text.
@@ -190,26 +196,31 @@ The palette stays strictly monochrome — black, white, and a grayscale ramp in 
 - **On Sidebar Muted** (`{colors.on-sidebar-muted}` — `#a1a1aa`): Inactive nav item text.
 
 ### Dark Mode
+
 The system ships both a light palette (`colors:`) and a dark palette (`colors-dark:`) in the frontmatter, and **every** surface token flips between them, sidebar included — `ink`/`ink-secondary`/`ink-muted`, `canvas-app`/`canvas-surface`, `canvas-sidebar`/`on-sidebar`/`on-sidebar-muted`/`sidebar-hover`/`sidebar-active`, `border-subtle`/`border-strong`, and `surface-hover`. The sidebar always takes the same value as `canvas-surface` in whichever mode is active (white in light mode, `#18181b` in dark mode) — it's a "surface," not a permanently-dark brand element, so it needs to contrast against `canvas-app` in both modes rather than going muddy (in dark mode, a permanently-`#0a0a0a` sidebar next to a `#0a0a0b` page background would be visually indistinguishable). In code this is implemented as CSS custom properties overridden under a `:root[data-theme="dark"]` selector (`src/assets/design-tokens.css`), toggled by `useTheme()` (`src/composables/useTheme.ts`), which persists the explicit choice to `localStorage` and otherwise defaults to the OS `prefers-color-scheme`. Components never branch on theme in script — they just reference the same `var(--color-*)` custom properties in both modes.
 
 ## Typography
 
 ### Font Family
-Same two-cut family as before: **D-DIN-Bold** for titles, **D-DIN** regular for everything else, falling back to **Arial Narrow → Arial → Verdana**. The difference from the previous iteration is entirely in how the sizes and case are used, not the family itself.
+
+One system-native stack (`{fonts.sans}`) for every tier — no D-DIN, no separate "bold cut." Titles get their weight from `fontWeight: 700` on the same family, not a different font file. The stack is `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial` for Latin text, with `"PingFang TC", "Microsoft JhengHei", "Noto Sans TC"` appended for Traditional Chinese, falling back to generic `sans-serif`.
+
+**Why the switch from D-DIN:** the previous iteration declared `D-DIN-Bold, Arial Narrow, Arial, Verdana` as its stack, but D-DIN itself was never actually installed on any real device (there's no `@font-face` loading it), and `Arial Narrow` — the first real fallback — doesn't exist on macOS or most Linux systems either. In practice this meant headings silently fell back to a _different_ font than body text depending on OS (condensed Arial Narrow on Windows, plain Arial on Mac/Linux), which is the opposite of a unified type system. The system-native stack renders as each OS's own UI font (San Francisco on Mac, Segoe UI on Windows, Roboto on Android/Chrome OS) — always installed, always consistent between weights, and it's what every peer admin-dashboard product (GitHub, Linear, Vercel) already does instead of shipping a custom display face.
 
 ### Hierarchy
 
-| Token | Size | Weight | Line Height | Use |
-|---|---|---|---|---|
-| `{typography.page-title}` | 24px | 700 | 1.3 | Page `<h1>` (e.g. "清單檢視") — normal case |
-| `{typography.section-title}` | 15px | 700 | 1.4 | Card/section headers (e.g. "各狀態數量") |
-| `{typography.body}` | 14px | 400 | 1.6 | Default UI text, form inputs |
-| `{typography.body-sm}` | 13px | 400 | 1.5 | Table cell text, secondary copy |
-| `{typography.caption}` | 12px | 400 | 1.4 | Timestamps, helper text |
-| `{typography.label}` | 11px | 600 | 1.3 | Table column headers, form field labels, badge text |
-| `{typography.nav-item}` | 14px | 500 | 1.4 | Sidebar navigation item text |
+| Token                        | Size | Weight | Line Height | Use                                                 |
+| ---------------------------- | ---- | ------ | ----------- | --------------------------------------------------- |
+| `{typography.page-title}`    | 24px | 700    | 1.3         | Page `<h1>` (e.g. "清單檢視") — normal case         |
+| `{typography.section-title}` | 15px | 700    | 1.4         | Card/section headers (e.g. "各狀態數量")            |
+| `{typography.body}`          | 14px | 400    | 1.6         | Default UI text, form inputs                        |
+| `{typography.body-sm}`       | 13px | 400    | 1.5         | Table cell text, secondary copy                     |
+| `{typography.caption}`       | 12px | 400    | 1.4         | Timestamps, helper text                             |
+| `{typography.label}`         | 11px | 600    | 1.3         | Table column headers, form field labels, badge text |
+| `{typography.nav-item}`      | 14px | 500    | 1.4         | Sidebar navigation item text                        |
 
 ### Principles
+
 - **Normal case everywhere.** No forced uppercase on any tier — CJK text has no case to transform.
 - **Weight and size carry hierarchy, not tracking.** Letter-spacing stays at 0 (or a barely-there 0.2px on `{typography.label}` for the handful of Latin/numeral labels) instead of the previous system's wide positive tracking.
 - **Dense by default.** 14px body instead of 16px — admin surfaces prioritize fitting more rows on screen over marketing-style generous type.
@@ -218,21 +229,24 @@ Same two-cut family as before: **D-DIN-Bold** for titles, **D-DIN** regular for 
 ## Layout
 
 ### Spacing System
+
 Unchanged from the previous iteration: `{spacing.xxs}` 4px · `{spacing.xs}` 8px · `{spacing.sm}` 12px · `{spacing.md}` 16px · `{spacing.lg}` 18px · `{spacing.xl}` 24px · `{spacing.xxl}` 32px · `{spacing.huge}` 48px.
 
 ### Shell Structure
+
 The app shell is two columns: a fixed 240px `{component.sidebar}` on the left, and a flexible right column containing a 56px `{component.topbar}` and a scrollable content area (`{colors.canvas-app}` background). There is no full-viewport hero band anymore — every screen lives inside the content column with `{spacing.xl}` (24px) padding.
 
 ### Grid & Container
+
 - Content column has no max-width constraint beyond the viewport minus the sidebar — dashboards use available width for tables and multi-column card grids.
 - Card grids (dashboard summary cards) stair-step via `repeat(auto-fit, minmax(160px, 1fr))` — as many columns as fit, no fixed breakpoint count.
 
 ## Elevation & Depth
 
-| Level | Treatment | Use |
-|---|---|---|
-| 0 | Flat | Default — the only level in this system |
-| 1 | 1px border (`{colors.border-subtle}` or `{colors.border-strong}`) | The sole separation technique between a card/table and the app background |
+| Level | Treatment                                                         | Use                                                                       |
+| ----- | ----------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| 0     | Flat                                                              | Default — the only level in this system                                   |
+| 1     | 1px border (`{colors.border-subtle}` or `{colors.border-strong}`) | The sole separation technique between a card/table and the app background |
 
 No drop shadows, blurs, glows, or gradients — same discipline as the previous iteration, just without photography to justify it. Here the reasoning is simpler: admin surfaces should look calm and flat, and a border reads as structural while a shadow reads as decorative.
 
@@ -240,12 +254,12 @@ No drop shadows, blurs, glows, or gradients — same discipline as the previous 
 
 ### Border Radius Scale
 
-| Token | Value | Use |
-|---|---|---|
-| `{rounded.xs}` | 4px | Form inputs |
-| `{rounded.sm}` | 6px | Buttons — the default interactive-element radius |
-| `{rounded.md}` | 10px | Cards, tables, panels |
-| `{rounded.lg}` | 14px | Modals/dialogs |
+| Token            | Value  | Use                                                         |
+| ---------------- | ------ | ----------------------------------------------------------- |
+| `{rounded.xs}`   | 4px    | Form inputs                                                 |
+| `{rounded.sm}`   | 6px    | Buttons — the default interactive-element radius            |
+| `{rounded.md}`   | 10px   | Cards, tables, panels                                       |
+| `{rounded.lg}`   | 14px   | Modals/dialogs                                              |
 | `{rounded.full}` | 9999px | Status badges/chips and avatar circles only — never buttons |
 
 The previous system's signature 32px pill button is gone. Admin dashboards use small-radius rectangular buttons; pill/full radius is reserved for status chips, which is where it reads as "state," not "action."
@@ -255,48 +269,59 @@ The previous system's signature 32px pill button is gone. Admin dashboards use s
 ### Buttons
 
 **`btn-primary`** — the primary action in any given context (save, create).
+
 - Background `{colors.ink}`, text `{colors.canvas-surface}` (white-on-near-black), type `{typography.body-sm}`, padding `{spacing.xs} {spacing.md}` (8px 16px), rounded `{rounded.sm}` 6px, min-height 36px.
 
 **`btn-secondary`** — secondary actions (cancel, back, destructive).
+
 - Background `{colors.canvas-surface}`, 1px `{colors.border-strong}` border, text `{colors.ink}`, otherwise identical geometry to `btn-primary`.
 
 **`btn-ghost`** — lowest-emphasis inline actions (row-level edit/delete links).
+
 - Transparent background, text `{colors.ink-secondary}`, background lifts to `{colors.surface-hover}` on hover, no border.
 
 ### Cards & Containers
 
 **`card`** — the default content container.
+
 - Background `{colors.canvas-surface}`, 1px `{colors.border-subtle}` border, rounded `{rounded.md}` 10px, padding `{spacing.md}` 16px. Used for dashboard summary tiles, form panels, and detail sections.
 
 **`data-table`** — tabular list views.
+
 - Background `{colors.canvas-surface}`, rounded `{rounded.md}` 10px. Header row uses `{typography.label}` text in `{colors.ink-secondary}` with a `{colors.border-strong}` bottom border; body rows use `{typography.body-sm}`, `{colors.border-subtle}` row dividers, and `{colors.surface-hover}` on hover.
 
 ### Inputs & Forms
 
 **`text-input`** — form input.
+
 - Background `{colors.canvas-surface}`, text `{colors.ink}`, type `{typography.body}`, padding `{spacing.xs} {spacing.sm}` (8px 12px), rounded `{rounded.xs}` 4px, 1px `{colors.border-strong}` border, min-height 36px.
 
 ### Navigation
 
 **`sidebar`** — fixed left navigation rail.
+
 - Background `{colors.canvas-sidebar}`, default width 240px (user-resizable, see below), padding `{spacing.md} {spacing.sm}`. Holds a top row (app name + collapse toggle), a vertical list of `sidebar-nav-item` entries (each pairing a small inline-SVG glyph with `{typography.nav-item}` text), and a theme toggle pinned to the bottom via `margin-top: auto`.
 - **Resizable**: the sidebar's right edge is a permanently-visible 1px `{colors.border-strong}` divider (thickening and darkening to `{colors.ink-secondary}` on hover) that doubles as the drag handle — `cursor: ew-resize`, drag to set any width between 180px and 400px. The divider stays visible (but non-interactive) when collapsed. The choice persists to `localStorage` (`src/composables/useSidebar.ts`). Because the sidebar now shares `canvas-surface`'s color with the content cards, this divider is what actually separates sidebar from content — don't rely on a color difference alone.
 - **Collapsible**: a chevron toggle next to the app name collapses the sidebar to a fixed 64px icon-only rail (labels hidden, nav items center their icon) — independent of viewport width, and also persisted. On first load with no stored preference, it defaults collapsed if the viewport is under 1024px.
 
 **`sidebar-nav-item`** — a single navigation entry.
+
 - Default: transparent background, text `{colors.on-sidebar-muted}`. Hover: background `{colors.sidebar-hover}`. Active (current route): background `{colors.sidebar-active}`, text `{colors.on-sidebar}`, plus a 3px `{colors.on-sidebar}` left-edge indicator bar. Rounded `{rounded.sm}`, padding `{spacing.xs} {spacing.sm}`.
 
 **`topbar`** — top bar in the content column.
+
 - Background `{colors.canvas-surface}`, 1px `{colors.border-subtle}` bottom border, height 56px, padding `0 {spacing.xl}` (0 24px), holds the current page's `{typography.page-title}`.
 
 ### Signature Components
 
 **`status-badge`** — used for work-item status/priority/tag chips.
+
 - Rounded `{rounded.full}` (the one place pill radius survives), padding 2px 10px, type `{typography.label}`. Default: `{colors.canvas-surface}` background with a `{colors.ink}` (or `{colors.border-strong}` for lower-emphasis variants) border. "Completed"/highest-emphasis states invert to solid `{colors.ink}` background with `{colors.canvas-surface}` text — grayscale intensity signals state, never color.
 
 ## Do's and Don'ts
 
 ### Do
+
 - Keep the sidebar fixed and dark on every screen — it's the one constant piece of chrome.
 - Use weight and size (not color, not letter-spacing) to build hierarchy in Chinese UI text.
 - Border every card/table against `{colors.canvas-app}` — there's no shadow to do that job.
@@ -304,6 +329,7 @@ The previous system's signature 32px pill button is gone. Admin dashboards use s
 - Keep the palette to ink/canvas/border grayscale steps — no brand accent color.
 
 ### Don't
+
 - Don't force `uppercase` on any text tier — it has no effect on CJK and reads as broken when it does apply to the rare Latin string.
 - Don't bring back the 32px pill button for primary/secondary actions — that shape is a status-badge signal only now.
 - Don't add drop shadows or gradients to lift cards off the background — use a border instead.
@@ -314,17 +340,19 @@ The previous system's signature 32px pill button is gone. Admin dashboards use s
 
 ### Breakpoints
 
-| Name | Width | Key Changes |
-|---|---|---|
-| Desktop | ≥ 1024px | Sidebar defaults expanded (user-resizable 180–400px, icon + label) |
+| Name    | Width    | Key Changes                                                         |
+| ------- | -------- | ------------------------------------------------------------------- |
+| Desktop | ≥ 1024px | Sidebar defaults expanded (user-resizable 180–400px, icon + label)  |
 | Compact | < 1024px | Sidebar defaults collapsed to an icon-only rail (64px); labels hide |
 
-The sidebar's expanded/collapsed state and width are user-controlled and persisted (`localStorage`) once touched — the breakpoint above only decides the *first-load default* when no preference is stored yet, it doesn't force a state on every resize.
+The sidebar's expanded/collapsed state and width are user-controlled and persisted (`localStorage`) once touched — the breakpoint above only decides the _first-load default_ when no preference is stored yet, it doesn't force a state on every resize.
 
 ### Touch Targets
+
 - Buttons and inputs hold a 36px minimum height — dense but still comfortably clickable for a desktop-first admin tool (this system is not optimized for a 44–50px marketing touch target).
 
 ### Collapsing Strategy
+
 - The sidebar is the only piece of chrome that collapses, and it collapses to icons via an explicit toggle rather than hiding behind a hamburger menu or a viewport-only media query — admin tools keep primary navigation reachable and under the user's control at every width.
 - Dashboard card grids reflow via `auto-fit` rather than stepping through named breakpoints.
 - Data tables scroll horizontally on narrow viewports rather than reflowing into cards.
