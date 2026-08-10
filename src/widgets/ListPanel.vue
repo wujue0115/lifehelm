@@ -1,27 +1,50 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useWorkItemsStore } from '@/stores/workItems'
 import type { Priority } from '@/types/work-item'
+import type { ListViewConfig, SavedViewConfig } from '@/types/saved-view'
 import WorkItemRow from '@/components/WorkItemRow.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 
 type SortKey = 'title' | 'dueDate' | 'priority' | 'updatedAt'
 
+defineOptions({ inheritAttrs: false })
+
+const props = defineProps<{ instanceId: string; config?: SavedViewConfig }>()
+const emit = defineEmits<{ 'update:config': [SavedViewConfig] }>()
+
 const { t } = useI18n()
 const store = useWorkItemsStore()
 
-const search = ref('')
-const statusFilter = ref('all')
-const priorityFilter = ref<Priority | 'all'>('all')
-const tagFilter = ref('all')
-const sortKey = ref<SortKey>('updatedAt')
-const sortDir = ref<'asc' | 'desc'>('desc')
+const cfg = (props.config ?? {}) as Partial<ListViewConfig>
+const search = ref(cfg.search ?? '')
+const statusFilter = ref(cfg.statusFilter ?? 'all')
+const priorityFilter = ref<Priority | 'all'>((cfg.priorityFilter as Priority | 'all') ?? 'all')
+const tagFilter = ref(cfg.tagFilter ?? 'all')
+const sortKey = ref<SortKey>((cfg.sortKey as SortKey) ?? 'updatedAt')
+const sortDir = ref<'asc' | 'desc'>(cfg.sortDir ?? 'desc')
 const pendingDeleteId = ref<string | null>(null)
 
 onMounted(() => {
   store.fetchAll()
 })
+
+let persistTimer: ReturnType<typeof setTimeout> | undefined
+function schedulePersist(): void {
+  clearTimeout(persistTimer)
+  persistTimer = setTimeout(() => {
+    emit('update:config', {
+      search: search.value,
+      statusFilter: statusFilter.value,
+      priorityFilter: priorityFilter.value,
+      tagFilter: tagFilter.value,
+      sortKey: sortKey.value,
+      sortDir: sortDir.value,
+    })
+  }, 400)
+}
+watch([search, statusFilter, priorityFilter, tagFilter, sortKey, sortDir], schedulePersist)
 
 const statusNameById = computed(() => {
   const map = new Map<string, string>()
@@ -82,7 +105,7 @@ async function confirmDelete(): Promise<void> {
 </script>
 
 <template>
-  <main class="list-view">
+  <div class="list-panel">
     <div class="toolbar">
       <div class="filters">
         <input
@@ -154,12 +177,12 @@ async function confirmDelete(): Promise<void> {
       @confirm="confirmDelete"
       @cancel="pendingDeleteId = null"
     />
-  </main>
+  </div>
 </template>
 
 <style scoped>
-.list-view {
-  padding: var(--space-xl);
+.list-panel {
+  min-width: 0;
 }
 
 .toolbar {

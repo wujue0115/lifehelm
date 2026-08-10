@@ -3,29 +3,25 @@ import { createRouter, createWebHistory } from 'vue-router'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    { path: '/', redirect: '/views/default-list' },
+    { path: '/board', redirect: '/views/default-board' },
+    { path: '/calendar', redirect: '/views/default-calendar' },
+    { path: '/dashboard', redirect: '/views/default-dashboard' },
     {
-      path: '/',
-      name: 'list',
-      component: () => import('@/views/ListView.vue'),
-      meta: { titleKey: 'routes.list' },
+      path: '/views/:viewId',
+      name: 'saved-view',
+      component: () => import('@/views/SavedViewRenderer.vue'),
     },
     {
-      path: '/board',
-      name: 'board',
-      component: () => import('@/views/BoardView.vue'),
-      meta: { titleKey: 'routes.board' },
+      path: '/views/:viewId/edit',
+      name: 'saved-view-edit',
+      component: () => import('@/views/SavedViewRenderer.vue'),
     },
     {
-      path: '/calendar',
-      name: 'calendar',
-      component: () => import('@/views/CalendarView.vue'),
-      meta: { titleKey: 'routes.calendar' },
-    },
-    {
-      path: '/dashboard',
-      name: 'dashboard',
-      component: () => import('@/views/DashboardView.vue'),
-      meta: { titleKey: 'routes.dashboard' },
+      path: '/templates',
+      name: 'templates',
+      component: () => import('@/views/TemplateManagerView.vue'),
+      meta: { titleKey: 'routes.templates' },
     },
     {
       path: '/items/new',

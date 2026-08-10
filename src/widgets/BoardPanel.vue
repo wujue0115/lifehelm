@@ -4,7 +4,10 @@ import { useI18n } from 'vue-i18n'
 import { VueDraggable, type DraggableEvent } from 'vue-draggable-plus'
 import { useWorkItemsStore } from '@/stores/workItems'
 import type { BoardColumn, WorkItem } from '@/types/work-item'
+import type { SavedViewConfig } from '@/types/saved-view'
 import WorkItemCard from '@/components/WorkItemCard.vue'
+
+defineProps<{ instanceId: string; config?: SavedViewConfig }>()
 
 const { t } = useI18n()
 const store = useWorkItemsStore()
@@ -79,7 +82,7 @@ async function removeColumn(columnId: string): Promise<void> {
 </script>
 
 <template>
-  <main class="board-view">
+  <div class="board-panel">
     <p v-if="store.loading" class="type-body">{{ t('common.loading') }}</p>
     <p v-else-if="store.error" class="type-body error">
       {{ t('common.error', { message: store.error }) }}
@@ -137,12 +140,12 @@ async function removeColumn(columnId: string): Promise<void> {
         </div>
       </div>
     </template>
-  </main>
+  </div>
 </template>
 
 <style scoped>
-.board-view {
-  padding: var(--space-xl);
+.board-panel {
+  min-width: 0;
 }
 
 .error {

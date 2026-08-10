@@ -4,20 +4,27 @@ import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import AppSidebar from '@/components/AppSidebar.vue'
 import { useWorkItemsStore } from '@/stores/workItems'
+import { useSavedViewsStore } from '@/stores/savedViews'
 import { getDueStatus } from '@/utils/dueDate'
 
 const route = useRoute()
 const store = useWorkItemsStore()
+const savedViewsStore = useSavedViewsStore()
 const { t } = useI18n()
 const dismissed = ref(false)
 
 onMounted(() => {
   store.fetchAll()
+  savedViewsStore.fetchAll()
 })
 
-const pageTitle = computed(() =>
-  typeof route.meta.titleKey === 'string' ? t(route.meta.titleKey) : '',
-)
+const pageTitle = computed(() => {
+  if (route.name === 'saved-view' || route.name === 'saved-view-edit') {
+    const view = savedViewsStore.views.find((v) => v.id === route.params.viewId)
+    return view?.name ?? ''
+  }
+  return typeof route.meta.titleKey === 'string' ? t(route.meta.titleKey) : ''
+})
 
 const overdueCount = computed(
   () =>
