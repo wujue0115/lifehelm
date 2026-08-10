@@ -132,7 +132,7 @@ const priorityOrder: Priority[] = ['urgent', 'high', 'medium', 'low']
 }
 
 .summary-card .value {
-  font-family: 'D-DIN-Bold', 'Arial Narrow', Arial, Verdana, sans-serif;
+  font-family: var(--font-sans);
   font-size: 32px;
   font-weight: 700;
   line-height: 1.1;
