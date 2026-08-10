@@ -9,6 +9,8 @@ import type {
   WorkItem,
 } from '../src/types/work-item.js'
 import type { ThemeConfig } from '../src/types/theme-config.js'
+import type { SavedView } from '../src/types/saved-view.js'
+import { DEFAULT_SAVED_VIEWS } from '../src/config/defaultSavedViews.js'
 import {
   deleteAttachmentFile,
   readAttachmentFile,
@@ -22,6 +24,7 @@ import {
 
 const ITEMS_FILE = 'items.json'
 const BOARD_FILE = 'board.json'
+const SAVED_VIEWS_FILE = 'saved-views.json'
 const THEME_CONFIG_FILE = '.config'
 
 const DEFAULT_THEME_CONFIG: ThemeConfig = {
@@ -367,6 +370,72 @@ export function localDataPlugin(): Plugin {
               const board = body ?? []
               await writeJsonFile(BOARD_FILE, board)
               return sendJson(res, 200, board)
+            }
+          }
+
+          if (segments[0] === 'saved-views' && segments.length === 1) {
+            if (method === 'GET') {
+              const views = await readJsonFileOrSeed<SavedView[]>(
+                SAVED_VIEWS_FILE,
+                DEFAULT_SAVED_VIEWS,
+              )
+              return sendJson(res, 200, views)
+            }
+            if (method === 'POST') {
+              const body = (await readBody(req)) as Partial<SavedView> | undefined
+              const views = await readJsonFileOrSeed<SavedView[]>(
+                SAVED_VIEWS_FILE,
+                DEFAULT_SAVED_VIEWS,
+              )
+              const now = new Date().toISOString()
+              const newView: SavedView = {
+                id: randomUUID(),
+                name: body?.name ?? '',
+                templateType: body?.templateType ?? 'list',
+                pinned: body?.pinned ?? false,
+                createdAt: now,
+                updatedAt: now,
+                layout: body?.layout ?? [],
+              }
+              views.push(newView)
+              await writeJsonFile(SAVED_VIEWS_FILE, views)
+              return sendJson(res, 201, newView)
+            }
+          }
+
+          if (segments[0] === 'saved-views' && segments.length === 2) {
+            const id = segments[1]
+            const views = await readJsonFileOrSeed<SavedView[]>(
+              SAVED_VIEWS_FILE,
+              DEFAULT_SAVED_VIEWS,
+            )
+            const index = views.findIndex((view) => view.id === id)
+
+            if (method === 'GET') {
+              if (index === -1) return sendJson(res, 404, { error: 'not found' })
+              return sendJson(res, 200, views[index])
+            }
+            if (method === 'PUT') {
+              if (index === -1) return sendJson(res, 404, { error: 'not found' })
+              const existing = views[index]
+              if (!existing) return sendJson(res, 404, { error: 'not found' })
+              const body = (await readBody(req)) as Partial<SavedView> | undefined
+              const updated: SavedView = {
+                ...existing,
+                ...body,
+                id: existing.id,
+                createdAt: existing.createdAt,
+                updatedAt: new Date().toISOString(),
+              }
+              views[index] = updated
+              await writeJsonFile(SAVED_VIEWS_FILE, views)
+              return sendJson(res, 200, updated)
+            }
+            if (method === 'DELETE') {
+              if (index === -1) return sendJson(res, 404, { error: 'not found' })
+              views.splice(index, 1)
+              await writeJsonFile(SAVED_VIEWS_FILE, views)
+              return sendNoContent(res)
             }
           }
 

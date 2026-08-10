@@ -1,5 +1,6 @@
 import type { BoardColumn, TimeEntry, WorkItem } from '@/types/work-item'
 import type { ThemeConfig } from '@/types/theme-config'
+import type { SavedView } from '@/types/saved-view'
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, {
@@ -60,4 +61,12 @@ export const api = {
   getThemeConfig: () => request<ThemeConfig>('/api/theme-config'),
   updateThemeConfig: (config: ThemeConfig) =>
     request<ThemeConfig>('/api/theme-config', { method: 'PUT', body: JSON.stringify(config) }),
+
+  listSavedViews: () => request<SavedView[]>('/api/saved-views'),
+  createSavedView: (input: Partial<SavedView>) =>
+    request<SavedView>('/api/saved-views', { method: 'POST', body: JSON.stringify(input) }),
+  getSavedView: (id: string) => request<SavedView>(`/api/saved-views/${id}`),
+  updateSavedView: (id: string, input: Partial<SavedView>) =>
+    request<SavedView>(`/api/saved-views/${id}`, { method: 'PUT', body: JSON.stringify(input) }),
+  deleteSavedView: (id: string) => request<void>(`/api/saved-views/${id}`, { method: 'DELETE' }),
 }

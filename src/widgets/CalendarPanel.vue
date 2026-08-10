@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useWorkItemsStore } from '@/stores/workItems'
 import type { WorkItem } from '@/types/work-item'
+import type { SavedViewConfig } from '@/types/saved-view'
 import { getDueStatus } from '@/utils/dueDate'
 
 interface CalendarCell {
@@ -26,6 +27,8 @@ interface Segment {
   isRangeEnd: boolean
   status: string
 }
+
+defineProps<{ instanceId: string; config?: SavedViewConfig }>()
 
 const { t, locale } = useI18n()
 const store = useWorkItemsStore()
@@ -164,7 +167,7 @@ const weekdayLabels = computed(() => {
 </script>
 
 <template>
-  <main class="calendar-view">
+  <div class="calendar-panel">
     <div class="toolbar">
       <button type="button" class="btn btn-secondary" @click="prevMonth">
         {{ t('calendar.prevMonth') }}
@@ -226,12 +229,12 @@ const weekdayLabels = computed(() => {
         </div>
       </div>
     </template>
-  </main>
+  </div>
 </template>
 
 <style scoped>
-.calendar-view {
-  padding: var(--space-xl);
+.calendar-panel {
+  min-width: 0;
 }
 
 .toolbar {
