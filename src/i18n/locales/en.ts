@@ -65,7 +65,8 @@ export default {
       comfortable: 'Comfortable',
     },
     reset: 'Reset to default',
-    saveError: "Couldn't save — applied to this page only, not written to .config: {message}",
+    saveError:
+      "Couldn't save — applied to this page only, not written to .manager/config: {message}",
   },
   priority: {
     low: 'Low',

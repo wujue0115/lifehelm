@@ -65,7 +65,7 @@ export default {
       comfortable: '寬鬆',
     },
     reset: '重設為預設值',
-    saveError: '儲存失敗，設定僅暫時套用於此頁面（未寫入 .config）：{message}',
+    saveError: '儲存失敗，設定僅暫時套用於此頁面（未寫入 .manager/config）：{message}',
   },
   priority: {
     low: '低',
