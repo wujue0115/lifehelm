@@ -6,8 +6,12 @@ import type { Priority } from '@/types/work-item'
 import type { ListViewConfig, SavedViewConfig } from '@/types/saved-view'
 import WorkItemRow from '@/components/WorkItemRow.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
+import SortIcon from '@/components/SortIcon.vue'
 
-type SortKey = 'title' | 'dueDate' | 'priority' | 'updatedAt'
+type SortKey = 'title' | 'status' | 'priority' | 'tags' | 'dueDate' | 'updatedAt'
+
+const DEFAULT_SORT_KEY: SortKey = 'updatedAt'
+const DEFAULT_SORT_DIR: 'asc' | 'desc' = 'desc'
 
 defineOptions({ inheritAttrs: false })
 
@@ -22,8 +26,8 @@ const search = ref(cfg.search ?? '')
 const statusFilter = ref(cfg.statusFilter ?? 'all')
 const priorityFilter = ref<Priority | 'all'>((cfg.priorityFilter as Priority | 'all') ?? 'all')
 const tagFilter = ref(cfg.tagFilter ?? 'all')
-const sortKey = ref<SortKey>((cfg.sortKey as SortKey) ?? 'updatedAt')
-const sortDir = ref<'asc' | 'desc'>(cfg.sortDir ?? 'desc')
+const sortKey = ref<SortKey>((cfg.sortKey as SortKey) ?? DEFAULT_SORT_KEY)
+const sortDir = ref<'asc' | 'desc'>(cfg.sortDir ?? DEFAULT_SORT_DIR)
 const pendingDeleteId = ref<string | null>(null)
 
 onMounted(() => {
@@ -52,6 +56,12 @@ const statusNameById = computed(() => {
   return map
 })
 
+const statusOrderById = computed(() => {
+  const map = new Map<string, number>()
+  store.sortedBoard.forEach((column, index) => map.set(column.id, index))
+  return map
+})
+
 const priorityOrder: Record<Priority, number> = { low: 0, medium: 1, high: 2, urgent: 3 }
 
 const filteredItems = computed(() => {
@@ -76,8 +86,16 @@ const sortedItems = computed(() => {
   list.sort((a, b) => {
     let result = 0
     if (sortKey.value === 'title') result = a.title.localeCompare(b.title)
+    else if (sortKey.value === 'status')
+      result =
+        (statusOrderById.value.get(a.statusId) ?? 0) - (statusOrderById.value.get(b.statusId) ?? 0)
     else if (sortKey.value === 'priority')
       result = priorityOrder[a.priority] - priorityOrder[b.priority]
+    else if (sortKey.value === 'tags')
+      result = [...a.tags]
+        .sort()
+        .join(',')
+        .localeCompare([...b.tags].sort().join(','))
     else if (sortKey.value === 'dueDate') result = (a.dueDate ?? '').localeCompare(b.dueDate ?? '')
     else result = a.updatedAt.localeCompare(b.updatedAt)
     return sortDir.value === 'asc' ? result : -result
@@ -86,12 +104,19 @@ const sortedItems = computed(() => {
 })
 
 function toggleSort(key: SortKey): void {
-  if (sortKey.value === key) {
-    sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc'
-  } else {
+  if (sortKey.value !== key) {
     sortKey.value = key
     sortDir.value = 'asc'
+  } else if (sortDir.value === 'asc') {
+    sortDir.value = 'desc'
+  } else {
+    sortKey.value = DEFAULT_SORT_KEY
+    sortDir.value = DEFAULT_SORT_DIR
   }
+}
+
+function sortDirFor(key: SortKey): 'asc' | 'desc' | 'none' {
+  return sortKey.value === key ? sortDir.value : 'none'
 }
 
 function requestDelete(id: string): void {
@@ -147,11 +172,66 @@ async function confirmDelete(): Promise<void> {
         <table v-if="sortedItems.length" class="table">
           <thead>
             <tr class="type-label">
-              <th @click="toggleSort('title')">{{ t('list.columnTitle') }}</th>
-              <th>{{ t('list.columnStatus') }}</th>
-              <th @click="toggleSort('priority')">{{ t('list.columnPriority') }}</th>
-              <th>{{ t('list.columnTags') }}</th>
-              <th @click="toggleSort('dueDate')">{{ t('list.columnDate') }}</th>
+              <th
+                class="sortable"
+                :aria-sort="
+                  sortKey === 'title' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'
+                "
+                @click="toggleSort('title')"
+              >
+                <span class="th-label">
+                  {{ t('list.columnTitle') }}
+                  <SortIcon class="sort-indicator" :direction="sortDirFor('title')" />
+                </span>
+              </th>
+              <th
+                class="sortable"
+                :aria-sort="
+                  sortKey === 'status' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'
+                "
+                @click="toggleSort('status')"
+              >
+                <span class="th-label">
+                  {{ t('list.columnStatus') }}
+                  <SortIcon class="sort-indicator" :direction="sortDirFor('status')" />
+                </span>
+              </th>
+              <th
+                class="sortable"
+                :aria-sort="
+                  sortKey === 'priority' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'
+                "
+                @click="toggleSort('priority')"
+              >
+                <span class="th-label">
+                  {{ t('list.columnPriority') }}
+                  <SortIcon class="sort-indicator" :direction="sortDirFor('priority')" />
+                </span>
+              </th>
+              <th
+                class="sortable"
+                :aria-sort="
+                  sortKey === 'tags' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'
+                "
+                @click="toggleSort('tags')"
+              >
+                <span class="th-label">
+                  {{ t('list.columnTags') }}
+                  <SortIcon class="sort-indicator" :direction="sortDirFor('tags')" />
+                </span>
+              </th>
+              <th
+                class="sortable"
+                :aria-sort="
+                  sortKey === 'dueDate' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'
+                "
+                @click="toggleSort('dueDate')"
+              >
+                <span class="th-label">
+                  {{ t('list.columnDate') }}
+                  <SortIcon class="sort-indicator" :direction="sortDirFor('dueDate')" />
+                </span>
+              </th>
               <th>{{ t('list.columnActions') }}</th>
             </tr>
           </thead>
@@ -225,8 +305,26 @@ async function confirmDelete(): Promise<void> {
   text-align: left;
   padding: 10px 12px;
   color: var(--color-ink-secondary);
-  cursor: pointer;
   border-bottom: 1px solid var(--color-border-strong);
+}
+
+.table th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.table th.sortable:hover {
+  color: var(--color-ink);
+}
+
+.th-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sort-indicator {
+  font-size: 16px;
 }
 
 .empty {
