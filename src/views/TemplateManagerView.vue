@@ -1,17 +1,48 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useSavedViewsStore } from '@/stores/savedViews'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import SwitchToggle from '@/components/SwitchToggle.vue'
 import ActionIcon from '@/components/ActionIcon.vue'
+import SortIcon from '@/components/SortIcon.vue'
+
+type SortKey = 'name' | 'pinned'
 
 const { t } = useI18n()
 const router = useRouter()
 const savedViewsStore = useSavedViewsStore()
 
 const pendingDeleteId = ref<string | null>(null)
+const sortKey = ref<SortKey | null>(null)
+const sortDir = ref<'asc' | 'desc'>('asc')
+
+const sortedViews = computed(() => {
+  if (sortKey.value === null) return savedViewsStore.views
+  const list = [...savedViewsStore.views]
+  list.sort((a, b) => {
+    const result =
+      sortKey.value === 'name' ? a.name.localeCompare(b.name) : Number(a.pinned) - Number(b.pinned)
+    return sortDir.value === 'asc' ? result : -result
+  })
+  return list
+})
+
+function toggleSort(key: SortKey): void {
+  if (sortKey.value !== key) {
+    sortKey.value = key
+    sortDir.value = 'asc'
+  } else if (sortDir.value === 'asc') {
+    sortDir.value = 'desc'
+  } else {
+    sortKey.value = null
+  }
+}
+
+function sortDirFor(key: SortKey): 'asc' | 'desc' | 'none' {
+  return sortKey.value === key ? sortDir.value : 'none'
+}
 
 onMounted(() => {
   if (savedViewsStore.views.length === 0) savedViewsStore.fetchAll()
@@ -49,16 +80,38 @@ async function confirmDelete(): Promise<void> {
       </button>
     </div>
     <div class="table-card">
-      <table v-if="savedViewsStore.views.length" class="table">
+      <table v-if="sortedViews.length" class="table">
         <thead>
           <tr class="type-label">
-            <th>{{ t('templates.columnName') }}</th>
-            <th>{{ t('templates.columnPinned') }}</th>
+            <th
+              class="sortable"
+              :aria-sort="
+                sortKey === 'name' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'
+              "
+              @click="toggleSort('name')"
+            >
+              <span class="th-label">
+                {{ t('templates.columnName') }}
+                <SortIcon class="sort-indicator" :direction="sortDirFor('name')" />
+              </span>
+            </th>
+            <th
+              class="sortable"
+              :aria-sort="
+                sortKey === 'pinned' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'
+              "
+              @click="toggleSort('pinned')"
+            >
+              <span class="th-label">
+                {{ t('templates.columnPinned') }}
+                <SortIcon class="sort-indicator" :direction="sortDirFor('pinned')" />
+              </span>
+            </th>
             <th>{{ t('templates.columnActions') }}</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="view in savedViewsStore.views" :key="view.id">
+          <tr v-for="view in sortedViews" :key="view.id">
             <td>
               <RouterLink :to="`/views/${view.id}/edit`" class="view-link type-body">
                 {{ view.name }}
@@ -147,6 +200,25 @@ async function confirmDelete(): Promise<void> {
   padding: 10px 12px;
   color: var(--color-ink-secondary);
   border-bottom: 1px solid var(--color-border-strong);
+}
+
+.table th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.table th.sortable:hover {
+  color: var(--color-ink);
+}
+
+.th-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sort-indicator {
+  font-size: 16px;
 }
 
 .table td {
