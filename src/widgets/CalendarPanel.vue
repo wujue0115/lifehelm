@@ -5,6 +5,7 @@ import { useWorkItemsStore } from '@/stores/workItems'
 import type { WorkItem } from '@/types/work-item'
 import type { SavedViewConfig } from '@/types/saved-view'
 import { getDueStatus } from '@/utils/dueDate'
+import ChevronIcon from '@/components/ChevronIcon.vue'
 
 interface CalendarCell {
   date: Date
@@ -170,11 +171,13 @@ const weekdayLabels = computed(() => {
   <div class="calendar-panel">
     <div class="toolbar">
       <button type="button" class="btn btn-secondary" @click="prevMonth">
-        {{ t('calendar.prevMonth') }}
+        <ChevronIcon direction="prev" />
+        <span class="icon-label">{{ t('calendar.prevMonth') }}</span>
       </button>
       <span class="type-body month-label">{{ monthLabel }}</span>
       <button type="button" class="btn btn-secondary" @click="nextMonth">
-        {{ t('calendar.nextMonth') }}
+        <span class="icon-label">{{ t('calendar.nextMonth') }}</span>
+        <ChevronIcon direction="next" />
       </button>
       <button type="button" class="btn btn-primary" @click="goToday">
         {{ t('calendar.today') }}

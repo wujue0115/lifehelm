@@ -76,7 +76,8 @@ async function confirmDelete(): Promise<void> {
   <main class="template-manager">
     <div class="header">
       <button type="button" class="btn btn-primary" @click="createPage">
-        {{ t('templates.newPage') }}
+        <ActionIcon type="add" />
+        <span class="icon-label">{{ t('templates.newPage') }}</span>
       </button>
     </div>
     <div class="table-card">
@@ -215,6 +216,7 @@ async function confirmDelete(): Promise<void> {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  line-height: 16px;
 }
 
 .sort-indicator {

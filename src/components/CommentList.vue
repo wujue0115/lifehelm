@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useWorkItemsStore } from '@/stores/workItems'
 import type { Comment } from '@/types/work-item'
+import ActionIcon from '@/components/ActionIcon.vue'
 
 const props = defineProps<{ itemId: string; comments: Comment[] }>()
 
@@ -60,7 +61,8 @@ async function removeComment(commentId: string): Promise<void> {
         class="btn btn-primary"
         :disabled="submitting || !newCommentText.trim()"
       >
-        {{ t('comments.submit') }}
+        <ActionIcon type="add" />
+        <span class="icon-label">{{ t('comments.submit') }}</span>
       </button>
     </form>
   </div>

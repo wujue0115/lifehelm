@@ -6,6 +6,7 @@ import { useSidebar, SIDEBAR_COLLAPSED_WIDTH } from '@/composables/useSidebar'
 import { useLocale } from '@/composables/useLocale'
 import ThemeSettingsPanel from '@/components/ThemeSettingsPanel.vue'
 import TemplateTypeIcon from '@/components/TemplateTypeIcon.vue'
+import ChevronIcon from '@/components/ChevronIcon.vue'
 import { useSavedViewsStore } from '@/stores/savedViews'
 
 const { t } = useI18n()
@@ -49,32 +50,7 @@ function startResize(event: MouseEvent): void {
         :title="collapsed ? t('sidebar.expand') : t('sidebar.collapse')"
         @click="toggleCollapsed"
       >
-        <svg
-          v-if="collapsed"
-          viewBox="0 0 20 20"
-          width="16"
-          height="16"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.6"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <polyline points="8 4 14 10 8 16" />
-        </svg>
-        <svg
-          v-else
-          viewBox="0 0 20 20"
-          width="16"
-          height="16"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.6"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <polyline points="12 4 6 10 12 16" />
-        </svg>
+        <ChevronIcon :direction="collapsed ? 'next' : 'prev'" />
       </button>
     </div>
 
@@ -290,6 +266,10 @@ function startResize(event: MouseEvent): void {
 
 .icon {
   flex-shrink: 0;
+}
+
+.label {
+  line-height: 18px;
 }
 
 .footer-nav {

@@ -146,6 +146,14 @@ body {
   line-height: 1.5;
 }
 
+/* Icon-adjacent label text: the type scale's line-height (meant for
+   paragraphs/table cells) is taller than a 16px inline icon, which throws
+   off vertical centering in a flex row. Match it to the icon's own px
+   height instead of the shared type tokens. */
+.icon-label {
+  line-height: 16px;
+}
+
 .btn:disabled {
   cursor: not-allowed;
   opacity: 0.5;

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-defineProps<{ type: 'edit' | 'duplicate' | 'delete' }>()
+defineProps<{ type: 'edit' | 'duplicate' | 'delete' | 'add' }>()
 </script>
 
 <template>
@@ -33,11 +33,18 @@ defineProps<{ type: 'edit' | 'duplicate' | 'delete' }>()
       d="m383.5 128l.5-24a56.16 56.16 0 0 0-56-56H112a64.19 64.19 0 0 0-64 64v216a56.16 56.16 0 0 0 56 56h24m168-168v160m80-80H216"
     />
   </svg>
-  <svg v-else width="16" height="16" viewBox="0 0 24 24">
+  <svg v-else-if="type === 'delete'" width="16" height="16" viewBox="0 0 24 24">
     <path d="M0 0h24v24H0z" fill="none" />
     <path
       fill="currentColor"
       d="M7 21q-.825 0-1.412-.587T5 19V6H4V4h5V3h6v1h5v2h-1v13q0 .825-.587 1.413T17 21zM17 6H7v13h10zM9 17h2V8H9zm4 0h2V8h-2zM7 6v13z"
+    />
+  </svg>
+  <svg v-else width="16" height="16" viewBox="0 0 24 24">
+    <path d="M0 0h24v24H0z" fill="none" />
+    <path
+      fill="currentColor"
+      d="M12 4a1 1 0 0 1 1 1v6h6a1 1 0 1 1 0 2h-6v6a1 1 0 1 1-2 0v-6H5a1 1 0 1 1 0-2h6V5a1 1 0 0 1 1-1"
     />
   </svg>
 </template>

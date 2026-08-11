@@ -9,6 +9,7 @@ import CommentList from '@/components/CommentList.vue'
 import AttachmentList from '@/components/AttachmentList.vue'
 import TimeTracker from '@/components/TimeTracker.vue'
 import TagsInput from '@/components/TagsInput.vue'
+import ChevronIcon from '@/components/ChevronIcon.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -117,7 +118,10 @@ async function handleDelete(): Promise<void> {
 <template>
   <main class="detail-view">
     <div class="header">
-      <RouterLink to="/" class="btn btn-secondary">{{ t('itemDetail.backToList') }}</RouterLink>
+      <RouterLink to="/" class="btn btn-secondary">
+        <ChevronIcon direction="back" />
+        <span class="icon-label">{{ t('itemDetail.backToList') }}</span>
+      </RouterLink>
     </div>
 
     <p v-if="loading" class="type-body">{{ t('common.loading') }}</p>
@@ -175,9 +179,6 @@ async function handleDelete(): Promise<void> {
         </label>
 
         <div class="actions">
-          <button type="submit" class="btn btn-primary" :disabled="saving">
-            {{ saving ? t('common.saving') : t('common.save') }}
-          </button>
           <button
             v-if="!isNew"
             type="button"
@@ -185,6 +186,9 @@ async function handleDelete(): Promise<void> {
             @click="showDeleteConfirm = true"
           >
             {{ t('common.delete') }}
+          </button>
+          <button type="submit" class="btn btn-primary" :disabled="saving">
+            {{ saving ? t('common.saving') : t('common.save') }}
           </button>
         </div>
       </form>
@@ -253,6 +257,7 @@ async function handleDelete(): Promise<void> {
 
 .actions {
   display: flex;
+  justify-content: flex-end;
   gap: var(--space-sm);
   margin-top: 8px;
 }
