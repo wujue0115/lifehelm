@@ -14,11 +14,8 @@ dist-ssr
 coverage
 *.local
 
-# Local work-item data (personal, machine-local storage)
-.data/
-
-# Local appearance/theme preferences (personal, machine-local storage)
-.config
+# Local work-item data and appearance/settings (personal, machine-local storage)
+.manager/
 
 # Editor directories and files
 .vscode/*

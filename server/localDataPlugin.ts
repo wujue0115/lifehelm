@@ -14,18 +14,19 @@ import { DEFAULT_SAVED_VIEWS } from '../src/config/defaultSavedViews.js'
 import {
   deleteAttachmentFile,
   readAttachmentFile,
+  readConfigJsonFile,
+  readConfigJsonFileOrSeed,
   readJsonFile,
   readJsonFileOrSeed,
-  readRootJsonFile,
   writeAttachmentFile,
+  writeConfigJsonFile,
   writeJsonFile,
-  writeRootJsonFile,
 } from './dataStore.js'
 
 const ITEMS_FILE = 'items.json'
 const BOARD_FILE = 'board.json'
 const SAVED_VIEWS_FILE = 'saved-views.json'
-const THEME_CONFIG_FILE = '.config'
+const THEME_CONFIG_FILE = 'appearance.json'
 
 const DEFAULT_THEME_CONFIG: ThemeConfig = {
   accentColor: null,
@@ -375,7 +376,7 @@ export function localDataPlugin(): Plugin {
 
           if (segments[0] === 'saved-views' && segments.length === 1) {
             if (method === 'GET') {
-              const views = await readJsonFileOrSeed<SavedView[]>(
+              const views = await readConfigJsonFileOrSeed<SavedView[]>(
                 SAVED_VIEWS_FILE,
                 DEFAULT_SAVED_VIEWS,
               )
@@ -383,7 +384,7 @@ export function localDataPlugin(): Plugin {
             }
             if (method === 'POST') {
               const body = (await readBody(req)) as Partial<SavedView> | undefined
-              const views = await readJsonFileOrSeed<SavedView[]>(
+              const views = await readConfigJsonFileOrSeed<SavedView[]>(
                 SAVED_VIEWS_FILE,
                 DEFAULT_SAVED_VIEWS,
               )
@@ -398,14 +399,14 @@ export function localDataPlugin(): Plugin {
                 layout: body?.layout ?? [],
               }
               views.push(newView)
-              await writeJsonFile(SAVED_VIEWS_FILE, views)
+              await writeConfigJsonFile(SAVED_VIEWS_FILE, views)
               return sendJson(res, 201, newView)
             }
           }
 
           if (segments[0] === 'saved-views' && segments.length === 2) {
             const id = segments[1]
-            const views = await readJsonFileOrSeed<SavedView[]>(
+            const views = await readConfigJsonFileOrSeed<SavedView[]>(
               SAVED_VIEWS_FILE,
               DEFAULT_SAVED_VIEWS,
             )
@@ -428,20 +429,20 @@ export function localDataPlugin(): Plugin {
                 updatedAt: new Date().toISOString(),
               }
               views[index] = updated
-              await writeJsonFile(SAVED_VIEWS_FILE, views)
+              await writeConfigJsonFile(SAVED_VIEWS_FILE, views)
               return sendJson(res, 200, updated)
             }
             if (method === 'DELETE') {
               if (index === -1) return sendJson(res, 404, { error: 'not found' })
               views.splice(index, 1)
-              await writeJsonFile(SAVED_VIEWS_FILE, views)
+              await writeConfigJsonFile(SAVED_VIEWS_FILE, views)
               return sendNoContent(res)
             }
           }
 
           if (segments[0] === 'theme-config' && segments.length === 1) {
             if (method === 'GET') {
-              const config = await readRootJsonFile<ThemeConfig>(
+              const config = await readConfigJsonFile<ThemeConfig>(
                 THEME_CONFIG_FILE,
                 DEFAULT_THEME_CONFIG,
               )
@@ -450,7 +451,7 @@ export function localDataPlugin(): Plugin {
             if (method === 'PUT') {
               const body = (await readBody(req)) as Partial<ThemeConfig> | undefined
               const config: ThemeConfig = { ...DEFAULT_THEME_CONFIG, ...body }
-              await writeRootJsonFile(THEME_CONFIG_FILE, config)
+              await writeConfigJsonFile(THEME_CONFIG_FILE, config)
               return sendJson(res, 200, config)
             }
           }
