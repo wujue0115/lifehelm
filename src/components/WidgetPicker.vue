@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { WIDGET_REGISTRY } from '@/widgets/registry'
+import ActionIcon from '@/components/ActionIcon.vue'
 
 const emit = defineEmits<{ add: [widgetId: string] }>()
 const { t } = useI18n()
@@ -17,7 +18,8 @@ function pick(widgetId: string): void {
 <template>
   <div class="widget-picker">
     <button type="button" class="btn btn-secondary" @click="open = !open">
-      {{ t('savedView.addWidget') }}
+      <ActionIcon type="add" />
+      <span class="icon-label">{{ t('savedView.addWidget') }}</span>
     </button>
     <div v-if="open" class="picker-menu card">
       <button

@@ -7,6 +7,7 @@ import type { ListViewConfig, SavedViewConfig } from '@/types/saved-view'
 import WorkItemRow from '@/components/WorkItemRow.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import SortIcon from '@/components/SortIcon.vue'
+import ActionIcon from '@/components/ActionIcon.vue'
 
 type SortKey = 'title' | 'status' | 'priority' | 'tags' | 'dueDate' | 'updatedAt'
 
@@ -157,7 +158,10 @@ async function confirmDelete(): Promise<void> {
           <option v-for="tag in store.allTags" :key="tag" :value="tag">{{ tag }}</option>
         </select>
       </div>
-      <RouterLink to="/items/new" class="btn btn-primary">{{ t('list.addItem') }}</RouterLink>
+      <RouterLink to="/items/new" class="btn btn-primary">
+        <ActionIcon type="add" />
+        <span class="icon-label">{{ t('list.addItem') }}</span>
+      </RouterLink>
     </div>
 
     <p v-if="store.loading" class="type-body">{{ t('common.loading') }}</p>
@@ -321,6 +325,7 @@ async function confirmDelete(): Promise<void> {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  line-height: 16px;
 }
 
 .sort-indicator {

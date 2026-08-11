@@ -7,6 +7,7 @@ import { defaultLayoutEntry } from '@/widgets/registry'
 import GridLayout from '@/components/GridLayout.vue'
 import WidgetPicker from '@/components/WidgetPicker.vue'
 import ActionIcon from '@/components/ActionIcon.vue'
+import ChevronIcon from '@/components/ChevronIcon.vue'
 import type { WidgetLayoutEntry } from '@/types/saved-view'
 
 const route = useRoute()
@@ -75,7 +76,8 @@ async function saveRenameView(): Promise<void> {
     </div>
     <div v-if="editable" class="layout-toolbar">
       <RouterLink to="/templates" class="btn btn-secondary">
-        {{ t('savedView.doneEditing') }}
+        <ChevronIcon direction="back" />
+        <span class="icon-label">{{ t('savedView.backToTemplates') }}</span>
       </RouterLink>
       <WidgetPicker @add="onAddWidget" />
     </div>

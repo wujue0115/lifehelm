@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useWorkItemsStore } from '@/stores/workItems'
 import type { TimeEntry } from '@/types/work-item'
 import { formatDuration } from '@/utils/duration'
+import ActionIcon from '@/components/ActionIcon.vue'
 
 const props = defineProps<{ itemId: string; timeEntries: TimeEntry[] }>()
 
@@ -158,7 +159,10 @@ async function removeEntry(entryId: string): Promise<void> {
       class="btn btn-ghost manual-toggle"
       @click="showManualForm = !showManualForm"
     >
-      {{ showManualForm ? t('timeTracker.cancelManual') : t('timeTracker.addManual') }}
+      <ActionIcon v-if="!showManualForm" type="add" />
+      <span class="icon-label">{{
+        showManualForm ? t('timeTracker.cancelManual') : t('timeTracker.addManual')
+      }}</span>
     </button>
 
     <form v-if="showManualForm" class="manual-form" @submit.prevent="submitManualEntry">
@@ -175,7 +179,8 @@ async function removeEntry(entryId: string): Promise<void> {
         <input v-model="manualNote" class="input type-body" type="text" />
       </label>
       <button type="submit" class="btn btn-primary" :disabled="busy">
-        {{ t('timeTracker.add') }}
+        <ActionIcon type="add" />
+        <span class="icon-label">{{ t('timeTracker.add') }}</span>
       </button>
     </form>
   </div>

@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useWorkItemsStore } from '@/stores/workItems'
 import { api } from '@/api/client'
 import type { AttachmentMeta } from '@/types/work-item'
+import ActionIcon from '@/components/ActionIcon.vue'
 
 const props = defineProps<{ itemId: string; attachments: AttachmentMeta[] }>()
 
@@ -87,7 +88,10 @@ async function removeAttachment(attachmentId: string): Promise<void> {
     </ul>
 
     <label class="btn btn-secondary upload-btn">
-      {{ uploading ? t('attachments.uploading') : t('attachments.add') }}
+      <ActionIcon v-if="!uploading" type="add" />
+      <span class="icon-label">{{
+        uploading ? t('attachments.uploading') : t('attachments.add')
+      }}</span>
       <input type="file" class="file-input" :disabled="uploading" @change="handleFileSelected" />
     </label>
   </div>
