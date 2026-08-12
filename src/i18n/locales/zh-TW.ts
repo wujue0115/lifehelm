@@ -151,6 +151,9 @@ export default {
     dragHandle: '拖曳排序',
     removeWidget: '移除小工具',
     addWidget: '新增',
+    flowLayout: '自動流動排版',
+    enableFlow: '開啟自動流動',
+    disableFlow: '關閉自動流動',
   },
   itemDetail: {
     backToList: '返回',
