@@ -14,16 +14,19 @@ const props = withDefaults(
     colStart?: number
     rowStart?: number
     movable?: boolean
+    raised?: boolean
   }>(),
   {
     removable: true,
     movable: false,
+    raised: false,
   },
 )
 const emit = defineEmits<{
   resize: [colSpan: number, rowSpan: number, colStart: number, rowStart: number]
   move: [colStart: number, rowStart: number]
   remove: []
+  focus: []
 }>()
 const { t } = useI18n()
 
@@ -137,11 +140,13 @@ function startMove(event: MouseEvent): void {
   <div
     ref="rootEl"
     class="widget-chrome card"
-    :style="
-      colStart != null && rowStart != null
+    :style="{
+      ...(colStart != null && rowStart != null
         ? { gridColumn: `${colStart} / span ${colSpan}`, gridRow: `${rowStart} / span ${rowSpan}` }
-        : { gridColumn: `span ${colSpan}`, gridRow: `span ${rowSpan}` }
-    "
+        : { gridColumn: `span ${colSpan}`, gridRow: `span ${rowSpan}` }),
+      ...(raised ? { zIndex: 1 } : {}),
+    }"
+    @mousedown.capture="emit('focus')"
   >
     <div class="widget-header">
       <span

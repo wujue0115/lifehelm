@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { VueDraggable } from 'vue-draggable-plus'
 import { getWidgetDefinition } from '@/widgets/registry'
 import WidgetChrome from '@/widgets/WidgetChrome.vue'
@@ -158,6 +158,15 @@ function updateConfig(instanceId: string, config: SavedViewConfig): void {
     props.layout.map((entry) => (entry.instanceId === instanceId ? { ...entry, config } : entry)),
   )
 }
+
+// Explicit-position panels can overlap while being dragged/resized in
+// non-flow mode; whichever one the user last clicked or grabbed a
+// handle on should paint above the rest instead of staying tucked
+// underneath whatever happens to be later in array order.
+const topInstanceId = ref<string | null>(null)
+function bringToFront(instanceId: string): void {
+  topInstanceId.value = instanceId
+}
 </script>
 
 <template>
@@ -184,6 +193,7 @@ function updateConfig(instanceId: string, config: SavedViewConfig): void {
         :col-start="entry.colStart"
         :row-start="entry.rowStart"
         :movable="editable && !flow"
+        :raised="entry.instanceId === topInstanceId"
         :min-col-span="getWidgetDefinition(entry.widgetId).minColSpan"
         :min-row-span="getWidgetDefinition(entry.widgetId).minRowSpan"
         @resize="
@@ -192,6 +202,7 @@ function updateConfig(instanceId: string, config: SavedViewConfig): void {
         "
         @move="(colStart, rowStart) => updatePosition(entry.instanceId, colStart, rowStart)"
         @remove="removeWidget(entry.instanceId)"
+        @focus="bringToFront(entry.instanceId)"
       >
         <component
           :is="getWidgetDefinition(entry.widgetId).component"
