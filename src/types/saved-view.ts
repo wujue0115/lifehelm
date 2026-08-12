@@ -5,6 +5,8 @@ export interface WidgetLayoutEntry {
   widgetId: string
   colSpan: number
   rowSpan: number
+  colStart?: number
+  rowStart?: number
   config?: SavedViewConfig
 }
 
@@ -36,4 +38,6 @@ export interface SavedView {
   createdAt: string
   updatedAt: string
   layout: WidgetLayoutEntry[]
+  /** When false, widgets keep their explicit colStart/rowStart instead of auto-packing. Defaults to true. */
+  layoutFlow?: boolean
 }

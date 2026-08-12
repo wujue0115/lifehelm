@@ -152,6 +152,9 @@ export default {
     dragHandle: 'Drag to reorder',
     removeWidget: 'Remove widget',
     addWidget: 'Add',
+    flowLayout: 'Auto-flow layout',
+    enableFlow: 'Enable auto-flow',
+    disableFlow: 'Disable auto-flow',
   },
   itemDetail: {
     backToList: 'Back',
