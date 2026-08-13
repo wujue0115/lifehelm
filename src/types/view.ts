@@ -1,4 +1,7 @@
-export type SavedViewTemplateType = 'list' | 'board' | 'calendar' | 'dashboard'
+import type { Priority } from './work-item.js'
+import type { TagColorKey } from '../config/tagColors.js'
+
+export type ViewTemplateType = 'list' | 'board' | 'calendar' | 'dashboard'
 
 export interface WidgetLayoutEntry {
   instanceId: string
@@ -7,7 +10,7 @@ export interface WidgetLayoutEntry {
   rowSpan: number
   colStart?: number
   rowStart?: number
-  config?: SavedViewConfig
+  config?: ViewConfig
 }
 
 export interface ListViewConfig {
@@ -17,9 +20,12 @@ export interface ListViewConfig {
   search: string
   sortKey: string
   sortDir: 'asc' | 'desc'
+  statusColors?: Record<string, TagColorKey>
+  priorityColors?: Partial<Record<Priority, TagColorKey>>
+  tagColors?: Record<string, TagColorKey>
 }
 
-export type SavedViewConfig = Partial<ListViewConfig> | Record<string, never>
+export type ViewConfig = Partial<ListViewConfig> | Record<string, never>
 
 export const DEFAULT_LIST_CONFIG: ListViewConfig = {
   statusFilter: 'all',
@@ -30,10 +36,10 @@ export const DEFAULT_LIST_CONFIG: ListViewConfig = {
   sortDir: 'desc',
 }
 
-export interface SavedView {
+export interface View {
   id: string
   name: string
-  templateType: SavedViewTemplateType
+  templateType: ViewTemplateType
   pinned: boolean
   createdAt: string
   updatedAt: string

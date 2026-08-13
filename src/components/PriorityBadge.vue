@@ -2,15 +2,21 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { Priority } from '@/types/work-item'
+import type { TagColorKey } from '@/config/tagColors'
 
-const props = defineProps<{ priority: Priority }>()
+const props = defineProps<{ priority: Priority; color?: TagColorKey }>()
 
 const { t } = useI18n()
 const label = computed(() => t(`priority.${props.priority}`))
+const style = computed(() =>
+  props.color ? { '--badge-color': `var(--tag-color-${props.color})` } : undefined,
+)
 </script>
 
 <template>
-  <span class="badge type-label" :class="priority">{{ label }}</span>
+  <span class="badge type-label" :class="[priority, { colored: color }]" :style="style">{{
+    label
+  }}</span>
 </template>
 
 <style scoped>
@@ -36,5 +42,14 @@ const label = computed(() => t(`priority.${props.priority}`))
   background: var(--color-ink);
   color: var(--color-canvas-surface);
   border-color: var(--color-ink);
+}
+
+/* Opt-in per-view coloring — see StatusBadge.vue for the rationale. Comes
+   after .low/.high/.urgent so an explicitly assigned color always wins
+   over the grayscale escalation. */
+.badge.colored {
+  background: color-mix(in srgb, var(--badge-color) 16%, var(--color-canvas-surface));
+  border-color: color-mix(in srgb, var(--badge-color) 55%, var(--color-border-strong));
+  color: var(--color-ink);
 }
 </style>

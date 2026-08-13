@@ -19,6 +19,20 @@
   --color-border-strong: #d4d4d8;
   --color-surface-hover: #ececef;
 
+  /* Fixed eight-swatch palette for opt-in status/priority/tag badge coloring
+     (DESIGN.md "Status/Priority/Tag Color"). Same hue in both themes —
+     status-badge-colored tints these into --color-canvas-surface/
+     --color-border-strong at render time, so theme contrast comes from
+     those tokens, not from the swatch itself. */
+  --tag-color-red: #ef4444;
+  --tag-color-orange: #f97316;
+  --tag-color-amber: #eab308;
+  --tag-color-green: #22c55e;
+  --tag-color-teal: #14b8a6;
+  --tag-color-blue: #3b82f6;
+  --tag-color-purple: #a855f7;
+  --tag-color-pink: #ec4899;
+
   /* Overridden inline by useThemeConfig when the user picks a non-default accent;
      falls through to the theme-adaptive ink/canvas pairing otherwise. */
   --color-accent: var(--color-ink);

@@ -106,6 +106,22 @@ export default {
     empty: 'No work items match the current filters.',
     deleteConfirmTitle: 'Delete work item',
     deleteConfirmMessage: 'Are you sure you want to delete this work item? This cannot be undone.',
+    colorSettings: 'Color settings',
+    colorSettingsTitle: 'Customize colors',
+    colorSettingsStatus: 'Status',
+    colorSettingsPriority: 'Priority',
+    colorSettingsTags: 'Tags',
+    colorNone: 'No color',
+    colorNames: {
+      red: 'Red',
+      orange: 'Orange',
+      amber: 'Amber',
+      green: 'Green',
+      teal: 'Teal',
+      blue: 'Blue',
+      purple: 'Purple',
+      pink: 'Pink',
+    },
   },
   board: {
     deleteColumnTitle: 'Delete column',
@@ -136,7 +152,7 @@ export default {
     columnPinned: 'Sidebar',
     columnActions: 'Actions',
   },
-  savedView: {
+  view: {
     rename: 'Rename',
     duplicate: 'Duplicate',
     duplicateNameSuffix: '{name} copy',

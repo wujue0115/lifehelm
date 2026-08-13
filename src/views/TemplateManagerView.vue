@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { useSavedViewsStore } from '@/stores/savedViews'
+import { useViewsStore } from '@/stores/views'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import SwitchToggle from '@/components/SwitchToggle.vue'
 import ActionIcon from '@/components/ActionIcon.vue'
@@ -12,15 +12,15 @@ type SortKey = 'name' | 'pinned'
 
 const { t } = useI18n()
 const router = useRouter()
-const savedViewsStore = useSavedViewsStore()
+const viewsStore = useViewsStore()
 
 const pendingDeleteId = ref<string | null>(null)
 const sortKey = ref<SortKey | null>(null)
 const sortDir = ref<'asc' | 'desc'>('asc')
 
 const sortedViews = computed(() => {
-  if (sortKey.value === null) return savedViewsStore.views
-  const list = [...savedViewsStore.views]
+  if (sortKey.value === null) return viewsStore.views
+  const list = [...viewsStore.views]
   list.sort((a, b) => {
     const result =
       sortKey.value === 'name' ? a.name.localeCompare(b.name) : Number(a.pinned) - Number(b.pinned)
@@ -45,11 +45,11 @@ function sortDirFor(key: SortKey): 'asc' | 'desc' | 'none' {
 }
 
 onMounted(() => {
-  if (savedViewsStore.views.length === 0) savedViewsStore.fetchAll()
+  if (viewsStore.views.length === 0) viewsStore.fetchAll()
 })
 
 async function createPage(): Promise<void> {
-  const created = await savedViewsStore.createView({
+  const created = await viewsStore.createView({
     name: t('templates.untitledName'),
     templateType: 'list',
     pinned: false,
@@ -59,7 +59,7 @@ async function createPage(): Promise<void> {
 }
 
 async function duplicate(id: string, name: string): Promise<void> {
-  await savedViewsStore.duplicateView(id, t('savedView.duplicateNameSuffix', { name }))
+  await viewsStore.duplicateView(id, t('view.duplicateNameSuffix', { name }))
 }
 
 function requestDelete(id: string): void {
@@ -67,7 +67,7 @@ function requestDelete(id: string): void {
 }
 
 async function confirmDelete(): Promise<void> {
-  if (pendingDeleteId.value) await savedViewsStore.deleteView(pendingDeleteId.value)
+  if (pendingDeleteId.value) await viewsStore.deleteView(pendingDeleteId.value)
   pendingDeleteId.value = null
 }
 </script>
@@ -121,22 +121,22 @@ async function confirmDelete(): Promise<void> {
             <td>
               <SwitchToggle
                 :model-value="view.pinned"
-                :label="view.pinned ? t('savedView.unpin') : t('savedView.pin')"
-                @update:model-value="(pinned) => savedViewsStore.updateView(view.id, { pinned })"
+                :label="view.pinned ? t('view.unpin') : t('view.pin')"
+                @update:model-value="(pinned) => viewsStore.updateView(view.id, { pinned })"
               />
             </td>
             <td class="actions">
               <RouterLink
                 :to="`/views/${view.id}/edit`"
                 class="btn-ghost action-btn"
-                :title="t('savedView.editLayout')"
+                :title="t('view.editLayout')"
               >
                 <ActionIcon type="edit" />
               </RouterLink>
               <button
                 type="button"
                 class="btn-ghost action-btn"
-                :title="t('savedView.duplicate')"
+                :title="t('view.duplicate')"
                 @click="duplicate(view.id, view.name)"
               >
                 <ActionIcon type="duplicate" />
@@ -146,9 +146,7 @@ async function confirmDelete(): Promise<void> {
                 class="btn-ghost action-btn"
                 :disabled="view.id.startsWith('default-')"
                 :title="
-                  view.id.startsWith('default-')
-                    ? t('savedView.defaultViewProtected')
-                    : t('savedView.delete')
+                  view.id.startsWith('default-') ? t('view.defaultViewProtected') : t('view.delete')
                 "
                 @click="requestDelete(view.id)"
               >
@@ -163,8 +161,8 @@ async function confirmDelete(): Promise<void> {
 
     <ConfirmDialog
       :open="pendingDeleteId !== null"
-      :title="t('savedView.deleteConfirmTitle')"
-      :message="t('savedView.deleteConfirmMessage')"
+      :title="t('view.deleteConfirmTitle')"
+      :message="t('view.deleteConfirmMessage')"
       @confirm="confirmDelete"
       @cancel="pendingDeleteId = null"
     />

@@ -1,10 +1,10 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { api } from '@/api/client'
-import type { SavedView } from '@/types/saved-view'
+import type { View } from '@/types/view'
 
-export const useSavedViewsStore = defineStore('savedViews', () => {
-  const views = ref<SavedView[]>([])
+export const useViewsStore = defineStore('views', () => {
+  const views = ref<View[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
 
@@ -14,7 +14,7 @@ export const useSavedViewsStore = defineStore('savedViews', () => {
     loading.value = true
     error.value = null
     try {
-      views.value = await api.listSavedViews()
+      views.value = await api.listViews()
     } catch (err) {
       error.value = (err as Error).message
     } finally {
@@ -22,28 +22,28 @@ export const useSavedViewsStore = defineStore('savedViews', () => {
     }
   }
 
-  async function createView(input: Partial<SavedView>): Promise<SavedView> {
-    const created = await api.createSavedView(input)
+  async function createView(input: Partial<View>): Promise<View> {
+    const created = await api.createView(input)
     views.value.push(created)
     return created
   }
 
-  function applyUpdatedView(updated: SavedView): SavedView {
+  function applyUpdatedView(updated: View): View {
     const index = views.value.findIndex((view) => view.id === updated.id)
     if (index !== -1) views.value[index] = updated
     return updated
   }
 
-  async function updateView(id: string, input: Partial<SavedView>): Promise<SavedView> {
-    return applyUpdatedView(await api.updateSavedView(id, input))
+  async function updateView(id: string, input: Partial<View>): Promise<View> {
+    return applyUpdatedView(await api.updateView(id, input))
   }
 
   async function deleteView(id: string): Promise<void> {
-    await api.deleteSavedView(id)
+    await api.deleteView(id)
     views.value = views.value.filter((view) => view.id !== id)
   }
 
-  async function duplicateView(id: string, name: string): Promise<SavedView> {
+  async function duplicateView(id: string, name: string): Promise<View> {
     const source = views.value.find((view) => view.id === id)
     if (!source) throw new Error('view not found')
     return createView({

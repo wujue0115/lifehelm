@@ -6,6 +6,12 @@ export interface BoardColumn {
   order: number
 }
 
+export interface Tag {
+  id: string
+  name: string
+  order: number
+}
+
 export interface TimeEntry {
   id: string
   startedAt: string

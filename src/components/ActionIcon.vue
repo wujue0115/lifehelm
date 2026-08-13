@@ -1,5 +1,5 @@
 <script setup lang="ts">
-defineProps<{ type: 'edit' | 'duplicate' | 'delete' | 'add' }>()
+defineProps<{ type: 'edit' | 'duplicate' | 'delete' | 'add' | 'settings' }>()
 </script>
 
 <template>
@@ -38,6 +38,13 @@ defineProps<{ type: 'edit' | 'duplicate' | 'delete' | 'add' }>()
     <path
       fill="currentColor"
       d="M7 21q-.825 0-1.412-.587T5 19V6H4V4h5V3h6v1h5v2h-1v13q0 .825-.587 1.413T17 21zM17 6H7v13h10zM9 17h2V8H9zm4 0h2V8h-2zM7 6v13z"
+    />
+  </svg>
+  <svg v-else-if="type === 'settings'" width="16" height="16" viewBox="0 0 24 24">
+    <path d="M0 0h24v24H0z" fill="none" />
+    <path
+      fill="currentColor"
+      d="M19.14 12.94a7.14 7.14 0 0 0 .06-.94a7.14 7.14 0 0 0-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.03 7.03 0 0 0-1.63-.94l-.36-2.54a.5.5 0 0 0-.5-.42h-3.84a.5.5 0 0 0-.5.42l-.36 2.54a7.03 7.03 0 0 0-1.63.94l-2.39-.96a.5.5 0 0 0-.6.22L2.65 8.84a.5.5 0 0 0 .12.64L4.8 11.06a7.14 7.14 0 0 0 0 1.88L2.77 14.5a.5.5 0 0 0-.12.64l1.92 3.32a.5.5 0 0 0 .6.22l2.39-.96c.5.4 1.05.71 1.63.94l.36 2.54a.5.5 0 0 0 .5.42h3.84a.5.5 0 0 0 .5-.42l.36-2.54a7.03 7.03 0 0 0 1.63-.94l2.39.96a.5.5 0 0 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64zM12 15.5a3.5 3.5 0 1 1 0-7a3.5 3.5 0 0 1 0 7"
     />
   </svg>
   <svg v-else width="16" height="16" viewBox="0 0 24 24">

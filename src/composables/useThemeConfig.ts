@@ -41,11 +41,9 @@ export function useThemeConfig() {
     Object.assign(config, patch)
     applyToDocument(config)
     saveError.value = null
-    api
-      .updateThemeConfig({ ...config })
-      .catch((err: Error) => {
-        saveError.value = err.message
-      })
+    api.updateThemeConfig({ ...config }).catch((err: Error) => {
+      saveError.value = err.message
+    })
   }
 
   return { config, load, update, saveError }

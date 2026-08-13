@@ -7,13 +7,13 @@ import { useLocale } from '@/composables/useLocale'
 import ThemeSettingsPanel from '@/components/ThemeSettingsPanel.vue'
 import TemplateTypeIcon from '@/components/TemplateTypeIcon.vue'
 import ChevronIcon from '@/components/ChevronIcon.vue'
-import { useSavedViewsStore } from '@/stores/savedViews'
+import { useViewsStore } from '@/stores/views'
 
 const { t } = useI18n()
 const { theme, toggleTheme } = useTheme()
 const { width, collapsed, toggleCollapsed, setWidth } = useSidebar()
 const { locale, toggleLocale } = useLocale()
-const savedViewsStore = useSavedViewsStore()
+const viewsStore = useViewsStore()
 
 const showSettings = ref(false)
 
@@ -56,7 +56,7 @@ function startResize(event: MouseEvent): void {
 
     <nav class="nav">
       <RouterLink
-        v-for="view in savedViewsStore.pinnedViews"
+        v-for="view in viewsStore.pinnedViews"
         :key="view.id"
         :to="`/views/${view.id}`"
         class="nav-item type-nav-item"

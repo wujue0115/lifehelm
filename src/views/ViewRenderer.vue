@@ -2,26 +2,26 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { useSavedViewsStore } from '@/stores/savedViews'
+import { useViewsStore } from '@/stores/views'
 import { defaultLayoutEntry } from '@/widgets/registry'
 import GridLayout from '@/components/GridLayout.vue'
 import WidgetPicker from '@/components/WidgetPicker.vue'
 import ActionIcon from '@/components/ActionIcon.vue'
 import ChevronIcon from '@/components/ChevronIcon.vue'
 import SwitchToggle from '@/components/SwitchToggle.vue'
-import type { SavedView, WidgetLayoutEntry } from '@/types/saved-view'
+import type { View, WidgetLayoutEntry } from '@/types/view'
 
 const route = useRoute()
 const { t } = useI18n()
-const savedViewsStore = useSavedViewsStore()
+const viewsStore = useViewsStore()
 
-const editable = computed(() => route.name === 'saved-view-edit')
+const editable = computed(() => route.name === 'view-edit')
 
 onMounted(() => {
-  if (savedViewsStore.views.length === 0) savedViewsStore.fetchAll()
+  if (viewsStore.views.length === 0) viewsStore.fetchAll()
 })
 
-const view = computed(() => savedViewsStore.views.find((v) => v.id === route.params.viewId))
+const view = computed(() => viewsStore.views.find((v) => v.id === route.params.viewId))
 
 // Edits are staged here and only sent to the server on explicit Save, so
 // dragging/resizing widgets doesn't fire a request per mouse-move.
@@ -31,7 +31,7 @@ const draftFlow = ref(true)
 const saving = ref(false)
 const saveError = ref<string | null>(null)
 
-function applyViewToDraft(v: SavedView): void {
+function applyViewToDraft(v: View): void {
   draftName.value = v.name
   draftLayout.value = v.layout.map((entry) => ({ ...entry }))
   draftFlow.value = v.layoutFlow ?? true
@@ -60,7 +60,7 @@ async function saveChanges(): Promise<void> {
   saving.value = true
   saveError.value = null
   try {
-    await savedViewsStore.updateView(view.value.id, {
+    await viewsStore.updateView(view.value.id, {
       name: draftName.value,
       layout: draftLayout.value,
       layoutFlow: draftFlow.value,
@@ -98,11 +98,11 @@ function finishRenameView(): void {
 </script>
 
 <template>
-  <div v-if="savedViewsStore.loading || !view" class="renderer-status">
-    <p v-if="savedViewsStore.loading" class="type-body">{{ t('common.loading') }}</p>
-    <p v-else class="type-body error">{{ t('savedView.notFound') }}</p>
+  <div v-if="viewsStore.loading || !view" class="renderer-status">
+    <p v-if="viewsStore.loading" class="type-body">{{ t('common.loading') }}</p>
+    <p v-else class="type-body error">{{ t('view.notFound') }}</p>
   </div>
-  <main v-else class="saved-view-page">
+  <main v-else class="view-page">
     <div v-if="editable" class="name-header">
       <input
         v-if="editingName"
@@ -113,12 +113,7 @@ function finishRenameView(): void {
       />
       <template v-else>
         <h1 class="type-page-title">{{ draftName }}</h1>
-        <button
-          type="button"
-          class="icon-btn"
-          :title="t('savedView.rename')"
-          @click="startRenameView"
-        >
+        <button type="button" class="icon-btn" :title="t('view.rename')" @click="startRenameView">
           <ActionIcon type="edit" />
         </button>
       </template>
@@ -126,16 +121,16 @@ function finishRenameView(): void {
     <div v-if="editable" class="layout-toolbar">
       <RouterLink to="/templates" class="btn btn-secondary">
         <ChevronIcon direction="back" />
-        <span class="icon-label">{{ t('savedView.backToTemplates') }}</span>
+        <span class="icon-label">{{ t('view.backToTemplates') }}</span>
       </RouterLink>
       <WidgetPicker @add="onAddWidget" />
       <div class="toolbar-right">
         <span v-if="saveError" class="type-body-sm error">{{ saveError }}</span>
         <div class="flow-toggle">
-          <span class="type-label">{{ t('savedView.flowLayout') }}</span>
+          <span class="type-label">{{ t('view.flowLayout') }}</span>
           <SwitchToggle
             :model-value="draftFlow"
-            :label="draftFlow ? t('savedView.disableFlow') : t('savedView.enableFlow')"
+            :label="draftFlow ? t('view.disableFlow') : t('view.enableFlow')"
             @update:model-value="onToggleFlow"
           />
         </div>
@@ -159,7 +154,7 @@ function finishRenameView(): void {
 </template>
 
 <style scoped>
-.saved-view-page {
+.view-page {
   display: flex;
   flex-direction: column;
   min-height: 100%;

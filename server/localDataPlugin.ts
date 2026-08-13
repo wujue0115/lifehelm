@@ -5,12 +5,13 @@ import type {
   AttachmentMeta,
   BoardColumn,
   Comment,
+  Tag,
   TimeEntry,
   WorkItem,
 } from '../src/types/work-item.js'
 import type { ThemeConfig } from '../src/types/theme-config.js'
-import type { SavedView } from '../src/types/saved-view.js'
-import { DEFAULT_SAVED_VIEWS } from '../src/config/defaultSavedViews.js'
+import type { View } from '../src/types/view.js'
+import { DEFAULT_VIEWS } from '../src/config/defaultViews.js'
 import {
   deleteAttachmentFile,
   readAttachmentFile,
@@ -25,7 +26,8 @@ import {
 
 const ITEMS_FILE = 'items.json'
 const BOARD_FILE = 'board.json'
-const SAVED_VIEWS_FILE = 'saved-views.json'
+const TAGS_FILE = 'list.json'
+const VIEWS_FILE = 'views.json'
 const THEME_CONFIG_FILE = 'appearance.json'
 
 const DEFAULT_THEME_CONFIG: ThemeConfig = {
@@ -40,6 +42,8 @@ const DEFAULT_BOARD: BoardColumn[] = [
   { id: 'doing', name: '進行中', order: 1 },
   { id: 'done', name: '已完成', order: 2 },
 ]
+
+const DEFAULT_TAGS: Tag[] = []
 
 async function readBody(req: IncomingMessage): Promise<unknown> {
   const chunks: Buffer[] = []
@@ -374,22 +378,29 @@ export function localDataPlugin(): Plugin {
             }
           }
 
-          if (segments[0] === 'saved-views' && segments.length === 1) {
+          if (segments[0] === 'list' && segments.length === 1) {
             if (method === 'GET') {
-              const views = await readConfigJsonFileOrSeed<SavedView[]>(
-                SAVED_VIEWS_FILE,
-                DEFAULT_SAVED_VIEWS,
-              )
+              const tags = await readJsonFileOrSeed<Tag[]>(TAGS_FILE, DEFAULT_TAGS)
+              return sendJson(res, 200, tags)
+            }
+            if (method === 'PUT') {
+              const body = (await readBody(req)) as Tag[] | undefined
+              const tags = body ?? []
+              await writeJsonFile(TAGS_FILE, tags)
+              return sendJson(res, 200, tags)
+            }
+          }
+
+          if (segments[0] === 'views' && segments.length === 1) {
+            if (method === 'GET') {
+              const views = await readConfigJsonFileOrSeed<View[]>(VIEWS_FILE, DEFAULT_VIEWS)
               return sendJson(res, 200, views)
             }
             if (method === 'POST') {
-              const body = (await readBody(req)) as Partial<SavedView> | undefined
-              const views = await readConfigJsonFileOrSeed<SavedView[]>(
-                SAVED_VIEWS_FILE,
-                DEFAULT_SAVED_VIEWS,
-              )
+              const body = (await readBody(req)) as Partial<View> | undefined
+              const views = await readConfigJsonFileOrSeed<View[]>(VIEWS_FILE, DEFAULT_VIEWS)
               const now = new Date().toISOString()
-              const newView: SavedView = {
+              const newView: View = {
                 id: randomUUID(),
                 name: body?.name ?? '',
                 templateType: body?.templateType ?? 'list',
@@ -399,17 +410,14 @@ export function localDataPlugin(): Plugin {
                 layout: body?.layout ?? [],
               }
               views.push(newView)
-              await writeConfigJsonFile(SAVED_VIEWS_FILE, views)
+              await writeConfigJsonFile(VIEWS_FILE, views)
               return sendJson(res, 201, newView)
             }
           }
 
-          if (segments[0] === 'saved-views' && segments.length === 2) {
+          if (segments[0] === 'views' && segments.length === 2) {
             const id = segments[1]
-            const views = await readConfigJsonFileOrSeed<SavedView[]>(
-              SAVED_VIEWS_FILE,
-              DEFAULT_SAVED_VIEWS,
-            )
+            const views = await readConfigJsonFileOrSeed<View[]>(VIEWS_FILE, DEFAULT_VIEWS)
             const index = views.findIndex((view) => view.id === id)
 
             if (method === 'GET') {
@@ -420,8 +428,8 @@ export function localDataPlugin(): Plugin {
               if (index === -1) return sendJson(res, 404, { error: 'not found' })
               const existing = views[index]
               if (!existing) return sendJson(res, 404, { error: 'not found' })
-              const body = (await readBody(req)) as Partial<SavedView> | undefined
-              const updated: SavedView = {
+              const body = (await readBody(req)) as Partial<View> | undefined
+              const updated: View = {
                 ...existing,
                 ...body,
                 id: existing.id,
@@ -429,13 +437,13 @@ export function localDataPlugin(): Plugin {
                 updatedAt: new Date().toISOString(),
               }
               views[index] = updated
-              await writeConfigJsonFile(SAVED_VIEWS_FILE, views)
+              await writeConfigJsonFile(VIEWS_FILE, views)
               return sendJson(res, 200, updated)
             }
             if (method === 'DELETE') {
               if (index === -1) return sendJson(res, 404, { error: 'not found' })
               views.splice(index, 1)
-              await writeConfigJsonFile(SAVED_VIEWS_FILE, views)
+              await writeConfigJsonFile(VIEWS_FILE, views)
               return sendNoContent(res)
             }
           }

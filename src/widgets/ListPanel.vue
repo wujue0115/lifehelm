@@ -3,11 +3,13 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useWorkItemsStore } from '@/stores/workItems'
 import type { Priority } from '@/types/work-item'
-import type { ListViewConfig, SavedViewConfig } from '@/types/saved-view'
+import type { ListViewConfig, ViewConfig } from '@/types/view'
+import type { TagColorKey } from '@/config/tagColors'
 import WorkItemRow from '@/components/WorkItemRow.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import SortIcon from '@/components/SortIcon.vue'
 import ActionIcon from '@/components/ActionIcon.vue'
+import ListColorSettings from '@/components/ListColorSettings.vue'
 
 type SortKey = 'title' | 'status' | 'priority' | 'tags' | 'dueDate' | 'updatedAt'
 
@@ -16,8 +18,8 @@ const DEFAULT_SORT_DIR: 'asc' | 'desc' = 'desc'
 
 defineOptions({ inheritAttrs: false })
 
-const props = defineProps<{ instanceId: string; config?: SavedViewConfig }>()
-const emit = defineEmits<{ 'update:config': [SavedViewConfig] }>()
+const props = defineProps<{ instanceId: string; config?: ViewConfig }>()
+const emit = defineEmits<{ 'update:config': [ViewConfig] }>()
 
 const { t } = useI18n()
 const store = useWorkItemsStore()
@@ -30,6 +32,10 @@ const tagFilter = ref(cfg.tagFilter ?? 'all')
 const sortKey = ref<SortKey>((cfg.sortKey as SortKey) ?? DEFAULT_SORT_KEY)
 const sortDir = ref<'asc' | 'desc'>(cfg.sortDir ?? DEFAULT_SORT_DIR)
 const pendingDeleteId = ref<string | null>(null)
+const statusColors = ref<Record<string, TagColorKey>>({ ...cfg.statusColors })
+const priorityColors = ref<Partial<Record<Priority, TagColorKey>>>({ ...cfg.priorityColors })
+const tagColors = ref<Record<string, TagColorKey>>({ ...cfg.tagColors })
+const settingsOpen = ref(false)
 
 onMounted(() => {
   store.fetchAll()
@@ -46,10 +52,14 @@ function schedulePersist(): void {
       tagFilter: tagFilter.value,
       sortKey: sortKey.value,
       sortDir: sortDir.value,
+      statusColors: statusColors.value,
+      priorityColors: priorityColors.value,
+      tagColors: tagColors.value,
     })
   }, 400)
 }
 watch([search, statusFilter, priorityFilter, tagFilter, sortKey, sortDir], schedulePersist)
+watch([statusColors, priorityColors, tagColors], schedulePersist, { deep: true })
 
 const statusNameById = computed(() => {
   const map = new Map<string, string>()
@@ -120,6 +130,17 @@ function sortDirFor(key: SortKey): 'asc' | 'desc' | 'none' {
   return sortKey.value === key ? sortDir.value : 'none'
 }
 
+// Assigning a color is the moment a tag becomes significant enough to be
+// worth remembering — registers it into list.json so it keeps its color
+// (and shows up for future coloring) even if every item wearing it is
+// later retagged or deleted.
+function onTagColorsUpdate(next: Record<string, TagColorKey>): void {
+  tagColors.value = next
+  for (const tagName of Object.keys(next)) {
+    store.ensureTagRegistered(tagName)
+  }
+}
+
 function requestDelete(id: string): void {
   pendingDeleteId.value = id
 }
@@ -158,11 +179,34 @@ async function confirmDelete(): Promise<void> {
           <option v-for="tag in store.allTags" :key="tag" :value="tag">{{ tag }}</option>
         </select>
       </div>
-      <RouterLink to="/items/new" class="btn btn-primary">
-        <ActionIcon type="add" />
-        <span class="icon-label">{{ t('list.addItem') }}</span>
-      </RouterLink>
+      <div class="toolbar-actions">
+        <button
+          type="button"
+          class="btn-ghost action-btn"
+          :title="t('list.colorSettings')"
+          @click="settingsOpen = true"
+        >
+          <ActionIcon type="settings" />
+        </button>
+        <RouterLink to="/items/new" class="btn btn-primary">
+          <ActionIcon type="add" />
+          <span class="icon-label">{{ t('list.addItem') }}</span>
+        </RouterLink>
+      </div>
     </div>
+
+    <ListColorSettings
+      :open="settingsOpen"
+      :statuses="store.sortedBoard"
+      :tags="store.allTags"
+      :status-colors="statusColors"
+      :priority-colors="priorityColors"
+      :tag-colors="tagColors"
+      @update:status-colors="(v) => (statusColors = v)"
+      @update:priority-colors="(v) => (priorityColors = v)"
+      @update:tag-colors="onTagColorsUpdate"
+      @close="settingsOpen = false"
+    />
 
     <p v-if="store.loading" class="type-body">{{ t('common.loading') }}</p>
     <p v-else-if="store.error" class="type-body error">
@@ -246,6 +290,9 @@ async function confirmDelete(): Promise<void> {
               :item="item"
               :status-name="statusNameById.get(item.statusId) ?? item.statusId"
               :is-completed="store.isItemCompleted(item)"
+              :status-color="statusColors[item.statusId]"
+              :priority-color="priorityColors[item.priority]"
+              :tag-colors="tagColors"
               @delete="requestDelete"
             />
           </tbody>
@@ -286,6 +333,20 @@ async function confirmDelete(): Promise<void> {
 
 .filters .input {
   min-width: 140px;
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  min-height: auto;
 }
 
 .count {

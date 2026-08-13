@@ -1,8 +1,8 @@
-import { DEFAULT_LIST_CONFIG, type SavedView } from '../types/saved-view.js'
+import { DEFAULT_LIST_CONFIG, type View } from '../types/view.js'
 
 const SEED_TIMESTAMP = '2024-01-01T00:00:00.000Z'
 
-export const DEFAULT_SAVED_VIEWS: SavedView[] = [
+export const DEFAULT_VIEWS: View[] = [
   {
     id: 'default-list',
     name: 'List',
@@ -36,9 +36,7 @@ export const DEFAULT_SAVED_VIEWS: SavedView[] = [
     pinned: true,
     createdAt: SEED_TIMESTAMP,
     updatedAt: SEED_TIMESTAMP,
-    layout: [
-      { instanceId: 'seed-calendar-panel', widgetId: 'calendar', colSpan: 12, rowSpan: 16 },
-    ],
+    layout: [{ instanceId: 'seed-calendar-panel', widgetId: 'calendar', colSpan: 12, rowSpan: 16 }],
   },
   {
     id: 'default-dashboard',
