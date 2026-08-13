@@ -12,6 +12,8 @@ import {
   findMatchingPresetId,
 } from '@/config/themePresets'
 import type { ThemePreset } from '@/config/themePresets'
+import ModalOverlay from './ModalOverlay.vue'
+import DialogHeader from './DialogHeader.vue'
 
 const emit = defineEmits<{ close: [] }>()
 
@@ -46,144 +48,119 @@ function reset(): void {
 </script>
 
 <template>
-  <Teleport to="body">
-    <div class="overlay" @click.self="emit('close')">
-      <div class="panel">
-        <div class="panel-header">
-          <span class="type-section-title">{{ t('settings.title') }}</span>
+  <ModalOverlay :open="true" @close="emit('close')">
+    <div class="panel">
+      <DialogHeader :title="t('settings.title')" @close="emit('close')" />
+
+      <p v-if="saveError" class="save-error type-caption">
+        {{ t('settings.saveError', { message: saveError }) }}
+      </p>
+
+      <div class="section">
+        <span class="type-label section-label">{{ t('settings.presets') }}</span>
+        <div class="preset-list">
+          <button
+            v-for="preset in PRESETS"
+            :key="preset.id"
+            type="button"
+            class="preset-chip"
+            :class="{ active: activePresetId === preset.id }"
+            @click="applyPreset(preset)"
+          >
+            <span
+              class="preset-dot"
+              :style="{ background: preset.config.accentColor ?? 'var(--color-ink)' }"
+            ></span>
+            <span class="type-caption">{{ t(`settings.presetNames.${preset.id}`) }}</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="section">
+        <span class="type-label section-label">{{ t('settings.accentColor') }}</span>
+        <div class="swatch-list">
+          <button
+            v-for="swatch in ACCENT_SWATCHES"
+            :key="swatch"
+            type="button"
+            class="swatch"
+            :class="{ active: config.accentColor === swatch }"
+            :style="{ background: swatch }"
+            :title="swatch"
+            @click="setAccent(swatch)"
+          ></button>
           <button
             type="button"
-            class="btn-ghost close-btn"
-            :title="t('common.close')"
-            @click="emit('close')"
+            class="swatch swatch-default"
+            :class="{ active: config.accentColor === null }"
+            :title="t('settings.accentDefault')"
+            @click="setAccent(null)"
           >
             ×
           </button>
         </div>
-
-        <p v-if="saveError" class="save-error type-caption">
-          {{ t('settings.saveError', { message: saveError }) }}
-        </p>
-
-        <div class="section">
-          <span class="type-label section-label">{{ t('settings.presets') }}</span>
-          <div class="preset-list">
-            <button
-              v-for="preset in PRESETS"
-              :key="preset.id"
-              type="button"
-              class="preset-chip"
-              :class="{ active: activePresetId === preset.id }"
-              @click="applyPreset(preset)"
-            >
-              <span
-                class="preset-dot"
-                :style="{ background: preset.config.accentColor ?? 'var(--color-ink)' }"
-              ></span>
-              <span class="type-caption">{{ t(`settings.presetNames.${preset.id}`) }}</span>
-            </button>
-          </div>
-        </div>
-
-        <div class="section">
-          <span class="type-label section-label">{{ t('settings.accentColor') }}</span>
-          <div class="swatch-list">
-            <button
-              v-for="swatch in ACCENT_SWATCHES"
-              :key="swatch"
-              type="button"
-              class="swatch"
-              :class="{ active: config.accentColor === swatch }"
-              :style="{ background: swatch }"
-              :title="swatch"
-              @click="setAccent(swatch)"
-            ></button>
-            <button
-              type="button"
-              class="swatch swatch-default"
-              :class="{ active: config.accentColor === null }"
-              :title="t('settings.accentDefault')"
-              @click="setAccent(null)"
-            >
-              ×
-            </button>
-          </div>
-        </div>
-
-        <div class="section">
-          <span class="type-label section-label">{{ t('settings.font') }}</span>
-          <select
-            class="input type-body"
-            :value="config.fontId"
-            @change="setFont(($event.target as HTMLSelectElement).value)"
-          >
-            <option v-for="font in FONT_OPTIONS" :key="font.id" :value="font.id">
-              {{ t(`settings.fontNames.${font.id}`) }}
-            </option>
-          </select>
-          <p
-            class="preview type-body"
-            :style="{ fontFamily: FONT_OPTIONS.find((f) => f.id === config.fontId)?.stack }"
-          >
-            {{ t('settings.fontPreview') }}
-          </p>
-        </div>
-
-        <div class="section">
-          <span class="type-label section-label">{{ t('settings.radius') }}</span>
-          <div class="segmented">
-            <button
-              v-for="option in RADIUS_OPTIONS"
-              :key="option.id"
-              type="button"
-              class="segment"
-              :class="{ active: config.radiusScale === option.value }"
-              @click="setRadius(option.value)"
-            >
-              <span
-                class="segment-preview"
-                :style="{ borderRadius: `${6 * option.value}px` }"
-              ></span>
-              <span class="type-caption">{{ t(`settings.radiusNames.${option.id}`) }}</span>
-            </button>
-          </div>
-        </div>
-
-        <div class="section">
-          <span class="type-label section-label">{{ t('settings.spacing') }}</span>
-          <div class="segmented">
-            <button
-              v-for="option in SPACING_OPTIONS"
-              :key="option.id"
-              type="button"
-              class="segment"
-              :class="{ active: config.spacingScale === option.value }"
-              @click="setSpacing(option.value)"
-            >
-              <span class="type-caption">{{ t(`settings.spacingNames.${option.id}`) }}</span>
-            </button>
-          </div>
-        </div>
-
-        <button type="button" class="btn btn-secondary reset-btn" @click="reset">
-          {{ t('settings.reset') }}
-        </button>
       </div>
+
+      <div class="section">
+        <span class="type-label section-label">{{ t('settings.font') }}</span>
+        <select
+          class="input type-body"
+          :value="config.fontId"
+          @change="setFont(($event.target as HTMLSelectElement).value)"
+        >
+          <option v-for="font in FONT_OPTIONS" :key="font.id" :value="font.id">
+            {{ t(`settings.fontNames.${font.id}`) }}
+          </option>
+        </select>
+        <p
+          class="preview type-body"
+          :style="{ fontFamily: FONT_OPTIONS.find((f) => f.id === config.fontId)?.stack }"
+        >
+          {{ t('settings.fontPreview') }}
+        </p>
+      </div>
+
+      <div class="section">
+        <span class="type-label section-label">{{ t('settings.radius') }}</span>
+        <div class="segmented">
+          <button
+            v-for="option in RADIUS_OPTIONS"
+            :key="option.id"
+            type="button"
+            class="segment"
+            :class="{ active: config.radiusScale === option.value }"
+            @click="setRadius(option.value)"
+          >
+            <span class="segment-preview" :style="{ borderRadius: `${6 * option.value}px` }"></span>
+            <span class="type-caption">{{ t(`settings.radiusNames.${option.id}`) }}</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="section">
+        <span class="type-label section-label">{{ t('settings.spacing') }}</span>
+        <div class="segmented">
+          <button
+            v-for="option in SPACING_OPTIONS"
+            :key="option.id"
+            type="button"
+            class="segment"
+            :class="{ active: config.spacingScale === option.value }"
+            @click="setSpacing(option.value)"
+          >
+            <span class="type-caption">{{ t(`settings.spacingNames.${option.id}`) }}</span>
+          </button>
+        </div>
+      </div>
+
+      <button type="button" class="btn btn-secondary reset-btn" @click="reset">
+        {{ t('settings.reset') }}
+      </button>
     </div>
-  </Teleport>
+  </ModalOverlay>
 </template>
 
 <style scoped>
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-}
-
 .panel {
   background: var(--color-canvas-surface);
   border: 1px solid var(--color-border-subtle);
@@ -195,19 +172,6 @@ function reset(): void {
   max-height: calc(100vh - var(--space-xl) * 2);
   padding: var(--space-xl);
   overflow-y: auto;
-}
-
-.panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.close-btn {
-  padding: 2px 8px;
-  min-height: auto;
-  font-size: 16px;
-  line-height: 1;
 }
 
 .save-error {

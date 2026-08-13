@@ -2,6 +2,8 @@
 import { useI18n } from 'vue-i18n'
 import { TAG_COLOR_KEYS, type TagColorKey } from '@/config/tagColors'
 import type { BoardColumn, Priority } from '@/types/work-item'
+import ModalOverlay from './ModalOverlay.vue'
+import DialogHeader from './DialogHeader.vue'
 
 const props = defineProps<{
   open: boolean
@@ -45,9 +47,9 @@ function setTagColor(tag: string, color: TagColorKey | null): void {
 </script>
 
 <template>
-  <div v-if="open" class="overlay" @click.self="emit('close')">
+  <ModalOverlay :open="open" @close="emit('close')">
     <div class="panel">
-      <h2 class="type-section-title title">{{ t('list.colorSettingsTitle') }}</h2>
+      <DialogHeader :title="t('list.colorSettingsTitle')" @close="emit('close')" />
 
       <section v-if="statuses.length" class="group">
         <h3 class="type-label group-title">{{ t('list.colorSettingsStatus') }}</h3>
@@ -126,27 +128,11 @@ function setTagColor(tag: string, color: TagColorKey | null): void {
           </div>
         </div>
       </section>
-
-      <div class="actions">
-        <button type="button" class="btn btn-primary" @click="emit('close')">
-          {{ t('common.close') }}
-        </button>
-      </div>
     </div>
-  </div>
+  </ModalOverlay>
 </template>
 
 <style scoped>
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-}
-
 .panel {
   background: var(--color-canvas-surface);
   border: 1px solid var(--color-border-subtle);
@@ -158,8 +144,8 @@ function setTagColor(tag: string, color: TagColorKey | null): void {
   overflow-y: auto;
 }
 
-.title {
-  margin: 0 0 var(--space-md);
+.panel :deep(.panel-header) {
+  margin-bottom: var(--space-md);
 }
 
 .group + .group {
