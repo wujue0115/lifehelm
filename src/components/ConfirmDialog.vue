@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import ModalOverlay from './ModalOverlay.vue'
 
 defineProps<{ open: boolean; title: string; message: string }>()
 const emit = defineEmits<{ confirm: []; cancel: [] }>()
@@ -7,7 +8,7 @@ const { t } = useI18n()
 </script>
 
 <template>
-  <div v-if="open" class="overlay" @click.self="emit('cancel')">
+  <ModalOverlay :open="open" @close="emit('cancel')">
     <div class="panel">
       <h2 class="type-section-title title">{{ title }}</h2>
       <p class="type-body">{{ message }}</p>
@@ -20,20 +21,10 @@ const { t } = useI18n()
         </button>
       </div>
     </div>
-  </div>
+  </ModalOverlay>
 </template>
 
 <style scoped>
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-}
-
 .panel {
   background: var(--color-canvas-surface);
   border: 1px solid var(--color-border-subtle);
