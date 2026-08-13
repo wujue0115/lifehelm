@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { VueDraggable, type DraggableEvent } from 'vue-draggable-plus'
 import { useWorkItemsStore } from '@/stores/workItems'
 import type { BoardColumn, WorkItem } from '@/types/work-item'
 import type { ViewConfig } from '@/types/view'
 import WorkItemCard from '@/components/WorkItemCard.vue'
+import ActionIcon from '@/components/ActionIcon.vue'
+import ConfirmDialog from '@/components/ConfirmDialog.vue'
 
 defineProps<{ instanceId: string; config?: ViewConfig }>()
 
@@ -13,10 +15,21 @@ const { t } = useI18n()
 const store = useWorkItemsStore()
 
 const localColumns = ref<Record<string, WorkItem[]>>({})
-const boardError = ref<string | null>(null)
 const newColumnName = ref('')
 const editingColumnId = ref<string | null>(null)
 const editingName = ref('')
+const pendingDeleteColumnId = ref<string | null>(null)
+
+const pendingDeleteHasItems = computed(() =>
+  pendingDeleteColumnId.value
+    ? store.items.some((item) => item.statusId === pendingDeleteColumnId.value)
+    : false,
+)
+const pendingDeleteMessage = computed(() =>
+  pendingDeleteHasItems.value
+    ? t('board.deleteColumnWarningMessage')
+    : t('board.deleteColumnConfirmMessage'),
+)
 
 onMounted(() => {
   store.fetchAll()
@@ -64,20 +77,40 @@ async function addColumn(): Promise<void> {
   const name = newColumnName.value.trim()
   if (!name) return
   const maxOrder = store.board.reduce((max, column) => Math.max(max, column.order), -1)
-  const updated = [...store.board, { id: crypto.randomUUID(), name, order: maxOrder + 1 }]
+  const updated = [
+    ...store.board,
+    { id: crypto.randomUUID(), name, order: maxOrder + 1, isDone: false },
+  ]
   await store.updateBoard(updated)
   newColumnName.value = ''
 }
 
-async function removeColumn(columnId: string): Promise<void> {
-  boardError.value = null
-  const hasItems = store.items.some((item) => item.statusId === columnId)
-  if (hasItems) {
-    boardError.value = t('board.deleteColumnBlocked')
-    return
-  }
+// Explicit and sticky to this column's id — unlike the old order-based
+// inference, adding or deleting *other* columns never moves this. Exactly
+// one column can be the done column at a time, so setting it here clears
+// it everywhere else.
+async function setDoneColumn(columnId: string): Promise<void> {
+  if (columnId === store.doneColumnId) return
+  const updated = store.board.map((column) => ({ ...column, isDone: column.id === columnId }))
+  await store.updateBoard(updated)
+}
+
+function requestRemoveColumn(columnId: string): void {
+  pendingDeleteColumnId.value = columnId
+}
+
+async function confirmRemoveColumn(): Promise<void> {
+  const columnId = pendingDeleteColumnId.value
+  if (!columnId) return
+  // Items sitting in this column lose their status entirely rather than
+  // silently keeping a reference to a column that no longer exists — the
+  // warning dialog tells the user this is about to happen before they
+  // confirm.
+  const affectedItems = store.items.filter((item) => item.statusId === columnId)
+  await Promise.all(affectedItems.map((item) => store.updateItem(item.id, { statusId: '' })))
   const updated = store.board.filter((column) => column.id !== columnId)
   await store.updateBoard(updated)
+  pendingDeleteColumnId.value = null
 }
 </script>
 
@@ -88,7 +121,6 @@ async function removeColumn(columnId: string): Promise<void> {
       {{ t('common.error', { message: store.error }) }}
     </p>
     <template v-else>
-      <p v-if="boardError" class="type-body error">{{ boardError }}</p>
       <div class="board">
         <div v-for="column in store.sortedBoard" :key="column.id" class="column">
           <div class="column-header">
@@ -102,14 +134,35 @@ async function removeColumn(columnId: string): Promise<void> {
             <span v-else class="type-label column-name" @click="startEditColumn(column)">
               {{ column.name }}
             </span>
-            <button
-              type="button"
-              class="icon-btn"
-              :title="t('board.deleteColumnTitle')"
-              @click="removeColumn(column.id)"
-            >
-              ×
-            </button>
+            <div class="column-actions">
+              <button
+                type="button"
+                class="icon-btn done-toggle"
+                :class="{ active: column.id === store.doneColumnId }"
+                :title="
+                  column.id === store.doneColumnId
+                    ? t('board.doneColumnActive')
+                    : t('board.markAsDone')
+                "
+                @click="setDoneColumn(column.id)"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24">
+                  <path d="M0 0h24v24H0z" fill="none" />
+                  <path
+                    fill="currentColor"
+                    d="M12 2a10 10 0 1 0 0 20a10 10 0 0 0 0-20m-1.2 14.4l-4.2-4.2l1.4-1.4l2.8 2.8l6-6l1.4 1.4z"
+                  />
+                </svg>
+              </button>
+              <button
+                type="button"
+                class="icon-btn"
+                :title="t('board.deleteColumnTitle')"
+                @click="requestRemoveColumn(column.id)"
+              >
+                <ActionIcon type="delete" />
+              </button>
+            </div>
           </div>
 
           <VueDraggable
@@ -124,7 +177,7 @@ async function removeColumn(columnId: string): Promise<void> {
               v-for="item in localColumns[column.id] ?? []"
               :key="item.id"
               :item="item"
-              :is-completed="column.id === store.lastColumnId"
+              :is-completed="column.id === store.doneColumnId"
             />
           </VueDraggable>
         </div>
@@ -140,6 +193,14 @@ async function removeColumn(columnId: string): Promise<void> {
         </div>
       </div>
     </template>
+
+    <ConfirmDialog
+      :open="pendingDeleteColumnId !== null"
+      :title="t('board.deleteColumnTitle')"
+      :message="pendingDeleteMessage"
+      @confirm="confirmRemoveColumn"
+      @cancel="pendingDeleteColumnId = null"
+    />
   </div>
 </template>
 
@@ -186,13 +247,26 @@ async function removeColumn(columnId: string): Promise<void> {
   min-height: auto;
 }
 
+.column-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
 .icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: none;
   border: none;
   cursor: pointer;
   color: var(--color-ink-muted);
-  font-size: 18px;
-  line-height: 1;
+  padding: 2px;
+}
+
+.done-toggle.active {
+  color: var(--color-ink);
 }
 
 .column-body {

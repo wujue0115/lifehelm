@@ -40,7 +40,7 @@ const DEFAULT_THEME_CONFIG: ThemeConfig = {
 const DEFAULT_BOARD: BoardColumn[] = [
   { id: 'todo', name: '待處理', order: 0 },
   { id: 'doing', name: '進行中', order: 1 },
-  { id: 'done', name: '已完成', order: 2 },
+  { id: 'done', name: '已完成', order: 2, isDone: true },
 ]
 
 const DEFAULT_TAGS: Tag[] = []
