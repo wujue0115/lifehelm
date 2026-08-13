@@ -19,6 +19,11 @@
   --color-border-strong: #d4d4d8;
   --color-surface-hover: #ececef;
 
+  /* Marks the delete-trash icon only (DESIGN.md "Danger (destructive
+     actions)") — unconditional, not user-configurable, never used for
+     button chrome or anything else. */
+  --color-danger: #dc2626;
+
   /* Fixed eight-swatch palette for opt-in status/priority/tag badge coloring
      (DESIGN.md "Status/Priority/Tag Color"). Same hue in both themes —
      status-badge-colored tints these into --color-canvas-surface/
@@ -74,6 +79,7 @@
   --color-border-subtle: #27272a;
   --color-border-strong: #3f3f46;
   --color-surface-hover: #1f1f23;
+  --color-danger: #f87171;
 }
 
 *,

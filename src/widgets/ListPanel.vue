@@ -288,7 +288,11 @@ async function confirmDelete(): Promise<void> {
               v-for="item in sortedItems"
               :key="item.id"
               :item="item"
-              :status-name="statusNameById.get(item.statusId) ?? item.statusId"
+              :status-name="
+                item.statusId
+                  ? (statusNameById.get(item.statusId) ?? item.statusId)
+                  : t('list.noStatus')
+              "
               :is-completed="store.isItemCompleted(item)"
               :status-color="statusColors[item.statusId]"
               :priority-color="priorityColors[item.priority]"

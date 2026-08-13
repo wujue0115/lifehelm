@@ -4,6 +4,11 @@ export interface BoardColumn {
   id: string
   name: string
   order: number
+  /** Marks this column as the "completed" state — explicit and independent of
+   * `order`/position, so deleting and re-adding a column never silently
+   * changes which status counts as done. At most one column should have this
+   * set true at a time. */
+  isDone?: boolean
 }
 
 export interface Tag {

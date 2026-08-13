@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { api } from '@/api/client'
 import type { BoardColumn, Tag, TimeEntry, WorkItem } from '@/types/work-item'
+import { getDoneColumnId } from '@/utils/board'
 
 export const useWorkItemsStore = defineStore('workItems', () => {
   const items = ref<WorkItem[]>([])
@@ -11,7 +12,7 @@ export const useWorkItemsStore = defineStore('workItems', () => {
   const error = ref<string | null>(null)
 
   const sortedBoard = computed(() => [...board.value].sort((a, b) => a.order - b.order))
-  const lastColumnId = computed(() => sortedBoard.value[sortedBoard.value.length - 1]?.id)
+  const doneColumnId = computed(() => getDoneColumnId(board.value))
   const allTags = computed(() => {
     const tagSet = new Set<string>()
     for (const item of items.value) {
@@ -22,7 +23,7 @@ export const useWorkItemsStore = defineStore('workItems', () => {
   })
 
   function isItemCompleted(item: WorkItem): boolean {
-    return item.statusId === lastColumnId.value
+    return item.statusId === doneColumnId.value
   }
 
   async function fetchAll(): Promise<void> {
@@ -121,7 +122,7 @@ export const useWorkItemsStore = defineStore('workItems', () => {
     board,
     tags,
     sortedBoard,
-    lastColumnId,
+    doneColumnId,
     allTags,
     isItemCompleted,
     loading,

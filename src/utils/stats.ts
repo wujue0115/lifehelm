@@ -1,5 +1,6 @@
 import type { BoardColumn, Priority, WorkItem } from '@/types/work-item'
 import { getDueStatus } from './dueDate'
+import { getDoneColumnId } from './board'
 
 export interface StatusCount {
   columnId: string
@@ -27,10 +28,10 @@ export interface DashboardStats {
 
 export function computeStats(items: WorkItem[], board: BoardColumn[]): DashboardStats {
   const sortedBoard = [...board].sort((a, b) => a.order - b.order)
-  const lastColumnId = sortedBoard[sortedBoard.length - 1]?.id
+  const doneColumnId = getDoneColumnId(board)
 
   const total = items.length
-  const completed = items.filter((item) => item.statusId === lastColumnId).length
+  const completed = items.filter((item) => item.statusId === doneColumnId).length
   const completionRate = total === 0 ? 0 : Math.round((completed / total) * 100)
 
   let overdueCount = 0
@@ -45,7 +46,7 @@ export function computeStats(items: WorkItem[], board: BoardColumn[]): Dashboard
     for (const tag of item.tags) tagMap.set(tag, (tagMap.get(tag) ?? 0) + 1)
     for (const entry of item.timeEntries) totalTrackedSeconds += entry.durationSeconds ?? 0
 
-    const isCompleted = item.statusId === lastColumnId
+    const isCompleted = item.statusId === doneColumnId
     const status = getDueStatus(item.dueDate, isCompleted)
     if (status === 'overdue') overdueCount += 1
     else if (status === 'due-today') dueTodayCount += 1

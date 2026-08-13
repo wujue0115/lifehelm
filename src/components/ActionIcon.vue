@@ -36,7 +36,7 @@ defineProps<{ type: 'edit' | 'duplicate' | 'delete' | 'add' | 'settings' }>()
   <svg v-else-if="type === 'delete'" width="16" height="16" viewBox="0 0 24 24">
     <path d="M0 0h24v24H0z" fill="none" />
     <path
-      fill="currentColor"
+      fill="var(--color-danger)"
       d="M7 21q-.825 0-1.412-.587T5 19V6H4V4h5V3h6v1h5v2h-1v13q0 .825-.587 1.413T17 21zM17 6H7v13h10zM9 17h2V8H9zm4 0h2V8h-2zM7 6v13z"
     />
   </svg>

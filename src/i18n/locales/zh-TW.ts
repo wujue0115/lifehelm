@@ -92,6 +92,7 @@ export default {
   list: {
     searchPlaceholder: '搜尋標題或描述…',
     allStatus: '所有狀態',
+    noStatus: '無狀態',
     allPriority: '所有優先級',
     allTags: '所有標籤',
     addItem: '新增',
@@ -124,7 +125,11 @@ export default {
   },
   board: {
     deleteColumnTitle: '刪除欄位',
-    deleteColumnBlocked: '這個欄位還有工作項目，請先將項目移到其他欄位再刪除。',
+    deleteColumnConfirmMessage: '確定要刪除這個欄位嗎？此動作無法復原。',
+    deleteColumnWarningMessage:
+      '如果刪除此狀態，目前套用此狀態的工作項目狀態將會變成空的。確定要刪除嗎？',
+    markAsDone: '設為完成狀態',
+    doneColumnActive: '此為完成狀態',
     addColumnPlaceholder: '+ 新增欄位',
   },
   calendar: {
@@ -197,12 +202,16 @@ export default {
     empty: '尚無留言',
     placeholder: '新增留言…',
     submit: '新增',
+    deleteConfirmTitle: '刪除留言',
+    deleteConfirmMessage: '確定要刪除這則留言嗎？此動作無法復原。',
   },
   attachments: {
     title: '附件',
     empty: '尚無附件',
     add: '新增',
     uploading: '上傳中…',
+    deleteConfirmTitle: '刪除附件',
+    deleteConfirmMessage: '確定要刪除這個附件嗎？此動作無法復原。',
   },
   timeTracker: {
     title: '時間追蹤',
@@ -218,6 +227,8 @@ export default {
     add: '新增',
     manualMissingFields: '請輸入開始與結束時間',
     manualInvalidRange: '結束時間必須晚於開始時間',
+    deleteConfirmTitle: '刪除時間紀錄',
+    deleteConfirmMessage: '確定要刪除這筆時間紀錄嗎？此動作無法復原。',
     hours: '{h} 小時 {m} 分',
     minutes: '{m} 分 {s} 秒',
     seconds: '{s} 秒',

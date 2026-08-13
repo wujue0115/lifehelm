@@ -5,6 +5,7 @@ import { useWorkItemsStore } from '@/stores/workItems'
 import { api } from '@/api/client'
 import type { AttachmentMeta } from '@/types/work-item'
 import ActionIcon from '@/components/ActionIcon.vue'
+import ConfirmDialog from '@/components/ConfirmDialog.vue'
 
 const props = defineProps<{ itemId: string; attachments: AttachmentMeta[] }>()
 
@@ -12,6 +13,7 @@ const { t, locale } = useI18n()
 const store = useWorkItemsStore()
 const uploading = ref(false)
 const errorMessage = ref<string | null>(null)
+const pendingDeleteAttachmentId = ref<string | null>(null)
 
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
@@ -58,8 +60,15 @@ async function handleFileSelected(event: Event): Promise<void> {
   }
 }
 
-async function removeAttachment(attachmentId: string): Promise<void> {
+function requestRemoveAttachment(attachmentId: string): void {
+  pendingDeleteAttachmentId.value = attachmentId
+}
+
+async function confirmRemoveAttachment(): Promise<void> {
+  const attachmentId = pendingDeleteAttachmentId.value
+  if (!attachmentId) return
   await store.deleteAttachment(props.itemId, attachmentId)
+  pendingDeleteAttachmentId.value = null
 }
 </script>
 
@@ -81,8 +90,13 @@ async function removeAttachment(attachmentId: string): Promise<void> {
         <span class="type-caption meta">
           {{ formatSize(attachment.size) }} · {{ formatDate(attachment.uploadedAt) }}
         </span>
-        <button type="button" class="btn btn-ghost remove" @click="removeAttachment(attachment.id)">
-          {{ t('common.delete') }}
+        <button
+          type="button"
+          class="btn-ghost action-btn"
+          :title="t('common.delete')"
+          @click="requestRemoveAttachment(attachment.id)"
+        >
+          <ActionIcon type="delete" />
         </button>
       </li>
     </ul>
@@ -94,6 +108,14 @@ async function removeAttachment(attachmentId: string): Promise<void> {
       }}</span>
       <input type="file" class="file-input" :disabled="uploading" @change="handleFileSelected" />
     </label>
+
+    <ConfirmDialog
+      :open="pendingDeleteAttachmentId !== null"
+      :title="t('attachments.deleteConfirmTitle')"
+      :message="t('attachments.deleteConfirmMessage')"
+      @confirm="confirmRemoveAttachment"
+      @cancel="pendingDeleteAttachmentId = null"
+    />
   </div>
 </template>
 
@@ -144,9 +166,12 @@ async function removeAttachment(attachmentId: string): Promise<void> {
   color: var(--color-ink-muted);
 }
 
-.remove {
-  min-height: 28px;
-  padding: 4px 10px;
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  min-height: auto;
   margin-left: auto;
 }
 

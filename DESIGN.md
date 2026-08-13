@@ -19,6 +19,7 @@ colors:
   surface-hover: '#ececef'
   accent: '{colors.ink}' # user-configurable override, see "Accent (user-configurable)"
   accent-contrast: '{colors.canvas-surface}'
+  danger: '#dc2626' # see "Danger (destructive actions)" — delete icons only, not a general accent
 
 tag-palette:
   red: '#ef4444'
@@ -46,6 +47,7 @@ colors-dark:
   surface-hover: '#1f1f23'
   accent: '{colors.ink}'
   accent-contrast: '{colors.canvas-surface}'
+  danger: '#f87171'
 
 fonts:
   sans: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'PingFang TC', 'Microsoft JhengHei', 'Noto Sans TC', sans-serif"
@@ -183,7 +185,7 @@ components:
 
 This is a functional back-office admin dashboard, not a marketing site: the job is to let one person scan, filter, and edit a list of work items as fast as possible. There is no hero imagery, no full-bleed photography, no single-CTA-per-band composition. Instead the system borrows the layout grammar of tools like Linear, Vercel's dashboard, and classic admin templates — a fixed dark sidebar for wayfinding, a light content canvas for data, flat 1px-bordered cards and tables for structure, and typographic weight/size (not color) for hierarchy.
 
-The palette's base state is strictly monochrome — black, white, and a grayscale ramp in between — the same "no accent color" discipline as before, just repurposed: grayscale does the job that used to belong to photography, building surface hierarchy (`{colors.canvas-app}` page background vs `{colors.canvas-surface}` card/table white) and interactive state (`{colors.surface-hover}`, `{colors.sidebar-hover}`) instead of chromatic branding. This is the *system default* a fresh install ships with; see "Accent (user-configurable)" below for the opt-in theming layer that lets a user override it.
+The palette's base state is strictly monochrome — black, white, and a grayscale ramp in between — the same "no accent color" discipline as before, just repurposed: grayscale does the job that used to belong to photography, building surface hierarchy (`{colors.canvas-app}` page background vs `{colors.canvas-surface}` card/table white) and interactive state (`{colors.surface-hover}`, `{colors.sidebar-hover}`) instead of chromatic branding. This is the _system default_ a fresh install ships with; see "Accent (user-configurable)" below for the opt-in theming layer that lets a user override it.
 
 **Why no uppercase / wide tracking:** the previous iteration of this system used uppercase D-DIN-Bold with positive letter-spacing as its typographic signature. That convention is Latin-script-only — `text-transform: uppercase` has no effect on Chinese characters, and wide positive letter-spacing between CJK glyphs reads as broken, not premium. Since this app's UI text is primarily Traditional Chinese, the system now defaults every tier to normal case and zero-to-minimal letter-spacing, reserving weight and size as the only signals.
 
@@ -231,8 +233,12 @@ Mechanically, `{colors.accent}` defaults to `{colors.ink}` and `{colors.accent-c
 A second, narrower color mechanism exists alongside the accent, for one purpose only: letting a person visually distinguish their own statuses/priorities/tags from each other in a specific List view. It is **not** a general-purpose color system and doesn't extend to anything else in the app.
 
 - **Fixed palette, not free-form hex.** `{tag-palette.*}` in the frontmatter (`red`/`orange`/`amber`/`green`/`teal`/`blue`/`purple`/`pink`) is the entire set. A person picks one of these eight per status/priority/tag — never a raw color picker — so the app can never end up with an unreadable or clashing combination.
-- **Tint, not a solid fill.** `status-badge-colored` mixes the chosen `{tag-color}` into the badge's own `{colors.canvas-surface}`/`{colors.border-strong}` tokens (`color-mix(in srgb, {tag-color} 16%, {colors.canvas-surface})` for the background, 55% for the border) rather than painting a solid chip. Text stays `{colors.ink}` always — because the mix leans so heavily toward the theme's own surface color, `{colors.ink}` stays legible against it in both light and dark mode without a second per-color text-contrast check. This is a deliberate, bounded exception to "grayscale intensity signals state": the *default*, unconfigured badge is still exactly the grayscale `status-badge` spec above; color only appears where a person has explicitly opted a specific status/priority/tag into one of the eight swatches.
+- **Tint, not a solid fill.** `status-badge-colored` mixes the chosen `{tag-color}` into the badge's own `{colors.canvas-surface}`/`{colors.border-strong}` tokens (`color-mix(in srgb, {tag-color} 16%, {colors.canvas-surface})` for the background, 55% for the border) rather than painting a solid chip. Text stays `{colors.ink}` always — because the mix leans so heavily toward the theme's own surface color, `{colors.ink}` stays legible against it in both light and dark mode without a second per-color text-contrast check. This is a deliberate, bounded exception to "grayscale intensity signals state": the _default_, unconfigured badge is still exactly the grayscale `status-badge` spec above; color only appears where a person has explicitly opted a specific status/priority/tag into one of the eight swatches.
 - **Scoped to one view, not global.** The mapping (which swatch a given status/priority/tag uses) is stored per-view — inside that List widget's own config in the view's saved layout (`ListViewConfig.statusColors`/`priorityColors`/`tagColors`, `src/types/view.ts`) — configured via a settings button on the List panel. It does not repaint board cards, the item detail page, or dashboard breakdown charts; those stay pure grayscale, unaffected by any view's color choices. Charts and dashboard breakdowns in particular must never pick up `{tag-palette.*}` colors — that's still exactly the "never used for charts" rule.
+
+### Danger (destructive actions)
+
+A third, single-purpose color: `{colors.danger}` marks the delete-trash icon (`ActionIcon` `type="delete"`) everywhere it appears in the app, and nothing else. It is not a general destructive-button color — `btn-secondary` (cancel/back and every other non-delete destructive action) stays grayscale exactly as specced under Buttons below; only the trash-can glyph itself turns `{colors.danger}` red, always, unconditionally, in every one of its usages (`fill` baked directly into the icon in `ActionIcon.vue`, not left to each call site to remember). The reasoning for carving out this one exception where accent/tag-color don't apply: delete is irreversible and benefits from a universally-recognized, always-on warning color that doesn't depend on a per-installation accent choice or a per-view opt-in — unlike `{colors.accent}` (user-configurable, off by default) and `{tag-palette.*}` (opt-in per view), `{colors.danger}` is neither configurable nor optional. Every delete action, regardless of icon, must also confirm through `ConfirmDialog` before it takes effect — the red icon is a visual warning, not a substitute for the confirmation step.
 
 ## Typography
 
@@ -307,9 +313,9 @@ The previous system's signature 32px pill button is gone. Admin dashboards use s
 
 - Background `{colors.accent}`, text `{colors.accent-contrast}`, type `{typography.body-sm}`, padding `{spacing.xs} {spacing.md}` (8px 16px), rounded `{rounded.sm}` 6px, min-height 36px. `{colors.accent}` defaults to `{colors.ink}` (white-on-near-black, same as the previous unaccented spec) unless the user has picked a custom accent — see "Accent (user-configurable)" under Colors.
 
-**`btn-secondary`** — secondary actions (cancel, back, destructive).
+**`btn-secondary`** — secondary actions (cancel, back, confirming a destructive action).
 
-- Background `{colors.canvas-surface}`, 1px `{colors.border-strong}` border, text `{colors.ink}`, otherwise identical geometry to `btn-primary`.
+- Background `{colors.canvas-surface}`, 1px `{colors.border-strong}` border, text `{colors.ink}`, otherwise identical geometry to `btn-primary`. Stays grayscale even inside a delete-confirmation dialog — `{colors.danger}` (see "Danger (destructive actions)" under Colors) is reserved for the trash icon itself, never the button chrome around it.
 
 **`btn-ghost`** — lowest-emphasis inline actions (row-level edit/delete links).
 
@@ -369,7 +375,7 @@ The previous system's signature 32px pill button is gone. Admin dashboards use s
 - Don't force `uppercase` on any text tier — it has no effect on CJK and reads as broken when it does apply to the rare Latin string.
 - Don't bring back the 32px pill button for primary/secondary actions — that shape is a status-badge signal only now.
 - Don't add drop shadows or gradients to lift cards off the background — use a border instead.
-- Don't introduce a *new* hardcoded brand color anywhere, and don't use `{colors.accent}` for charts or status — grayscale intensity (outline vs. filled `{colors.ink}`) is still the default status signal. The one user-configurable accent lives entirely behind `{colors.accent}`/`{colors.accent-contrast}`, not scattered hex values. The one sanctioned exception is `status-badge-colored` (see "Status/Priority/Tag Color (opt-in, per view)") — and even there, stick to the fixed eight `{tag-palette.*}` swatches, never a free hex value, and never on a chart/breakdown.
+- Don't introduce a _new_ hardcoded brand color anywhere, and don't use `{colors.accent}` for charts or status — grayscale intensity (outline vs. filled `{colors.ink}`) is still the default status signal. The one user-configurable accent lives entirely behind `{colors.accent}`/`{colors.accent-contrast}`, not scattered hex values. The two sanctioned exceptions are `status-badge-colored` (see "Status/Priority/Tag Color (opt-in, per view)") — stick to the fixed eight `{tag-palette.*}` swatches, never a free hex value, and never on a chart/breakdown — and the delete-trash icon's `{colors.danger}` (see "Danger (destructive actions)"), which never spreads to button chrome, borders, or any other element.
 - Don't widen letter-spacing on body or label text to "match the old brand feel" — it actively hurts CJK legibility.
 
 ## Responsive Behavior
@@ -399,5 +405,5 @@ The sidebar's expanded/collapsed state and width are user-controlled and persist
 2. Reference component names and tokens directly (`{colors.ink}`, `{btn-primary}`, `{rounded.sm}`).
 3. Add new variants as separate entries rather than overloading an existing one.
 4. Default body to `{typography.body}`; reserve `{typography.body-sm}` for table cells and secondary copy.
-5. The monochrome-by-default rule is still load-bearing — don't hardcode a new brand color into a component. The only sanctioned colors are the single user-configurable `{colors.accent}` token (see "Accent (user-configurable)"), used only in the few places it's already wired up, and the fixed eight-swatch `{tag-palette.*}` used only by `status-badge-colored` (see "Status/Priority/Tag Color (opt-in, per view)").
+5. The monochrome-by-default rule is still load-bearing — don't hardcode a new brand color into a component. The only sanctioned colors are the single user-configurable `{colors.accent}` token (see "Accent (user-configurable)"), used only in the few places it's already wired up; the fixed eight-swatch `{tag-palette.*}` used only by `status-badge-colored` (see "Status/Priority/Tag Color (opt-in, per view)"); and `{colors.danger}`, used only by the delete-trash icon (see "Danger (destructive actions)").
 6. `{rounded.full}` is reserved for status badges — don't apply it to buttons or inputs.

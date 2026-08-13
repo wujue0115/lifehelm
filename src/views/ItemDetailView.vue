@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { useWorkItemsStore } from '@/stores/workItems'
 import type { Priority, WorkItem } from '@/types/work-item'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
+import ActionIcon from '@/components/ActionIcon.vue'
 import CommentList from '@/components/CommentList.vue'
 import AttachmentList from '@/components/AttachmentList.vue'
 import TimeTracker from '@/components/TimeTracker.vue'
@@ -185,7 +186,8 @@ async function handleDelete(): Promise<void> {
             class="btn btn-secondary"
             @click="showDeleteConfirm = true"
           >
-            {{ t('common.delete') }}
+            <ActionIcon type="delete" />
+            <span class="icon-label">{{ t('common.delete') }}</span>
           </button>
           <button type="submit" class="btn btn-primary" :disabled="saving">
             {{ saving ? t('common.saving') : t('common.save') }}

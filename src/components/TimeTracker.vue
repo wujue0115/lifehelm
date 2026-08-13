@@ -5,6 +5,7 @@ import { useWorkItemsStore } from '@/stores/workItems'
 import type { TimeEntry } from '@/types/work-item'
 import { formatDuration } from '@/utils/duration'
 import ActionIcon from '@/components/ActionIcon.vue'
+import ConfirmDialog from '@/components/ConfirmDialog.vue'
 
 const props = defineProps<{ itemId: string; timeEntries: TimeEntry[] }>()
 
@@ -19,6 +20,7 @@ const manualEnd = ref('')
 const manualNote = ref('')
 const errorMessage = ref<string | null>(null)
 const busy = ref(false)
+const pendingDeleteEntryId = ref<string | null>(null)
 
 const runningEntry = computed(() => props.timeEntries.find((entry) => entry.endedAt === null))
 
@@ -108,8 +110,15 @@ async function submitManualEntry(): Promise<void> {
   }
 }
 
-async function removeEntry(entryId: string): Promise<void> {
+function requestRemoveEntry(entryId: string): void {
+  pendingDeleteEntryId.value = entryId
+}
+
+async function confirmRemoveEntry(): Promise<void> {
+  const entryId = pendingDeleteEntryId.value
+  if (!entryId) return
   await store.deleteTimeEntry(props.itemId, entryId)
+  pendingDeleteEntryId.value = null
 }
 </script>
 
@@ -148,8 +157,13 @@ async function removeEntry(entryId: string): Promise<void> {
           }}</span>
           <span v-if="entry.note" class="type-caption note">{{ entry.note }}</span>
         </div>
-        <button type="button" class="btn btn-ghost remove" @click="removeEntry(entry.id)">
-          {{ t('common.delete') }}
+        <button
+          type="button"
+          class="btn-ghost action-btn"
+          :title="t('common.delete')"
+          @click="requestRemoveEntry(entry.id)"
+        >
+          <ActionIcon type="delete" />
         </button>
       </li>
     </ul>
@@ -183,6 +197,14 @@ async function removeEntry(entryId: string): Promise<void> {
         <span class="icon-label">{{ t('timeTracker.add') }}</span>
       </button>
     </form>
+
+    <ConfirmDialog
+      :open="pendingDeleteEntryId !== null"
+      :title="t('timeTracker.deleteConfirmTitle')"
+      :message="t('timeTracker.deleteConfirmMessage')"
+      @confirm="confirmRemoveEntry"
+      @cancel="pendingDeleteEntryId = null"
+    />
   </div>
 </template>
 
@@ -246,9 +268,12 @@ async function removeEntry(entryId: string): Promise<void> {
   font-style: italic;
 }
 
-.remove {
-  min-height: 28px;
-  padding: 4px 10px;
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  min-height: auto;
   margin-left: auto;
 }
 

@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useWorkItemsStore } from '@/stores/workItems'
 import type { Comment } from '@/types/work-item'
 import ActionIcon from '@/components/ActionIcon.vue'
+import ConfirmDialog from '@/components/ConfirmDialog.vue'
 
 const props = defineProps<{ itemId: string; comments: Comment[] }>()
 
@@ -11,6 +12,7 @@ const { t, locale } = useI18n()
 const store = useWorkItemsStore()
 const newCommentText = ref('')
 const submitting = ref(false)
+const pendingDeleteCommentId = ref<string | null>(null)
 
 function formatDate(value: string): string {
   return new Date(value).toLocaleString(locale.value)
@@ -28,8 +30,15 @@ async function submitComment(): Promise<void> {
   }
 }
 
-async function removeComment(commentId: string): Promise<void> {
+function requestRemoveComment(commentId: string): void {
+  pendingDeleteCommentId.value = commentId
+}
+
+async function confirmRemoveComment(): Promise<void> {
+  const commentId = pendingDeleteCommentId.value
+  if (!commentId) return
   await store.deleteComment(props.itemId, commentId)
+  pendingDeleteCommentId.value = null
 }
 </script>
 
@@ -43,8 +52,13 @@ async function removeComment(commentId: string): Promise<void> {
           <p class="type-body text">{{ comment.text }}</p>
           <span class="type-caption meta">{{ formatDate(comment.createdAt) }}</span>
         </div>
-        <button type="button" class="btn btn-ghost remove" @click="removeComment(comment.id)">
-          {{ t('common.delete') }}
+        <button
+          type="button"
+          class="btn-ghost action-btn"
+          :title="t('common.delete')"
+          @click="requestRemoveComment(comment.id)"
+        >
+          <ActionIcon type="delete" />
         </button>
       </li>
     </ul>
@@ -65,6 +79,14 @@ async function removeComment(commentId: string): Promise<void> {
         <span class="icon-label">{{ t('comments.submit') }}</span>
       </button>
     </form>
+
+    <ConfirmDialog
+      :open="pendingDeleteCommentId !== null"
+      :title="t('comments.deleteConfirmTitle')"
+      :message="t('comments.deleteConfirmMessage')"
+      @confirm="confirmRemoveComment"
+      @cancel="pendingDeleteCommentId = null"
+    />
   </div>
 </template>
 
@@ -110,9 +132,12 @@ async function removeComment(commentId: string): Promise<void> {
   color: var(--color-ink-muted);
 }
 
-.remove {
-  min-height: 28px;
-  padding: 4px 10px;
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  min-height: auto;
   height: fit-content;
 }
 

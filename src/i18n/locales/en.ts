@@ -93,6 +93,7 @@ export default {
   list: {
     searchPlaceholder: 'Search title or description…',
     allStatus: 'All statuses',
+    noStatus: 'No status',
     allPriority: 'All priorities',
     allTags: 'All tags',
     addItem: 'Add',
@@ -125,7 +126,12 @@ export default {
   },
   board: {
     deleteColumnTitle: 'Delete column',
-    deleteColumnBlocked: 'This column still has work items — move them to another column first.',
+    deleteColumnConfirmMessage:
+      'Are you sure you want to delete this column? This cannot be undone.',
+    deleteColumnWarningMessage:
+      'Deleting this status will leave any work items currently in it without a status. Are you sure you want to delete it?',
+    markAsDone: 'Mark as the completed status',
+    doneColumnActive: 'This is the completed status',
     addColumnPlaceholder: '+ Add column',
   },
   calendar: {
@@ -198,12 +204,16 @@ export default {
     empty: 'No comments yet',
     placeholder: 'Add a comment…',
     submit: 'Add',
+    deleteConfirmTitle: 'Delete comment',
+    deleteConfirmMessage: 'Are you sure you want to delete this comment? This cannot be undone.',
   },
   attachments: {
     title: 'Attachments',
     empty: 'No attachments yet',
     add: 'Add',
     uploading: 'Uploading…',
+    deleteConfirmTitle: 'Delete attachment',
+    deleteConfirmMessage: 'Are you sure you want to delete this attachment? This cannot be undone.',
   },
   timeTracker: {
     title: 'Time Tracking',
@@ -219,6 +229,8 @@ export default {
     add: 'Add',
     manualMissingFields: 'Please enter both start and end time',
     manualInvalidRange: 'End time must be after start time',
+    deleteConfirmTitle: 'Delete time entry',
+    deleteConfirmMessage: 'Are you sure you want to delete this time entry? This cannot be undone.',
     hours: '{h}h {m}m',
     minutes: '{m}m {s}s',
     seconds: '{s}s',
