@@ -3,7 +3,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useWorkItemsStore } from '@/stores/workItems'
 import type { WorkItem } from '@/types/work-item'
-import type { SavedViewConfig } from '@/types/saved-view'
+import type { ViewConfig } from '@/types/view'
 import { getDueStatus } from '@/utils/dueDate'
 import ChevronIcon from '@/components/ChevronIcon.vue'
 
@@ -29,7 +29,7 @@ interface Segment {
   status: string
 }
 
-defineProps<{ instanceId: string; config?: SavedViewConfig }>()
+defineProps<{ instanceId: string; config?: ViewConfig }>()
 
 const { t, locale } = useI18n()
 const store = useWorkItemsStore()

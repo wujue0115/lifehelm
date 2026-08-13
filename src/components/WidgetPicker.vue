@@ -19,7 +19,7 @@ function pick(widgetId: string): void {
   <div class="widget-picker">
     <button type="button" class="btn btn-secondary" @click="open = !open">
       <ActionIcon type="add" />
-      <span class="icon-label">{{ t('savedView.addWidget') }}</span>
+      <span class="icon-label">{{ t('view.addWidget') }}</span>
     </button>
     <div v-if="open" class="picker-menu card">
       <button

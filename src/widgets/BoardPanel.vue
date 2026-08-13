@@ -4,10 +4,10 @@ import { useI18n } from 'vue-i18n'
 import { VueDraggable, type DraggableEvent } from 'vue-draggable-plus'
 import { useWorkItemsStore } from '@/stores/workItems'
 import type { BoardColumn, WorkItem } from '@/types/work-item'
-import type { SavedViewConfig } from '@/types/saved-view'
+import type { ViewConfig } from '@/types/view'
 import WorkItemCard from '@/components/WorkItemCard.vue'
 
-defineProps<{ instanceId: string; config?: SavedViewConfig }>()
+defineProps<{ instanceId: string; config?: ViewConfig }>()
 
 const { t } = useI18n()
 const store = useWorkItemsStore()

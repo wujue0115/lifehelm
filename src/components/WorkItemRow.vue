@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import type { WorkItem } from '@/types/work-item'
+import type { TagColorKey } from '@/config/tagColors'
 import StatusBadge from './StatusBadge.vue'
 import PriorityBadge from './PriorityBadge.vue'
 import TagPill from './TagPill.vue'
@@ -8,7 +9,14 @@ import DueDateLabel from './DueDateLabel.vue'
 import ActionIcon from './ActionIcon.vue'
 
 const { t } = useI18n()
-defineProps<{ item: WorkItem; statusName: string; isCompleted: boolean }>()
+defineProps<{
+  item: WorkItem
+  statusName: string
+  isCompleted: boolean
+  statusColor?: TagColorKey
+  priorityColor?: TagColorKey
+  tagColors?: Record<string, TagColorKey>
+}>()
 const emit = defineEmits<{ delete: [id: string] }>()
 </script>
 
@@ -17,10 +25,10 @@ const emit = defineEmits<{ delete: [id: string] }>()
     <td class="type-body-sm">
       <RouterLink :to="`/items/${item.id}`" class="title-link">{{ item.title }}</RouterLink>
     </td>
-    <td><StatusBadge :name="statusName" :completed="isCompleted" /></td>
-    <td><PriorityBadge :priority="item.priority" /></td>
+    <td><StatusBadge :name="statusName" :completed="isCompleted" :color="statusColor" /></td>
+    <td><PriorityBadge :priority="item.priority" :color="priorityColor" /></td>
     <td>
-      <TagPill v-for="tag in item.tags" :key="tag" :label="tag" />
+      <TagPill v-for="tag in item.tags" :key="tag" :label="tag" :color="tagColors?.[tag]" />
     </td>
     <td>
       <DueDateLabel
@@ -30,11 +38,7 @@ const emit = defineEmits<{ delete: [id: string] }>()
       />
     </td>
     <td class="actions">
-      <RouterLink
-        :to="`/items/${item.id}`"
-        class="btn-ghost action-btn"
-        :title="t('common.edit')"
-      >
+      <RouterLink :to="`/items/${item.id}`" class="btn-ghost action-btn" :title="t('common.edit')">
         <ActionIcon type="edit" />
       </RouterLink>
       <button

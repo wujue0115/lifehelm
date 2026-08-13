@@ -105,6 +105,22 @@ export default {
     empty: '沒有符合條件的工作項目。',
     deleteConfirmTitle: '刪除工作項目',
     deleteConfirmMessage: '確定要刪除這個工作項目嗎？此動作無法復原。',
+    colorSettings: '顏色設定',
+    colorSettingsTitle: '自訂顏色',
+    colorSettingsStatus: '狀態',
+    colorSettingsPriority: '優先級',
+    colorSettingsTags: '標籤',
+    colorNone: '無顏色',
+    colorNames: {
+      red: '紅色',
+      orange: '橙色',
+      amber: '琥珀色',
+      green: '綠色',
+      teal: '青色',
+      blue: '藍色',
+      purple: '紫色',
+      pink: '粉色',
+    },
   },
   board: {
     deleteColumnTitle: '刪除欄位',
@@ -135,7 +151,7 @@ export default {
     columnPinned: '側邊欄',
     columnActions: '操作',
   },
-  savedView: {
+  view: {
     rename: '重新命名',
     duplicate: '複製',
     duplicateNameSuffix: '{name} 複本',

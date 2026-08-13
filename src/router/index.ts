@@ -9,13 +9,13 @@ const router = createRouter({
     { path: '/dashboard', redirect: '/views/default-dashboard' },
     {
       path: '/views/:viewId',
-      name: 'saved-view',
-      component: () => import('@/views/SavedViewRenderer.vue'),
+      name: 'view',
+      component: () => import('@/views/ViewRenderer.vue'),
     },
     {
       path: '/views/:viewId/edit',
-      name: 'saved-view-edit',
-      component: () => import('@/views/SavedViewRenderer.vue'),
+      name: 'view-edit',
+      component: () => import('@/views/ViewRenderer.vue'),
     },
     {
       path: '/templates',

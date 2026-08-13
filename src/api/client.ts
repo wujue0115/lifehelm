@@ -1,6 +1,6 @@
-import type { BoardColumn, TimeEntry, WorkItem } from '@/types/work-item'
+import type { BoardColumn, Tag, TimeEntry, WorkItem } from '@/types/work-item'
 import type { ThemeConfig } from '@/types/theme-config'
-import type { SavedView } from '@/types/saved-view'
+import type { View } from '@/types/view'
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, {
@@ -27,6 +27,10 @@ export const api = {
   getBoard: () => request<BoardColumn[]>('/api/board'),
   updateBoard: (columns: BoardColumn[]) =>
     request<BoardColumn[]>('/api/board', { method: 'PUT', body: JSON.stringify(columns) }),
+
+  getTags: () => request<Tag[]>('/api/list'),
+  updateTags: (tags: Tag[]) =>
+    request<Tag[]>('/api/list', { method: 'PUT', body: JSON.stringify(tags) }),
 
   addComment: (itemId: string, text: string) =>
     request<WorkItem>(`/api/items/${itemId}/comments`, {
@@ -62,11 +66,11 @@ export const api = {
   updateThemeConfig: (config: ThemeConfig) =>
     request<ThemeConfig>('/api/theme-config', { method: 'PUT', body: JSON.stringify(config) }),
 
-  listSavedViews: () => request<SavedView[]>('/api/saved-views'),
-  createSavedView: (input: Partial<SavedView>) =>
-    request<SavedView>('/api/saved-views', { method: 'POST', body: JSON.stringify(input) }),
-  getSavedView: (id: string) => request<SavedView>(`/api/saved-views/${id}`),
-  updateSavedView: (id: string, input: Partial<SavedView>) =>
-    request<SavedView>(`/api/saved-views/${id}`, { method: 'PUT', body: JSON.stringify(input) }),
-  deleteSavedView: (id: string) => request<void>(`/api/saved-views/${id}`, { method: 'DELETE' }),
+  listViews: () => request<View[]>('/api/views'),
+  createView: (input: Partial<View>) =>
+    request<View>('/api/views', { method: 'POST', body: JSON.stringify(input) }),
+  getView: (id: string) => request<View>(`/api/views/${id}`),
+  updateView: (id: string, input: Partial<View>) =>
+    request<View>(`/api/views/${id}`, { method: 'PUT', body: JSON.stringify(input) }),
+  deleteView: (id: string) => request<void>(`/api/views/${id}`, { method: 'DELETE' }),
 }

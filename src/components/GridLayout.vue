@@ -3,7 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { VueDraggable } from 'vue-draggable-plus'
 import { getWidgetDefinition } from '@/widgets/registry'
 import WidgetChrome from '@/widgets/WidgetChrome.vue'
-import type { SavedViewConfig, WidgetLayoutEntry } from '@/types/saved-view'
+import type { ViewConfig, WidgetLayoutEntry } from '@/types/view'
 
 const props = defineProps<{
   layout: WidgetLayoutEntry[]
@@ -152,7 +152,7 @@ function removeWidget(instanceId: string): void {
   )
 }
 
-function updateConfig(instanceId: string, config: SavedViewConfig): void {
+function updateConfig(instanceId: string, config: ViewConfig): void {
   emit(
     'update:layout',
     props.layout.map((entry) => (entry.instanceId === instanceId ? { ...entry, config } : entry)),
@@ -208,7 +208,7 @@ function bringToFront(instanceId: string): void {
           :is="getWidgetDefinition(entry.widgetId).component"
           :instance-id="entry.instanceId"
           :config="entry.config"
-          @update:config="(config: SavedViewConfig) => updateConfig(entry.instanceId, config)"
+          @update:config="(config: ViewConfig) => updateConfig(entry.instanceId, config)"
         />
       </WidgetChrome>
     </VueDraggable>

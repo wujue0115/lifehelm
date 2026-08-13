@@ -1,5 +1,5 @@
 import type { Component } from 'vue'
-import type { WidgetLayoutEntry } from '@/types/saved-view'
+import type { WidgetLayoutEntry } from '@/types/view'
 import StatTotal from './StatTotal.vue'
 import StatCompletion from './StatCompletion.vue'
 import StatOverdue from './StatOverdue.vue'

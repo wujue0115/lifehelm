@@ -152,7 +152,7 @@ function startMove(event: MouseEvent): void {
       <span
         v-if="editable"
         class="widget-drag-handle icon-btn"
-        :title="t('savedView.dragHandle')"
+        :title="t('view.dragHandle')"
         @mousedown="movable ? startMove($event) : undefined"
         >⠿</span
       >
@@ -161,7 +161,7 @@ function startMove(event: MouseEvent): void {
         v-if="editable && removable"
         type="button"
         class="icon-btn"
-        :title="t('savedView.removeWidget')"
+        :title="t('view.removeWidget')"
         @click="emit('remove')"
       >
         ×
