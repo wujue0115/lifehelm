@@ -26,7 +26,7 @@ const currentItem = computed(() => store.items.find((item) => item.id === itemId
 const form = reactive({
   title: '',
   description: '',
-  statusId: '',
+  status: '',
   priority: 'medium' as Priority,
   tags: [] as string[],
   startDate: '',
@@ -41,7 +41,7 @@ const showDeleteConfirm = ref(false)
 function applyItemToForm(item: WorkItem): void {
   form.title = item.title
   form.description = item.description
-  form.statusId = item.statusId
+  form.status = item.status
   form.priority = item.priority
   form.tags = [...item.tags]
   form.startDate = item.startDate ? item.startDate.slice(0, 10) : ''
@@ -55,7 +55,7 @@ async function load(): Promise<void> {
     if (store.statuses.length === 0 || store.items.length === 0) await store.fetchAll()
 
     if (isNew.value) {
-      form.statusId = store.sortedStatuses[0]?.id ?? ''
+      form.status = store.sortedStatuses[0]?.name ?? ''
       return
     }
 
@@ -90,7 +90,7 @@ async function handleSubmit(): Promise<void> {
   const payload = {
     title: form.title.trim(),
     description: form.description.trim(),
-    statusId: form.statusId,
+    status: form.status,
     priority: form.priority,
     tags: form.tags,
     startDate: form.startDate ? new Date(form.startDate).toISOString() : null,
@@ -152,8 +152,8 @@ async function handleDelete(): Promise<void> {
         <div class="row">
           <label class="field">
             <span class="type-label">{{ t('itemDetail.fieldStatus') }}</span>
-            <select v-model="form.statusId" class="input type-body">
-              <option v-for="column in store.sortedStatuses" :key="column.id" :value="column.id">
+            <select v-model="form.status" class="input type-body">
+              <option v-for="column in store.sortedStatuses" :key="column.id" :value="column.name">
                 {{ column.name }}
               </option>
             </select>

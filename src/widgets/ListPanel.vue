@@ -63,15 +63,9 @@ function schedulePersist(): void {
 watch([search, statusFilter, priorityFilter, tagFilter, sortKey, sortDir], schedulePersist)
 watch([statusColors, priorityColors, tagColors], schedulePersist, { deep: true })
 
-const statusNameById = computed(() => {
-  const map = new Map<string, string>()
-  for (const column of store.statuses) map.set(column.id, column.name)
-  return map
-})
-
-const statusOrderById = computed(() => {
+const statusOrderByName = computed(() => {
   const map = new Map<string, number>()
-  store.sortedStatuses.forEach((column, index) => map.set(column.id, index))
+  store.sortedStatuses.forEach((column, index) => map.set(column.name, index))
   return map
 })
 
@@ -84,7 +78,7 @@ const priorityOrderById = computed(() => {
 const filteredItems = computed(() => {
   const query = search.value.trim().toLowerCase()
   return store.items.filter((item) => {
-    if (statusFilter.value !== 'all' && item.statusId !== statusFilter.value) return false
+    if (statusFilter.value !== 'all' && item.status !== statusFilter.value) return false
     if (priorityFilter.value !== 'all' && item.priority !== priorityFilter.value) return false
     if (tagFilter.value !== 'all' && !item.tags.includes(tagFilter.value)) return false
     if (
@@ -105,7 +99,7 @@ const sortedItems = computed(() => {
     if (sortKey.value === 'title') result = a.title.localeCompare(b.title)
     else if (sortKey.value === 'status')
       result =
-        (statusOrderById.value.get(a.statusId) ?? 0) - (statusOrderById.value.get(b.statusId) ?? 0)
+        (statusOrderByName.value.get(a.status) ?? 0) - (statusOrderByName.value.get(b.status) ?? 0)
     else if (sortKey.value === 'priority')
       result =
         (priorityOrderById.value.get(a.priority) ?? 0) -
@@ -171,7 +165,7 @@ async function confirmDelete(): Promise<void> {
         />
         <select v-model="statusFilter" class="input type-body">
           <option value="all">{{ t('list.allStatus') }}</option>
-          <option v-for="column in store.sortedStatuses" :key="column.id" :value="column.id">
+          <option v-for="column in store.sortedStatuses" :key="column.id" :value="column.name">
             {{ column.name }}
           </option>
         </select>
@@ -300,13 +294,9 @@ async function confirmDelete(): Promise<void> {
               v-for="item in sortedItems"
               :key="item.id"
               :item="item"
-              :status-name="
-                item.statusId
-                  ? (statusNameById.get(item.statusId) ?? item.statusId)
-                  : t('list.noStatus')
-              "
+              :status-name="item.status || t('list.noStatus')"
               :is-completed="store.isItemCompleted(item)"
-              :status-color="statusColors[item.statusId]"
+              :status-color="statusColors[item.status]"
               :priority-color="priorityColors[item.priority]"
               :tag-colors="tagColors"
               @delete="requestDelete"

@@ -7,9 +7,9 @@ import type { StatusOption } from '@/types/work-item'
 // the UI. This fallback is intentionally NOT persisted anywhere: once a
 // column is explicitly marked, order can change freely (columns added or
 // removed) without ever again silently moving which status counts as done.
-export function getDoneStatusId(statuses: StatusOption[]): string | undefined {
+export function getDoneStatusName(statuses: StatusOption[]): string | undefined {
   const explicit = statuses.find((status) => status.isDone)
-  if (explicit) return explicit.id
+  if (explicit) return explicit.name
   const sorted = [...statuses].sort((a, b) => a.order - b.order)
-  return sorted[sorted.length - 1]?.id
+  return sorted[sorted.length - 1]?.name
 }

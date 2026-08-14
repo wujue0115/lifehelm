@@ -39,18 +39,21 @@ const DEFAULT_THEME_CONFIG: ThemeConfig = {
   spacingScale: 1,
 }
 
+// Same id format as tags (randomUUID, not a semantic string) — status/
+// priority are matched by `name`, same as tags, so `id` here is just a
+// stable key, not a reference handle. See the comment above StatusOption.
 const DEFAULT_STATUSES: StatusOption[] = [
-  { id: 'todo', name: '待處理', order: 0 },
-  { id: 'doing', name: '進行中', order: 1 },
-  { id: 'done', name: '已完成', order: 2, isDone: true },
+  { id: randomUUID(), name: '待處理', order: 0 },
+  { id: randomUUID(), name: '進行中', order: 1 },
+  { id: randomUUID(), name: '已完成', order: 2, isDone: true },
 ]
 
 const DEFAULT_TAGS: TagOption[] = []
 
 const DEFAULT_PRIORITIES: PriorityOption[] = [
-  { id: 'low', name: 'low', order: 0 },
-  { id: 'medium', name: 'medium', order: 1 },
-  { id: 'high', name: 'high', order: 2 },
+  { id: randomUUID(), name: 'low', order: 0 },
+  { id: randomUUID(), name: 'medium', order: 1 },
+  { id: randomUUID(), name: 'high', order: 2 },
 ]
 
 async function readBody(req: IncomingMessage): Promise<unknown> {
@@ -98,7 +101,7 @@ export function localDataPlugin(): Plugin {
                 id: randomUUID(),
                 title: body?.title ?? '',
                 description: body?.description ?? '',
-                statusId: body?.statusId ?? statuses[0]?.id ?? 'todo',
+                status: body?.status ?? statuses[0]?.name ?? '',
                 priority: body?.priority ?? 'medium',
                 tags: body?.tags ?? [],
                 startDate: body?.startDate ?? null,
