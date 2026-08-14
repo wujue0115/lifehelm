@@ -15,7 +15,7 @@ coverage
 *.local
 
 # Local work-item data and appearance/settings (personal, machine-local storage)
-.manager/
+.lifehelm/
 
 # Editor directories and files
 .vscode/*

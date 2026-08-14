@@ -2,9 +2,9 @@ import { existsSync } from 'node:fs'
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
-const MANAGER_DIR = path.resolve(process.cwd(), '.manager')
-const DATA_DIR = path.join(MANAGER_DIR, 'data')
-const CONFIG_DIR = path.join(MANAGER_DIR, 'config')
+const LIFEHELM_DIR = path.resolve(process.cwd(), '.lifehelm')
+const DATA_DIR = path.join(LIFEHELM_DIR, 'data')
+const CONFIG_DIR = path.join(LIFEHELM_DIR, 'config')
 const ATTACHMENTS_DIR = path.join(DATA_DIR, 'attachments')
 
 async function ensureDataDir(): Promise<void> {
