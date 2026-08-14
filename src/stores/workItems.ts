@@ -22,6 +22,19 @@ export const useWorkItemsStore = defineStore('workItems', () => {
     return Array.from(tagSet).sort()
   })
 
+  // Registered tags carry a persisted `order`; tags that only exist because
+  // an item references them (never explicitly added as a board column) have
+  // no order to honor, so they're appended alphabetically after the ordered
+  // ones. Used for the board's tag-grouped columns, which need a stable,
+  // user-arranged order — unlike `allTags`, which stays alphabetical for
+  // filter dropdowns/suggestions where findability matters more.
+  const sortedTagNames = computed(() => {
+    const ordered = [...tags.value].sort((a, b) => a.order - b.order).map((tag) => tag.name)
+    const known = new Set(ordered)
+    const unregistered = allTags.value.filter((name) => !known.has(name))
+    return [...ordered, ...unregistered]
+  })
+
   function isItemCompleted(item: WorkItem): boolean {
     return item.statusId === doneColumnId.value
   }
@@ -124,6 +137,7 @@ export const useWorkItemsStore = defineStore('workItems', () => {
     sortedBoard,
     doneColumnId,
     allTags,
+    sortedTagNames,
     isItemCompleted,
     loading,
     error,
