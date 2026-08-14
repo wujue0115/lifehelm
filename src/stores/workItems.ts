@@ -8,6 +8,7 @@ import type {
   TimeEntry,
   WorkItem,
 } from '@/types/work-item'
+import type { TagColorKey } from '@/config/tagColors'
 import { getDoneStatusName } from '@/utils/status'
 
 export const useWorkItemsStore = defineStore('workItems', () => {
@@ -111,6 +112,16 @@ export const useWorkItemsStore = defineStore('workItems', () => {
     statuses.value = await api.updateStatuses(newStatuses)
   }
 
+  // Every status is always a real, registered StatusOption (unlike tags/
+  // priorities, there's no free-text path that could reference an
+  // unregistered name), so this never needs an ensure/register fallback.
+  async function setStatusColor(name: string, color: TagColorKey | undefined): Promise<void> {
+    const updated = statuses.value.map((status) =>
+      status.name === name ? { ...status, color } : status,
+    )
+    await updateStatuses(updated)
+  }
+
   async function updateTags(newTags: TagOption[]): Promise<void> {
     tags.value = await api.updateTags(newTags)
   }
@@ -119,6 +130,21 @@ export const useWorkItemsStore = defineStore('workItems', () => {
     if (tags.value.some((tag) => tag.name === name)) return
     const nextOrder = tags.value.reduce((max, tag) => Math.max(max, tag.order), -1) + 1
     await updateTags([...tags.value, { id: crypto.randomUUID(), name, order: nextOrder }])
+  }
+
+  // Unlike status, a tag color can target a name that isn't registered yet
+  // (an item-only tag never explicitly added via the board) — assigning it a
+  // color is itself the registration moment, same as ListPanel's existing
+  // "assigning a color registers the tag" behavior.
+  async function setTagColor(name: string, color: TagColorKey | undefined): Promise<void> {
+    const existing = tags.value.find((tag) => tag.name === name)
+    if (existing) {
+      const updated = tags.value.map((tag) => (tag.name === name ? { ...tag, color } : tag))
+      await updateTags(updated)
+    } else if (color) {
+      const nextOrder = tags.value.reduce((max, tag) => Math.max(max, tag.order), -1) + 1
+      await updateTags([...tags.value, { id: crypto.randomUUID(), name, order: nextOrder, color }])
+    }
   }
 
   async function updatePriorities(newPriorities: PriorityOption[]): Promise<void> {
@@ -133,6 +159,26 @@ export const useWorkItemsStore = defineStore('workItems', () => {
       ...priorities.value,
       { id: crypto.randomUUID(), name, order: nextOrder },
     ])
+  }
+
+  // Same registration-on-assignment rule as setTagColor — sortedPriorities
+  // can surface a name that's only synthesized from item data, not backed by
+  // a real PriorityOption yet.
+  async function setPriorityColor(name: string, color: TagColorKey | undefined): Promise<void> {
+    const existing = priorities.value.find((priority) => priority.name === name)
+    if (existing) {
+      const updated = priorities.value.map((priority) =>
+        priority.name === name ? { ...priority, color } : priority,
+      )
+      await updatePriorities(updated)
+    } else if (color) {
+      const nextOrder =
+        priorities.value.reduce((max, priority) => Math.max(max, priority.order), -1) + 1
+      await updatePriorities([
+        ...priorities.value,
+        { id: crypto.randomUUID(), name, order: nextOrder, color },
+      ])
+    }
   }
 
   async function addComment(itemId: string, text: string): Promise<WorkItem> {
@@ -190,10 +236,13 @@ export const useWorkItemsStore = defineStore('workItems', () => {
     updateItem,
     deleteItem,
     updateStatuses,
+    setStatusColor,
     updateTags,
     ensureTagRegistered,
+    setTagColor,
     updatePriorities,
     ensurePriorityRegistered,
+    setPriorityColor,
     addComment,
     deleteComment,
     addAttachment,

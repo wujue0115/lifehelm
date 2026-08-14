@@ -9,8 +9,9 @@ import WorkItemRow from '@/components/WorkItemRow.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import SortIcon from '@/components/SortIcon.vue'
 import ActionIcon from '@/components/ActionIcon.vue'
-import ListColorSettings from '@/components/ListColorSettings.vue'
+import ColorSettings from '@/components/ColorSettings.vue'
 import { usePriorityLabel } from '@/composables/usePriorityLabel'
+import { resolveColor } from '@/utils/colors'
 
 type SortKey = 'title' | 'status' | 'priority' | 'tags' | 'dueDate' | 'updatedAt'
 
@@ -132,11 +133,25 @@ function sortDirFor(key: SortKey): 'asc' | 'desc' | 'none' {
   return sortKey.value === key ? sortDir.value : 'none'
 }
 
-// Assigning a color is the moment a tag becomes significant enough to be
-// worth remembering — registers it into list.json so it keeps its color
-// (and shows up for future coloring) even if every item wearing it is
-// later retagged or deleted.
-function onTagColorsUpdate(next: Record<string, TagColorKey>): void {
+// This view's color wins over the global one — see resolveColor. Tag colors
+// are merged into one map up front (rather than resolved per-row) since
+// WorkItemRow takes a single tagColors map and looks up each of an item's
+// tags from it.
+const effectiveTagColors = computed(() => {
+  const map: Record<string, TagColorKey> = {}
+  for (const name of store.allTags) {
+    const color = resolveColor(name, store.tags, tagColors.value)
+    if (color) map[name] = color
+  }
+  return map
+})
+
+// Assigning a per-view color is the moment a tag becomes significant enough
+// to be worth remembering — registers it into tags.json so it keeps
+// existing (and shows up for future coloring) even if every item wearing it
+// is later retagged or deleted. Global tag colors register themselves this
+// same way inside store.setTagColor.
+function onViewTagColorsUpdate(next: Record<string, TagColorKey>): void {
   tagColors.value = next
   for (const tagName of Object.keys(next)) {
     store.ensureTagRegistered(tagName)
@@ -188,7 +203,7 @@ async function confirmDelete(): Promise<void> {
         <button
           type="button"
           class="btn-ghost action-btn"
-          :title="t('list.colorSettings')"
+          :title="t('colorSettings.trigger')"
           @click="settingsOpen = true"
         >
           <ActionIcon type="settings" />
@@ -200,17 +215,18 @@ async function confirmDelete(): Promise<void> {
       </div>
     </div>
 
-    <ListColorSettings
+    <ColorSettings
       :open="settingsOpen"
       :statuses="store.sortedStatuses"
       :priorities="store.sortedPriorities"
-      :tags="store.allTags"
-      :status-colors="statusColors"
-      :priority-colors="priorityColors"
-      :tag-colors="tagColors"
-      @update:status-colors="(v) => (statusColors = v)"
-      @update:priority-colors="(v) => (priorityColors = v)"
-      @update:tag-colors="onTagColorsUpdate"
+      :tag-names="store.allTags"
+      :tag-registry="store.tags"
+      :view-status-colors="statusColors"
+      :view-priority-colors="priorityColors"
+      :view-tag-colors="tagColors"
+      @update:view-status-colors="(v) => (statusColors = v)"
+      @update:view-priority-colors="(v) => (priorityColors = v)"
+      @update:view-tag-colors="onViewTagColorsUpdate"
       @close="settingsOpen = false"
     />
 
@@ -296,9 +312,9 @@ async function confirmDelete(): Promise<void> {
               :item="item"
               :status-name="item.status || t('list.noStatus')"
               :is-completed="store.isItemCompleted(item)"
-              :status-color="statusColors[item.status]"
-              :priority-color="priorityColors[item.priority]"
-              :tag-colors="tagColors"
+              :status-color="resolveColor(item.status, store.statuses, statusColors)"
+              :priority-color="resolveColor(item.priority, store.priorities, priorityColors)"
+              :tag-colors="effectiveTagColors"
               @delete="requestDelete"
             />
           </tbody>

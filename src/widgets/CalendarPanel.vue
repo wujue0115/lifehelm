@@ -1,11 +1,15 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useWorkItemsStore } from '@/stores/workItems'
-import type { WorkItem } from '@/types/work-item'
-import type { ViewConfig } from '@/types/view'
+import type { Priority, WorkItem } from '@/types/work-item'
+import type { CalendarViewConfig, ViewConfig } from '@/types/view'
+import type { TagColorKey } from '@/config/tagColors'
 import { getDueStatus } from '@/utils/dueDate'
+import { resolveColor } from '@/utils/colors'
 import ChevronIcon from '@/components/ChevronIcon.vue'
+import ActionIcon from '@/components/ActionIcon.vue'
+import ColorSettings from '@/components/ColorSettings.vue'
 
 interface CalendarCell {
   date: Date
@@ -27,12 +31,48 @@ interface Segment {
   isRangeStart: boolean
   isRangeEnd: boolean
   status: string
+  color?: TagColorKey
 }
 
-defineProps<{ instanceId: string; config?: ViewConfig }>()
+const props = defineProps<{ instanceId: string; config?: ViewConfig }>()
+const emit = defineEmits<{ 'update:config': [ViewConfig] }>()
 
 const { t, locale } = useI18n()
 const store = useWorkItemsStore()
+
+// Only status resolves to a visible tint here — a bar-segment is one pill
+// per item, unlike a card's separate status/priority/tag badges, so there's
+// no room to show all three independently. Priority/tag colors are still
+// configurable in this same dialog (for consistency with List/Board) but
+// don't currently paint anything on the calendar.
+const cfg = (props.config ?? {}) as Partial<CalendarViewConfig>
+const statusColors = ref<Record<string, TagColorKey>>({ ...cfg.statusColors })
+const priorityColors = ref<Partial<Record<Priority, TagColorKey>>>({ ...cfg.priorityColors })
+const tagColors = ref<Record<string, TagColorKey>>({ ...cfg.tagColors })
+const settingsOpen = ref(false)
+
+let persistTimer: ReturnType<typeof setTimeout> | undefined
+function schedulePersist(): void {
+  clearTimeout(persistTimer)
+  persistTimer = setTimeout(() => {
+    emit('update:config', {
+      statusColors: statusColors.value,
+      priorityColors: priorityColors.value,
+      tagColors: tagColors.value,
+    })
+  }, 400)
+}
+watch([statusColors, priorityColors, tagColors], schedulePersist, { deep: true })
+
+// Same rule as ListPanel/BoardPanel: assigning a per-view tag color
+// registers the tag so it keeps existing even after every item wearing it
+// is retagged or deleted.
+function onViewTagColorsUpdate(next: Record<string, TagColorKey>): void {
+  tagColors.value = next
+  for (const tagName of Object.keys(next)) {
+    store.ensureTagRegistered(tagName)
+  }
+}
 
 onMounted(() => {
   store.fetchAll()
@@ -135,6 +175,7 @@ function buildWeekSegments(week: CalendarCell[]): Segment[] {
       isRangeStart: clippedFrom === range.fromKey,
       isRangeEnd: clippedTo === range.toKey,
       status: getDueStatus(item.dueDate, store.isItemCompleted(item)),
+      color: resolveColor(item.status, store.statuses, statusColors.value),
     })
   }
 
@@ -182,8 +223,30 @@ const weekdayLabels = computed(() => {
       <button type="button" class="btn btn-primary" @click="goToday">
         {{ t('calendar.today') }}
       </button>
+      <button
+        type="button"
+        class="btn-ghost action-btn"
+        :title="t('colorSettings.trigger')"
+        @click="settingsOpen = true"
+      >
+        <ActionIcon type="settings" />
+      </button>
     </div>
 
+    <ColorSettings
+      :open="settingsOpen"
+      :statuses="store.sortedStatuses"
+      :priorities="store.sortedPriorities"
+      :tag-names="store.allTags"
+      :tag-registry="store.tags"
+      :view-status-colors="statusColors"
+      :view-priority-colors="priorityColors"
+      :view-tag-colors="tagColors"
+      @update:view-status-colors="(v) => (statusColors = v)"
+      @update:view-priority-colors="(v) => (priorityColors = v)"
+      @update:view-tag-colors="onViewTagColorsUpdate"
+      @close="settingsOpen = false"
+    />
     <p v-if="store.loading" class="type-body">{{ t('common.loading') }}</p>
     <template v-else>
       <div class="weekday-row">
@@ -220,11 +283,16 @@ const weekdayLabels = computed(() => {
             class="type-caption bar-segment"
             :class="[
               segment.status,
-              { 'cap-start': segment.isRangeStart, 'cap-end': segment.isRangeEnd },
+              {
+                'cap-start': segment.isRangeStart,
+                'cap-end': segment.isRangeEnd,
+                colored: segment.color,
+              },
             ]"
             :style="{
               gridColumn: `${segment.startCol + 1} / ${segment.endCol + 2}`,
               gridRow: segment.lane + 2,
+              ...(segment.color ? { '--badge-color': `var(--tag-color-${segment.color})` } : {}),
             }"
           >
             {{ segment.item.title }}
@@ -340,5 +408,23 @@ const weekdayLabels = computed(() => {
 
 .bar-segment.due-today {
   border: 1px solid var(--color-ink);
+}
+
+/* Opt-in per-item status tint — see StatusBadge.vue for the rationale.
+   Comes after .overdue/.due-today so an explicitly assigned color always
+   wins over the grayscale due-date escalation. */
+.bar-segment.colored {
+  background: color-mix(in srgb, var(--badge-color) 16%, var(--color-canvas-surface));
+  border: 1px solid color-mix(in srgb, var(--badge-color) 55%, var(--color-border-strong));
+  color: var(--color-ink);
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  min-height: auto;
+  margin-left: auto;
 }
 </style>

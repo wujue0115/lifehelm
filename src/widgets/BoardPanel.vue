@@ -3,12 +3,15 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { VueDraggable, type DraggableEvent } from 'vue-draggable-plus'
 import { useWorkItemsStore } from '@/stores/workItems'
-import type { StatusOption, WorkItem } from '@/types/work-item'
+import type { StatusOption, WorkItem, Priority } from '@/types/work-item'
 import type { BoardGroupBy, BoardViewConfig, ViewConfig } from '@/types/view'
+import type { TagColorKey } from '@/config/tagColors'
 import WorkItemCard from '@/components/WorkItemCard.vue'
 import ActionIcon from '@/components/ActionIcon.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
+import ColorSettings from '@/components/ColorSettings.vue'
 import { usePriorityLabel } from '@/composables/usePriorityLabel'
+import { resolveColor } from '@/utils/colors'
 
 const props = defineProps<{ instanceId: string; config?: ViewConfig }>()
 const emit = defineEmits<{ 'update:config': [ViewConfig] }>()
@@ -23,13 +26,44 @@ const NO_TAG_ID = '__no_tag__'
 
 const cfg = (props.config ?? {}) as Partial<BoardViewConfig>
 const groupBy = ref<BoardGroupBy>(cfg.groupBy ?? 'status')
+const statusColors = ref<Record<string, TagColorKey>>({ ...cfg.statusColors })
+const priorityColors = ref<Partial<Record<Priority, TagColorKey>>>({ ...cfg.priorityColors })
+const tagColors = ref<Record<string, TagColorKey>>({ ...cfg.tagColors })
+const settingsOpen = ref(false)
 
 let persistTimer: ReturnType<typeof setTimeout> | undefined
-watch(groupBy, () => {
+function schedulePersist(): void {
   clearTimeout(persistTimer)
   persistTimer = setTimeout(() => {
-    emit('update:config', { groupBy: groupBy.value })
+    emit('update:config', {
+      groupBy: groupBy.value,
+      statusColors: statusColors.value,
+      priorityColors: priorityColors.value,
+      tagColors: tagColors.value,
+    })
   }, 400)
+}
+watch(groupBy, schedulePersist)
+watch([statusColors, priorityColors, tagColors], schedulePersist, { deep: true })
+
+// Same rule as ListPanel: assigning a per-view tag color registers the tag
+// (into tags.json) so it keeps existing even if every item wearing it is
+// later retagged or deleted. Global tag colors register themselves the same
+// way inside store.setTagColor.
+function onViewTagColorsUpdate(next: Record<string, TagColorKey>): void {
+  tagColors.value = next
+  for (const tagName of Object.keys(next)) {
+    store.ensureTagRegistered(tagName)
+  }
+}
+
+const effectiveTagColors = computed(() => {
+  const map: Record<string, TagColorKey> = {}
+  for (const name of store.allTags) {
+    const color = resolveColor(name, store.tags, tagColors.value)
+    if (color) map[name] = color
+  }
+  return map
 })
 
 interface ColumnView {
@@ -331,8 +365,30 @@ async function confirmRemoveColumn(): Promise<void> {
           <option value="tag">{{ t('board.groupByTag') }}</option>
         </select>
       </label>
+      <button
+        type="button"
+        class="btn-ghost action-btn"
+        :title="t('colorSettings.trigger')"
+        @click="settingsOpen = true"
+      >
+        <ActionIcon type="settings" />
+      </button>
     </div>
 
+    <ColorSettings
+      :open="settingsOpen"
+      :statuses="store.sortedStatuses"
+      :priorities="store.sortedPriorities"
+      :tag-names="store.allTags"
+      :tag-registry="store.tags"
+      :view-status-colors="statusColors"
+      :view-priority-colors="priorityColors"
+      :view-tag-colors="tagColors"
+      @update:view-status-colors="(v) => (statusColors = v)"
+      @update:view-priority-colors="(v) => (priorityColors = v)"
+      @update:view-tag-colors="onViewTagColorsUpdate"
+      @close="settingsOpen = false"
+    />
     <p v-if="store.loading" class="type-body">{{ t('common.loading') }}</p>
     <p v-else-if="store.error" class="type-body error">
       {{ t('common.error', { message: store.error }) }}
@@ -418,6 +474,9 @@ async function confirmRemoveColumn(): Promise<void> {
                 :item="item"
                 :status-name="statusNameFor(item)"
                 :is-completed="store.isItemCompleted(item)"
+                :status-color="resolveColor(item.status, store.statuses, statusColors)"
+                :priority-color="resolveColor(item.priority, store.priorities, priorityColors)"
+                :tag-colors="effectiveTagColors"
               />
             </VueDraggable>
           </div>
@@ -452,6 +511,8 @@ async function confirmRemoveColumn(): Promise<void> {
 
 .toolbar {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: var(--space-md);
 }
 
@@ -463,6 +524,14 @@ async function confirmRemoveColumn(): Promise<void> {
 
 .group-by .input {
   min-width: 140px;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  min-height: auto;
 }
 
 .error {
