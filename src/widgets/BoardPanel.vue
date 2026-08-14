@@ -30,6 +30,10 @@ const statusColors = ref<Record<string, TagColorKey>>({ ...cfg.statusColors })
 const priorityColors = ref<Partial<Record<Priority, TagColorKey>>>({ ...cfg.priorityColors })
 const tagColors = ref<Record<string, TagColorKey>>({ ...cfg.tagColors })
 const settingsOpen = ref(false)
+const search = ref(cfg.search ?? '')
+const statusFilter = ref(cfg.statusFilter ?? 'all')
+const priorityFilter = ref(cfg.priorityFilter ?? 'all')
+const tagFilter = ref(cfg.tagFilter ?? 'all')
 
 let persistTimer: ReturnType<typeof setTimeout> | undefined
 function schedulePersist(): void {
@@ -40,11 +44,36 @@ function schedulePersist(): void {
       statusColors: statusColors.value,
       priorityColors: priorityColors.value,
       tagColors: tagColors.value,
+      search: search.value,
+      statusFilter: statusFilter.value,
+      priorityFilter: priorityFilter.value,
+      tagFilter: tagFilter.value,
     })
   }, 400)
 }
 watch(groupBy, schedulePersist)
 watch([statusColors, priorityColors, tagColors], schedulePersist, { deep: true })
+watch([search, statusFilter, priorityFilter, tagFilter], schedulePersist)
+
+// Same filter semantics as ListPanel — narrows which items get bucketed
+// into columns below. Doesn't affect column-delete's "N items are affected"
+// warning, which still counts against the full unfiltered item set.
+const filteredItems = computed(() => {
+  const query = search.value.trim().toLowerCase()
+  return store.items.filter((item) => {
+    if (statusFilter.value !== 'all' && item.status !== statusFilter.value) return false
+    if (priorityFilter.value !== 'all' && item.priority !== priorityFilter.value) return false
+    if (tagFilter.value !== 'all' && !item.tags.includes(tagFilter.value)) return false
+    if (
+      query &&
+      !item.title.toLowerCase().includes(query) &&
+      !item.description.toLowerCase().includes(query)
+    ) {
+      return false
+    }
+    return true
+  })
+})
 
 // Same rule as ListPanel: assigning a per-view tag color registers the tag
 // (into tags.json) so it keeps existing even if every item wearing it is
@@ -138,14 +167,14 @@ function rebuildLocalColumns(): void {
   const map: Record<string, WorkItem[]> = {}
   for (const column of columns.value) map[column.id] = []
   if (groupBy.value === 'priority') {
-    for (const item of store.items) map[item.priority]?.push(item)
+    for (const item of filteredItems.value) map[item.priority]?.push(item)
   } else if (groupBy.value === 'tag') {
-    for (const item of store.items) {
+    for (const item of filteredItems.value) {
       if (item.tags.length === 0) map[NO_TAG_ID]?.push(item)
       else for (const tag of item.tags) map[tag]?.push(item)
     }
   } else {
-    for (const item of store.items) {
+    for (const item of filteredItems.value) {
       const bucket = map[item.status] ?? (map[item.status] = [])
       bucket.push(item)
     }
@@ -154,7 +183,7 @@ function rebuildLocalColumns(): void {
 }
 
 watch(
-  () => [store.items, store.statuses, store.tags, store.priorities, groupBy.value] as const,
+  () => [filteredItems.value, store.statuses, store.tags, store.priorities, groupBy.value] as const,
   rebuildLocalColumns,
   { deep: true, immediate: true },
 )
@@ -357,22 +386,52 @@ async function confirmRemoveColumn(): Promise<void> {
 <template>
   <div class="board-panel">
     <div class="toolbar">
-      <label class="group-by">
-        <span class="type-label">{{ t('board.groupBy') }}</span>
-        <select v-model="groupBy" class="input type-body">
-          <option value="status">{{ t('board.groupByStatus') }}</option>
-          <option value="priority">{{ t('board.groupByPriority') }}</option>
-          <option value="tag">{{ t('board.groupByTag') }}</option>
+      <div class="filters">
+        <input
+          v-model="search"
+          class="input type-body"
+          type="text"
+          :placeholder="t('list.searchPlaceholder')"
+        />
+        <select v-model="statusFilter" class="input type-body">
+          <option value="all">{{ t('list.allStatus') }}</option>
+          <option v-for="column in store.sortedStatuses" :key="column.id" :value="column.name">
+            {{ column.name }}
+          </option>
         </select>
-      </label>
-      <button
-        type="button"
-        class="btn-ghost action-btn"
-        :title="t('colorSettings.trigger')"
-        @click="settingsOpen = true"
-      >
-        <ActionIcon type="settings" />
-      </button>
+        <select v-model="priorityFilter" class="input type-body">
+          <option value="all">{{ t('list.allPriority') }}</option>
+          <option
+            v-for="priority in store.sortedPriorities"
+            :key="priority.id"
+            :value="priority.name"
+          >
+            {{ priorityLabel(priority.name) }}
+          </option>
+        </select>
+        <select v-model="tagFilter" class="input type-body">
+          <option value="all">{{ t('list.allTags') }}</option>
+          <option v-for="tag in store.allTags" :key="tag" :value="tag">{{ tag }}</option>
+        </select>
+      </div>
+      <div class="toolbar-actions">
+        <label class="group-by">
+          <span class="type-label">{{ t('board.groupBy') }}</span>
+          <select v-model="groupBy" class="input type-body">
+            <option value="status">{{ t('board.groupByStatus') }}</option>
+            <option value="priority">{{ t('board.groupByPriority') }}</option>
+            <option value="tag">{{ t('board.groupByTag') }}</option>
+          </select>
+        </label>
+        <button
+          type="button"
+          class="btn-ghost action-btn"
+          :title="t('colorSettings.trigger')"
+          @click="settingsOpen = true"
+        >
+          <ActionIcon type="settings" />
+        </button>
+      </div>
     </div>
 
     <ColorSettings
@@ -514,6 +573,24 @@ async function confirmRemoveColumn(): Promise<void> {
   align-items: center;
   justify-content: space-between;
   margin-bottom: var(--space-md);
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.filters {
+  display: flex;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+}
+
+.filters .input {
+  min-width: 140px;
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
 }
 
 .group-by {

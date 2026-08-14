@@ -7,6 +7,7 @@ import type { CalendarViewConfig, ViewConfig } from '@/types/view'
 import type { TagColorKey } from '@/config/tagColors'
 import { getDueStatus } from '@/utils/dueDate'
 import { resolveColor } from '@/utils/colors'
+import { usePriorityLabel } from '@/composables/usePriorityLabel'
 import ChevronIcon from '@/components/ChevronIcon.vue'
 import ActionIcon from '@/components/ActionIcon.vue'
 import ColorSettings from '@/components/ColorSettings.vue'
@@ -39,6 +40,7 @@ const emit = defineEmits<{ 'update:config': [ViewConfig] }>()
 
 const { t, locale } = useI18n()
 const store = useWorkItemsStore()
+const priorityLabel = usePriorityLabel()
 
 // Only status resolves to a visible tint here — a bar-segment is one pill
 // per item, unlike a card's separate status/priority/tag badges, so there's
@@ -50,6 +52,10 @@ const statusColors = ref<Record<string, TagColorKey>>({ ...cfg.statusColors })
 const priorityColors = ref<Partial<Record<Priority, TagColorKey>>>({ ...cfg.priorityColors })
 const tagColors = ref<Record<string, TagColorKey>>({ ...cfg.tagColors })
 const settingsOpen = ref(false)
+const search = ref(cfg.search ?? '')
+const statusFilter = ref(cfg.statusFilter ?? 'all')
+const priorityFilter = ref(cfg.priorityFilter ?? 'all')
+const tagFilter = ref(cfg.tagFilter ?? 'all')
 
 let persistTimer: ReturnType<typeof setTimeout> | undefined
 function schedulePersist(): void {
@@ -59,10 +65,34 @@ function schedulePersist(): void {
       statusColors: statusColors.value,
       priorityColors: priorityColors.value,
       tagColors: tagColors.value,
+      search: search.value,
+      statusFilter: statusFilter.value,
+      priorityFilter: priorityFilter.value,
+      tagFilter: tagFilter.value,
     })
   }, 400)
 }
 watch([statusColors, priorityColors, tagColors], schedulePersist, { deep: true })
+watch([search, statusFilter, priorityFilter, tagFilter], schedulePersist)
+
+// Same filter semantics as ListPanel/BoardPanel — narrows which items can
+// appear as bar-segments.
+const filteredItems = computed(() => {
+  const query = search.value.trim().toLowerCase()
+  return store.items.filter((item) => {
+    if (statusFilter.value !== 'all' && item.status !== statusFilter.value) return false
+    if (priorityFilter.value !== 'all' && item.priority !== priorityFilter.value) return false
+    if (tagFilter.value !== 'all' && !item.tags.includes(tagFilter.value)) return false
+    if (
+      query &&
+      !item.title.toLowerCase().includes(query) &&
+      !item.description.toLowerCase().includes(query)
+    ) {
+      return false
+    }
+    return true
+  })
+})
 
 // Same rule as ListPanel/BoardPanel: assigning a per-view tag color
 // registers the tag so it keeps existing even after every item wearing it
@@ -157,7 +187,7 @@ function buildWeekSegments(week: CalendarCell[]): Segment[] {
   if (!weekStartKey || !weekEndKey) return []
 
   const raw: Omit<Segment, 'lane'>[] = []
-  for (const item of store.items) {
+  for (const item of filteredItems.value) {
     const range = itemDateRange(item)
     if (!range) continue
     if (range.toKey < weekStartKey || range.fromKey > weekEndKey) continue
@@ -210,6 +240,35 @@ const weekdayLabels = computed(() => {
 
 <template>
   <div class="calendar-panel">
+    <div class="filters">
+      <input
+        v-model="search"
+        class="input type-body"
+        type="text"
+        :placeholder="t('list.searchPlaceholder')"
+      />
+      <select v-model="statusFilter" class="input type-body">
+        <option value="all">{{ t('list.allStatus') }}</option>
+        <option v-for="column in store.sortedStatuses" :key="column.id" :value="column.name">
+          {{ column.name }}
+        </option>
+      </select>
+      <select v-model="priorityFilter" class="input type-body">
+        <option value="all">{{ t('list.allPriority') }}</option>
+        <option
+          v-for="priority in store.sortedPriorities"
+          :key="priority.id"
+          :value="priority.name"
+        >
+          {{ priorityLabel(priority.name) }}
+        </option>
+      </select>
+      <select v-model="tagFilter" class="input type-body">
+        <option value="all">{{ t('list.allTags') }}</option>
+        <option v-for="tag in store.allTags" :key="tag" :value="tag">{{ tag }}</option>
+      </select>
+    </div>
+
     <div class="toolbar">
       <button type="button" class="btn btn-secondary" @click="prevMonth">
         <ChevronIcon direction="prev" />
@@ -310,6 +369,18 @@ const weekdayLabels = computed(() => {
   flex: 1;
   min-width: 0;
   min-height: 0;
+}
+
+.filters {
+  display: flex;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-sm);
+  flex-shrink: 0;
+}
+
+.filters .input {
+  min-width: 140px;
 }
 
 .toolbar {

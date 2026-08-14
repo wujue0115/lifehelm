@@ -23,7 +23,18 @@ export interface ColorConfig {
   tagColors?: Record<string, TagColorKey>
 }
 
-export interface ListViewConfig extends ColorConfig {
+// Shared by every widget with a status/priority/tag + text filter row —
+// currently List and Board. 'all' is the sentinel for "no filter" on the
+// three select-driven fields (matching the option value each panel's
+// dropdown uses), not an empty string.
+export interface FilterConfig {
+  statusFilter?: string
+  priorityFilter?: string
+  tagFilter?: string
+  search?: string
+}
+
+export interface ListViewConfig extends ColorConfig, FilterConfig {
   statusFilter: string
   priorityFilter: string
   tagFilter: string
@@ -34,11 +45,11 @@ export interface ListViewConfig extends ColorConfig {
 
 export type BoardGroupBy = 'status' | 'priority' | 'tag'
 
-export interface BoardViewConfig extends ColorConfig {
+export interface BoardViewConfig extends ColorConfig, FilterConfig {
   groupBy: BoardGroupBy
 }
 
-export type CalendarViewConfig = ColorConfig
+export type CalendarViewConfig = ColorConfig & FilterConfig
 
 export type ViewConfig =
   | Partial<ListViewConfig>
