@@ -3,16 +3,68 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { VueDraggable, type DraggableEvent } from 'vue-draggable-plus'
 import { useWorkItemsStore } from '@/stores/workItems'
-import type { BoardColumn, WorkItem } from '@/types/work-item'
-import type { ViewConfig } from '@/types/view'
+import type { BoardColumn, Priority, WorkItem } from '@/types/work-item'
+import type { BoardGroupBy, BoardViewConfig, ViewConfig } from '@/types/view'
 import WorkItemCard from '@/components/WorkItemCard.vue'
 import ActionIcon from '@/components/ActionIcon.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 
-defineProps<{ instanceId: string; config?: ViewConfig }>()
+const props = defineProps<{ instanceId: string; config?: ViewConfig }>()
+const emit = defineEmits<{ 'update:config': [ViewConfig] }>()
 
 const { t } = useI18n()
 const store = useWorkItemsStore()
+
+// A pseudo-column, not a real tag — collects items with zero tags when
+// grouped by tag, so they aren't just silently missing from the board.
+const NO_TAG_ID = '__no_tag__'
+
+const cfg = (props.config ?? {}) as Partial<BoardViewConfig>
+const groupBy = ref<BoardGroupBy>(cfg.groupBy ?? 'status')
+
+let persistTimer: ReturnType<typeof setTimeout> | undefined
+watch(groupBy, () => {
+  clearTimeout(persistTimer)
+  persistTimer = setTimeout(() => {
+    emit('update:config', { groupBy: groupBy.value })
+  }, 400)
+})
+
+const PRIORITIES: Priority[] = ['low', 'medium', 'high', 'urgent']
+
+interface ColumnView {
+  id: string
+  name: string
+}
+
+// The set of "columns" to render depends entirely on groupBy: real,
+// user-managed BoardColumns for status; a fixed 4-value set for priority;
+// and the dynamic tag pool (plus the No tag bucket) for tag. Only status
+// columns carry rename/delete/mark-done management — the other two modes
+// are read-only groupings over existing data, not user-defined columns.
+const columns = computed<ColumnView[]>(() => {
+  if (groupBy.value === 'priority') {
+    return PRIORITIES.map((priority) => ({ id: priority, name: t(`priority.${priority}`) }))
+  }
+  if (groupBy.value === 'tag') {
+    return [
+      ...store.allTags.map((tag) => ({ id: tag, name: tag })),
+      { id: NO_TAG_ID, name: t('board.noTag') },
+    ]
+  }
+  return store.sortedBoard
+})
+
+const statusNameById = computed(() => {
+  const map = new Map<string, string>()
+  for (const column of store.board) map.set(column.id, column.name)
+  return map
+})
+
+function statusNameFor(item: WorkItem): string {
+  if (!item.statusId) return t('list.noStatus')
+  return statusNameById.value.get(item.statusId) ?? item.statusId
+}
 
 const localColumns = ref<Record<string, WorkItem[]>>({})
 const newColumnName = ref('')
@@ -35,24 +87,100 @@ onMounted(() => {
   store.fetchAll()
 })
 
+// Unlike status/priority (each item belongs to exactly one bucket), a
+// tag-grouped item can land in every column matching its tags at once —
+// per your call, cards should show in every matching tag column rather
+// than picking just one. Rebuilding from scratch on every relevant change
+// keeps all buckets authoritative and self-correcting after a drag.
 function rebuildLocalColumns(): void {
   const map: Record<string, WorkItem[]> = {}
-  for (const column of store.board) map[column.id] = []
-  for (const item of store.items) {
-    const bucket = map[item.statusId] ?? (map[item.statusId] = [])
-    bucket.push(item)
+  for (const column of columns.value) map[column.id] = []
+  if (groupBy.value === 'priority') {
+    for (const item of store.items) map[item.priority]?.push(item)
+  } else if (groupBy.value === 'tag') {
+    for (const item of store.items) {
+      if (item.tags.length === 0) map[NO_TAG_ID]?.push(item)
+      else for (const tag of item.tags) map[tag]?.push(item)
+    }
+  } else {
+    for (const item of store.items) {
+      const bucket = map[item.statusId] ?? (map[item.statusId] = [])
+      bucket.push(item)
+    }
   }
   localColumns.value = map
 }
 
-watch(() => store.items, rebuildLocalColumns, { deep: true, immediate: true })
-watch(() => store.board, rebuildLocalColumns, { deep: true })
+watch(() => [store.items, store.board, store.tags, groupBy.value] as const, rebuildLocalColumns, {
+  deep: true,
+  immediate: true,
+})
+
+// Cross-list drags in tag mode fire BOTH a remove (on the source column)
+// and an add (on the target column) for the same gesture, each handed only
+// a pre-drag snapshot of the item — and NOT in a guaranteed order (observed
+// both orderings in testing). Two independent async updateItem calls built
+// from that same stale snapshot would race each other as separate PUT
+// requests — since the server just does a plain read-modify-write on
+// items.json with no locking, that race actually corrupted the file
+// (interleaved writes) the first time this was tested. So both handlers
+// only record their side of the move into one shared pending record; the
+// actual write is deferred to a macrotask (setTimeout 0), which only runs
+// after the current synchronous event-dispatch stack unwinds — i.e. after
+// BOTH handlers have already contributed, regardless of which fired first.
+interface PendingTagMove {
+  itemId: string
+  originalTags: string[]
+  removedTag?: string
+  addedTag?: string
+}
+let pendingTagMove: PendingTagMove | null = null
+let pendingTagMoveTimer: ReturnType<typeof setTimeout> | undefined
+
+function schedulePendingTagMove(): void {
+  clearTimeout(pendingTagMoveTimer)
+  pendingTagMoveTimer = setTimeout(() => {
+    const move = pendingTagMove
+    pendingTagMove = null
+    if (!move) return
+    let nextTags = move.originalTags
+    if (move.removedTag) nextTags = nextTags.filter((tag) => tag !== move.removedTag)
+    if (move.addedTag && !nextTags.includes(move.addedTag)) nextTags = [...nextTags, move.addedTag]
+    if (nextTags !== move.originalTags) store.updateItem(move.itemId, { tags: nextTags })
+  })
+}
+
+function getOrStartPendingTagMove(item: WorkItem): PendingTagMove {
+  if (!pendingTagMove || pendingTagMove.itemId !== item.id) {
+    pendingTagMove = { itemId: item.id, originalTags: item.tags }
+  }
+  return pendingTagMove
+}
 
 async function handleAdd(columnId: string, event: DraggableEvent<WorkItem>): Promise<void> {
   const item = event.data
-  if (item && item.statusId !== columnId) {
-    await store.updateItem(item.id, { statusId: columnId })
+  if (!item) return
+  if (groupBy.value === 'priority') {
+    if (item.priority !== columnId)
+      await store.updateItem(item.id, { priority: columnId as Priority })
+    return
   }
+  if (groupBy.value === 'tag') {
+    if (columnId !== NO_TAG_ID) {
+      getOrStartPendingTagMove(item).addedTag = columnId
+      schedulePendingTagMove()
+    }
+    return
+  }
+  if (item.statusId !== columnId) await store.updateItem(item.id, { statusId: columnId })
+}
+
+function handleRemove(columnId: string, event: DraggableEvent<WorkItem>): void {
+  if (groupBy.value !== 'tag' || columnId === NO_TAG_ID) return
+  const item = event.data
+  if (!item) return
+  getOrStartPendingTagMove(item).removedTag = columnId
+  schedulePendingTagMove()
 }
 
 function startEditColumn(column: BoardColumn): void {
@@ -76,12 +204,16 @@ async function saveColumnName(): Promise<void> {
 async function addColumn(): Promise<void> {
   const name = newColumnName.value.trim()
   if (!name) return
-  const maxOrder = store.board.reduce((max, column) => Math.max(max, column.order), -1)
-  const updated = [
-    ...store.board,
-    { id: crypto.randomUUID(), name, order: maxOrder + 1, isDone: false },
-  ]
-  await store.updateBoard(updated)
+  if (groupBy.value === 'tag') {
+    await store.ensureTagRegistered(name)
+  } else if (groupBy.value === 'status') {
+    const maxOrder = store.board.reduce((max, column) => Math.max(max, column.order), -1)
+    const updated = [
+      ...store.board,
+      { id: crypto.randomUUID(), name, order: maxOrder + 1, isDone: false },
+    ]
+    await store.updateBoard(updated)
+  }
   newColumnName.value = ''
 }
 
@@ -92,6 +224,21 @@ async function addColumn(): Promise<void> {
 async function setDoneColumn(columnId: string): Promise<void> {
   if (columnId === store.doneColumnId) return
   const updated = store.board.map((column) => ({ ...column, isDone: column.id === columnId }))
+  await store.updateBoard(updated)
+}
+
+// Only meaningful in status mode — priority's 4 columns have a fixed
+// natural order, and tag columns aren't user-defined BoardColumns at all.
+// Reassigns `order` to match the dropped sequence exactly.
+async function reorderColumns(newOrder: ColumnView[]): Promise<void> {
+  if (groupBy.value !== 'status') return
+  const byId = new Map(store.board.map((column) => [column.id, column]))
+  const updated = newOrder
+    .map((entry, index) => {
+      const column = byId.get(entry.id)
+      return column ? { ...column, order: index } : null
+    })
+    .filter((column): column is BoardColumn => column !== null)
   await store.updateBoard(updated)
 }
 
@@ -116,73 +263,108 @@ async function confirmRemoveColumn(): Promise<void> {
 
 <template>
   <div class="board-panel">
+    <div class="toolbar">
+      <label class="group-by">
+        <span class="type-label">{{ t('board.groupBy') }}</span>
+        <select v-model="groupBy" class="input type-body">
+          <option value="status">{{ t('board.groupByStatus') }}</option>
+          <option value="priority">{{ t('board.groupByPriority') }}</option>
+          <option value="tag">{{ t('board.groupByTag') }}</option>
+        </select>
+      </label>
+    </div>
+
     <p v-if="store.loading" class="type-body">{{ t('common.loading') }}</p>
     <p v-else-if="store.error" class="type-body error">
       {{ t('common.error', { message: store.error }) }}
     </p>
     <template v-else>
       <div class="board">
-        <div v-for="column in store.sortedBoard" :key="column.id" class="column">
-          <div class="column-header">
-            <input
-              v-if="editingColumnId === column.id"
-              v-model="editingName"
-              class="input type-label column-name-input"
-              @blur="saveColumnName"
-              @keyup.enter="saveColumnName"
-            />
-            <span v-else class="type-label column-name" @click="startEditColumn(column)">
-              {{ column.name }}
-            </span>
-            <div class="column-actions">
-              <button
-                type="button"
-                class="icon-btn done-toggle"
-                :class="{ active: column.id === store.doneColumnId }"
-                :title="
-                  column.id === store.doneColumnId
-                    ? t('board.doneColumnActive')
-                    : t('board.markAsDone')
-                "
-                @click="setDoneColumn(column.id)"
+        <VueDraggable
+          :model-value="columns"
+          tag="div"
+          class="column-list"
+          handle=".column-drag-handle"
+          :disabled="groupBy !== 'status'"
+          :animation="150"
+          @update:model-value="reorderColumns"
+        >
+          <div v-for="column in columns" :key="column.id" class="column">
+            <div class="column-header">
+              <span
+                v-if="groupBy === 'status'"
+                class="column-drag-handle icon-btn"
+                :title="t('board.dragColumn')"
+                >⠿</span
               >
-                <svg width="16" height="16" viewBox="0 0 24 24">
-                  <path d="M0 0h24v24H0z" fill="none" />
-                  <path
-                    fill="currentColor"
-                    d="M12 2a10 10 0 1 0 0 20a10 10 0 0 0 0-20m-1.2 14.4l-4.2-4.2l1.4-1.4l2.8 2.8l6-6l1.4 1.4z"
-                  />
-                </svg>
-              </button>
-              <button
-                type="button"
-                class="icon-btn"
-                :title="t('board.deleteColumnTitle')"
-                @click="requestRemoveColumn(column.id)"
+              <input
+                v-if="groupBy === 'status' && editingColumnId === column.id"
+                v-model="editingName"
+                class="input type-label column-name-input"
+                @blur="saveColumnName"
+                @keyup.enter="saveColumnName"
+              />
+              <span
+                v-else
+                class="type-label column-name"
+                :class="{ editable: groupBy === 'status' }"
+                @click="groupBy === 'status' && startEditColumn(column as BoardColumn)"
               >
-                <ActionIcon type="delete" />
-              </button>
+                {{ column.name }}
+              </span>
+              <div v-if="groupBy === 'status'" class="column-actions">
+                <button
+                  type="button"
+                  class="icon-btn done-toggle"
+                  :class="{ active: column.id === store.doneColumnId }"
+                  :title="
+                    column.id === store.doneColumnId
+                      ? t('board.doneColumnActive')
+                      : t('board.markAsDone')
+                  "
+                  @click="setDoneColumn(column.id)"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24">
+                    <path d="M0 0h24v24H0z" fill="none" />
+                    <path
+                      fill="currentColor"
+                      d="M12 2a10 10 0 1 0 0 20a10 10 0 0 0 0-20m-1.2 14.4l-4.2-4.2l1.4-1.4l2.8 2.8l6-6l1.4 1.4z"
+                    />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  class="icon-btn"
+                  :title="t('board.deleteColumnTitle')"
+                  @click="requestRemoveColumn(column.id)"
+                >
+                  <ActionIcon type="delete" />
+                </button>
+              </div>
             </div>
+
+            <VueDraggable
+              :model-value="localColumns[column.id] ?? []"
+              class="column-body"
+              handle=".card-drag-handle"
+              :group="{ name: 'board-columns', put: column.id !== NO_TAG_ID }"
+              :animation="150"
+              @update:model-value="(value: WorkItem[]) => (localColumns[column.id] = value)"
+              @add="(event: DraggableEvent<WorkItem>) => handleAdd(column.id, event)"
+              @remove="(event: DraggableEvent<WorkItem>) => handleRemove(column.id, event)"
+            >
+              <WorkItemCard
+                v-for="item in localColumns[column.id] ?? []"
+                :key="item.id"
+                :item="item"
+                :status-name="statusNameFor(item)"
+                :is-completed="store.isItemCompleted(item)"
+              />
+            </VueDraggable>
           </div>
+        </VueDraggable>
 
-          <VueDraggable
-            :model-value="localColumns[column.id] ?? []"
-            class="column-body"
-            group="board-columns"
-            :animation="150"
-            @update:model-value="(value: WorkItem[]) => (localColumns[column.id] = value)"
-            @add="(event: DraggableEvent<WorkItem>) => handleAdd(column.id, event)"
-          >
-            <WorkItemCard
-              v-for="item in localColumns[column.id] ?? []"
-              :key="item.id"
-              :item="item"
-              :is-completed="column.id === store.doneColumnId"
-            />
-          </VueDraggable>
-        </div>
-
-        <div class="column add-column">
+        <div v-if="groupBy !== 'priority'" class="column add-column">
           <input
             v-model="newColumnName"
             class="input type-body"
@@ -209,6 +391,21 @@ async function confirmRemoveColumn(): Promise<void> {
   min-width: 0;
 }
 
+.toolbar {
+  display: flex;
+  margin-bottom: var(--space-md);
+}
+
+.group-by {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.group-by .input {
+  min-width: 140px;
+}
+
 .error {
   font-weight: 700;
 }
@@ -218,6 +415,15 @@ async function confirmRemoveColumn(): Promise<void> {
   gap: var(--space-md);
   align-items: flex-start;
   overflow-x: auto;
+}
+
+/* The column-reorder VueDraggable needs a real DOM element to attach
+   sortable.js to, but shouldn't itself become a flex box competing with
+   .add-column for layout — display:contents makes its columns direct flex
+   items of .board while the wrapper itself takes no visual space. Same
+   pattern GridLayout.vue uses for its own nested draggable. */
+.column-list {
+  display: contents;
 }
 
 .column {
@@ -233,12 +439,26 @@ async function confirmRemoveColumn(): Promise<void> {
 .column-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: var(--space-xs);
   margin-bottom: var(--space-sm);
 }
 
+.icon-btn.column-drag-handle {
+  cursor: grab;
+  flex-shrink: 0;
+}
+
+.icon-btn.column-drag-handle:active {
+  cursor: grabbing;
+}
+
 .column-name {
+  flex: 1;
+  min-width: 0;
   color: var(--color-ink-secondary);
+}
+
+.column-name.editable {
   cursor: text;
 }
 
