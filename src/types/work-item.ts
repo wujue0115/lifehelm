@@ -3,6 +3,12 @@
 // additional priority values, so this can't stay a closed union.
 export type Priority = string
 
+// All three registries below share this shape. WorkItem never references any
+// of them by `id` — status/priority/tag are all matched by `name` (see
+// WorkItem.status/priority/tags) — so `id` here is purely a stable key for
+// storage/list-rendering (Vue :key), not a lookup handle. A practical
+// consequence: renaming an entry's `name` orphans any WorkItem still holding
+// the old name, since nothing re-links by `id`.
 export interface PriorityOption {
   id: string
   name: string
@@ -52,7 +58,7 @@ export interface WorkItem {
   id: string
   title: string
   description: string
-  statusId: string
+  status: string
   priority: Priority
   tags: string[]
   startDate: string | null

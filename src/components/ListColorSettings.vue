@@ -25,10 +25,10 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const priorityLabel = usePriorityLabel()
 
-function setStatusColor(statusId: string, color: TagColorKey | null): void {
+function setStatusColor(statusName: string, color: TagColorKey | null): void {
   const next = { ...props.statusColors }
-  if (color) next[statusId] = color
-  else delete next[statusId]
+  if (color) next[statusName] = color
+  else delete next[statusName]
   emit('update:statusColors', next)
 }
 
@@ -60,19 +60,19 @@ function setTagColor(tag: string, color: TagColorKey | null): void {
             <button
               type="button"
               class="swatch none"
-              :class="{ selected: !statusColors[status.id] }"
+              :class="{ selected: !statusColors[status.name] }"
               :title="t('list.colorNone')"
-              @click="setStatusColor(status.id, null)"
+              @click="setStatusColor(status.name, null)"
             ></button>
             <button
               v-for="key in TAG_COLOR_KEYS"
               :key="key"
               type="button"
               class="swatch"
-              :class="{ selected: statusColors[status.id] === key }"
+              :class="{ selected: statusColors[status.name] === key }"
               :style="{ '--swatch-color': `var(--tag-color-${key})` }"
               :title="t(`list.colorNames.${key}`)"
-              @click="setStatusColor(status.id, key)"
+              @click="setStatusColor(status.name, key)"
             ></button>
           </div>
         </div>

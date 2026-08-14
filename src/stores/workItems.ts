@@ -8,7 +8,7 @@ import type {
   TimeEntry,
   WorkItem,
 } from '@/types/work-item'
-import { getDoneStatusId } from '@/utils/status'
+import { getDoneStatusName } from '@/utils/status'
 
 export const useWorkItemsStore = defineStore('workItems', () => {
   const items = ref<WorkItem[]>([])
@@ -19,7 +19,7 @@ export const useWorkItemsStore = defineStore('workItems', () => {
   const error = ref<string | null>(null)
 
   const sortedStatuses = computed(() => [...statuses.value].sort((a, b) => a.order - b.order))
-  const doneStatusId = computed(() => getDoneStatusId(statuses.value))
+  const doneStatusName = computed(() => getDoneStatusName(statuses.value))
   const allTags = computed(() => {
     const tagSet = new Set<string>()
     for (const item of items.value) {
@@ -62,7 +62,7 @@ export const useWorkItemsStore = defineStore('workItems', () => {
   })
 
   function isItemCompleted(item: WorkItem): boolean {
-    return item.statusId === doneStatusId.value
+    return item.status === doneStatusName.value
   }
 
   async function fetchAll(): Promise<void> {
@@ -178,7 +178,7 @@ export const useWorkItemsStore = defineStore('workItems', () => {
     tags,
     priorities,
     sortedStatuses,
-    doneStatusId,
+    doneStatusName,
     allTags,
     sortedTagNames,
     sortedPriorities,

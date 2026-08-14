@@ -1,6 +1,6 @@
 import type { PriorityOption, StatusOption, WorkItem } from '@/types/work-item'
 import { getDueStatus } from './dueDate'
-import { getDoneStatusId } from './status'
+import { getDoneStatusName } from './status'
 
 export interface StatusCount {
   columnId: string
@@ -38,10 +38,10 @@ export function computeStats(
 ): DashboardStats {
   const sortedStatuses = [...statuses].sort((a, b) => a.order - b.order)
   const sortedPriorities = [...priorities].sort((a, b) => a.order - b.order)
-  const doneStatusId = getDoneStatusId(statuses)
+  const doneStatusName = getDoneStatusName(statuses)
 
   const total = items.length
-  const completed = items.filter((item) => item.statusId === doneStatusId).length
+  const completed = items.filter((item) => item.status === doneStatusName).length
   const completionRate = total === 0 ? 0 : Math.round((completed / total) * 100)
 
   let overdueCount = 0
@@ -56,7 +56,7 @@ export function computeStats(
     for (const tag of item.tags) tagMap.set(tag, (tagMap.get(tag) ?? 0) + 1)
     for (const entry of item.timeEntries) totalTrackedSeconds += entry.durationSeconds ?? 0
 
-    const isCompleted = item.statusId === doneStatusId
+    const isCompleted = item.status === doneStatusName
     const status = getDueStatus(item.dueDate, isCompleted)
     if (status === 'overdue') overdueCount += 1
     else if (status === 'due-today') dueTodayCount += 1
@@ -66,7 +66,7 @@ export function computeStats(
   const statusCounts: StatusCount[] = sortedStatuses.map((statusOption) => ({
     columnId: statusOption.id,
     name: statusOption.name,
-    count: items.filter((item) => item.statusId === statusOption.id).length,
+    count: items.filter((item) => item.status === statusOption.name).length,
   }))
 
   const priorityCounts: PriorityCount[] = sortedPriorities.map((priority) => ({

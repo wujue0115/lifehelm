@@ -58,18 +58,13 @@ const columns = computed<ColumnView[]>(() => {
       { id: NO_TAG_ID, name: t('board.noTag') },
     ]
   }
-  return store.sortedStatuses
-})
-
-const statusNameById = computed(() => {
-  const map = new Map<string, string>()
-  for (const status of store.statuses) map.set(status.id, status.name)
-  return map
+  // Matches the priority/tag shape above: `id` is the status's `name` (what
+  // items actually reference), not its registry `id`.
+  return store.sortedStatuses.map((status) => ({ id: status.name, name: status.name }))
 })
 
 function statusNameFor(item: WorkItem): string {
-  if (!item.statusId) return t('list.noStatus')
-  return statusNameById.value.get(item.statusId) ?? item.statusId
+  return item.status || t('list.noStatus')
 }
 
 const localColumns = ref<Record<string, WorkItem[]>>({})
@@ -83,7 +78,7 @@ const pendingDeleteHasItems = computed(() => {
   if (!columnId) return false
   if (groupBy.value === 'priority') return store.items.some((item) => item.priority === columnId)
   if (groupBy.value === 'tag') return store.items.some((item) => item.tags.includes(columnId))
-  return store.items.some((item) => item.statusId === columnId)
+  return store.items.some((item) => item.status === columnId)
 })
 const pendingDeleteWarningKey = computed(() => {
   if (groupBy.value === 'priority') return 'board.deletePriorityWarningMessage'
@@ -117,7 +112,7 @@ function rebuildLocalColumns(): void {
     }
   } else {
     for (const item of store.items) {
-      const bucket = map[item.statusId] ?? (map[item.statusId] = [])
+      const bucket = map[item.status] ?? (map[item.status] = [])
       bucket.push(item)
     }
   }
@@ -185,7 +180,7 @@ async function handleAdd(columnId: string, event: DraggableEvent<WorkItem>): Pro
     }
     return
   }
-  if (item.statusId !== columnId) await store.updateItem(item.id, { statusId: columnId })
+  if (item.status !== columnId) await store.updateItem(item.id, { status: columnId })
 }
 
 function handleRemove(columnId: string, event: DraggableEvent<WorkItem>): void {
@@ -196,18 +191,21 @@ function handleRemove(columnId: string, event: DraggableEvent<WorkItem>): void {
   schedulePendingTagMove()
 }
 
-function startEditColumn(status: StatusOption): void {
-  editingColumnId.value = status.id
-  editingName.value = status.name
+function startEditColumn(column: ColumnView): void {
+  editingColumnId.value = column.id
+  editingName.value = column.name
 }
 
 async function saveColumnName(): Promise<void> {
-  const columnId = editingColumnId.value
-  if (!columnId) return
+  const oldName = editingColumnId.value
+  if (!oldName) return
   const name = editingName.value.trim()
+  // Renaming just changes this registry entry's `name` — any item still
+  // holding the old name is not updated, so it becomes unregistered/
+  // orphaned, same as renaming a tag or priority already behaves.
   if (name) {
     const updated = store.statuses.map((status) =>
-      status.id === columnId ? { ...status, name } : status,
+      status.name === oldName ? { ...status, name } : status,
     )
     await store.updateStatuses(updated)
   }
@@ -237,8 +235,8 @@ async function addColumn(): Promise<void> {
 // one column can be the done column at a time, so setting it here clears
 // it everywhere else.
 async function setDoneColumn(columnId: string): Promise<void> {
-  if (columnId === store.doneStatusId) return
-  const updated = store.statuses.map((status) => ({ ...status, isDone: status.id === columnId }))
+  if (columnId === store.doneStatusName) return
+  const updated = store.statuses.map((status) => ({ ...status, isDone: status.name === columnId }))
   await store.updateStatuses(updated)
 }
 
@@ -271,10 +269,10 @@ async function reorderColumns(newOrder: ColumnView[]): Promise<void> {
     await store.updateTags(updated)
     return
   }
-  const byId = new Map(store.statuses.map((status) => [status.id, status]))
+  const byName = new Map(store.statuses.map((status) => [status.name, status]))
   const updated = newOrder
     .map((entry, index) => {
-      const status = byId.get(entry.id)
+      const status = byName.get(entry.id)
       return status ? { ...status, order: index } : null
     })
     .filter((status): status is StatusOption => status !== null)
@@ -313,9 +311,9 @@ async function confirmRemoveColumn(): Promise<void> {
     // silently keeping a reference to a column that no longer exists — the
     // warning dialog tells the user this is about to happen before they
     // confirm.
-    const affectedItems = store.items.filter((item) => item.statusId === columnId)
-    await Promise.all(affectedItems.map((item) => store.updateItem(item.id, { statusId: '' })))
-    const updated = store.statuses.filter((status) => status.id !== columnId)
+    const affectedItems = store.items.filter((item) => item.status === columnId)
+    await Promise.all(affectedItems.map((item) => store.updateItem(item.id, { status: '' })))
+    const updated = store.statuses.filter((status) => status.name !== columnId)
     await store.updateStatuses(updated)
   }
   pendingDeleteColumnId.value = null
@@ -369,7 +367,7 @@ async function confirmRemoveColumn(): Promise<void> {
                 v-else
                 class="type-label column-name"
                 :class="{ editable: groupBy === 'status' }"
-                @click="groupBy === 'status' && startEditColumn(column as StatusOption)"
+                @click="groupBy === 'status' && startEditColumn(column)"
               >
                 {{ column.name }}
               </span>
@@ -378,9 +376,9 @@ async function confirmRemoveColumn(): Promise<void> {
                   v-if="groupBy === 'status'"
                   type="button"
                   class="icon-btn done-toggle"
-                  :class="{ active: column.id === store.doneStatusId }"
+                  :class="{ active: column.id === store.doneStatusName }"
                   :title="
-                    column.id === store.doneStatusId
+                    column.id === store.doneStatusName
                       ? t('board.doneColumnActive')
                       : t('board.markAsDone')
                   "
