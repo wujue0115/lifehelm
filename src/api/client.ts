@@ -1,4 +1,4 @@
-import type { BoardColumn, Tag, TimeEntry, WorkItem } from '@/types/work-item'
+import type { BoardColumn, PriorityOption, Tag, TimeEntry, WorkItem } from '@/types/work-item'
 import type { ThemeConfig } from '@/types/theme-config'
 import type { View } from '@/types/view'
 
@@ -31,6 +31,13 @@ export const api = {
   getTags: () => request<Tag[]>('/api/list'),
   updateTags: (tags: Tag[]) =>
     request<Tag[]>('/api/list', { method: 'PUT', body: JSON.stringify(tags) }),
+
+  getPriorities: () => request<PriorityOption[]>('/api/priorities'),
+  updatePriorities: (priorities: PriorityOption[]) =>
+    request<PriorityOption[]>('/api/priorities', {
+      method: 'PUT',
+      body: JSON.stringify(priorities),
+    }),
 
   addComment: (itemId: string, text: string) =>
     request<WorkItem>(`/api/items/${itemId}/comments`, {

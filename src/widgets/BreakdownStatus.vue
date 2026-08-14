@@ -6,7 +6,7 @@ import { computeStats } from '@/utils/stats'
 defineOptions({ inheritAttrs: false })
 
 const store = useWorkItemsStore()
-const stats = computed(() => computeStats(store.items, store.board))
+const stats = computed(() => computeStats(store.items, store.board, store.priorities))
 const maxStatusCount = computed(() => Math.max(1, ...stats.value.statusCounts.map((s) => s.count)))
 </script>
 

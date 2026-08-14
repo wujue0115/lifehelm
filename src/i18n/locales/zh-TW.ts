@@ -71,7 +71,6 @@ export default {
     low: '低',
     medium: '中',
     high: '高',
-    urgent: '緊急',
   },
   dueStatus: {
     overdue: '已逾期',

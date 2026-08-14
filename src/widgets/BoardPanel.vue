@@ -3,38 +3,32 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { VueDraggable, type DraggableEvent } from 'vue-draggable-plus'
 import { useWorkItemsStore } from '@/stores/workItems'
-import type { BoardColumn, Priority, WorkItem } from '@/types/work-item'
+import type { BoardColumn, WorkItem } from '@/types/work-item'
 import type { BoardGroupBy, BoardViewConfig, ViewConfig } from '@/types/view'
 import WorkItemCard from '@/components/WorkItemCard.vue'
 import ActionIcon from '@/components/ActionIcon.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
+import { usePriorityLabel } from '@/composables/usePriorityLabel'
 
 const props = defineProps<{ instanceId: string; config?: ViewConfig }>()
 const emit = defineEmits<{ 'update:config': [ViewConfig] }>()
 
 const { t } = useI18n()
 const store = useWorkItemsStore()
+const priorityLabel = usePriorityLabel()
 
 // A pseudo-column, not a real tag — collects items with zero tags when
 // grouped by tag, so they aren't just silently missing from the board.
 const NO_TAG_ID = '__no_tag__'
 
-const PRIORITIES: Priority[] = ['low', 'medium', 'high', 'urgent']
-
 const cfg = (props.config ?? {}) as Partial<BoardViewConfig>
 const groupBy = ref<BoardGroupBy>(cfg.groupBy ?? 'status')
-// User-arranged priority column order — priority has no backing entity to
-// store an order on (unlike status columns or tags), so it lives in this
-// widget's own view config instead.
-const priorityOrder = ref<Priority[]>(
-  cfg.priorityOrder && cfg.priorityOrder.length === PRIORITIES.length ? cfg.priorityOrder : PRIORITIES,
-)
 
 let persistTimer: ReturnType<typeof setTimeout> | undefined
-watch([groupBy, priorityOrder], () => {
+watch(groupBy, () => {
   clearTimeout(persistTimer)
   persistTimer = setTimeout(() => {
-    emit('update:config', { groupBy: groupBy.value, priorityOrder: priorityOrder.value })
+    emit('update:config', { groupBy: groupBy.value })
   }, 400)
 })
 
@@ -44,15 +38,19 @@ interface ColumnView {
 }
 
 // The set of "columns" to render depends entirely on groupBy: real,
-// user-managed BoardColumns for status; the fixed 4 priority values
-// (user-orderable) for priority; and the dynamic tag pool (plus the No tag
-// bucket) for tag. Only status columns carry rename/delete/mark-done
-// management, and only status/priority/tag (not the No tag bucket) support
-// reordering — the other two modes are otherwise read-only groupings over
-// existing data, not user-defined columns.
+// user-managed BoardColumns for status; the priority registry (low/medium/
+// high defaults plus any board-added custom ones) for priority; and the
+// dynamic tag pool (plus the No tag bucket) for tag. Only status columns
+// carry rename/delete/mark-done management, and only status/priority/tag
+// (not the No tag bucket) support reordering — the other two modes are
+// otherwise read-only groupings over existing data, not user-defined
+// columns.
 const columns = computed<ColumnView[]>(() => {
   if (groupBy.value === 'priority') {
-    return priorityOrder.value.map((priority) => ({ id: priority, name: t(`priority.${priority}`) }))
+    return store.sortedPriorities.map((priority) => ({
+      id: priority.name,
+      name: priorityLabel(priority.name),
+    }))
   }
   if (groupBy.value === 'tag') {
     return [
@@ -119,10 +117,11 @@ function rebuildLocalColumns(): void {
   localColumns.value = map
 }
 
-watch(() => [store.items, store.board, store.tags, groupBy.value] as const, rebuildLocalColumns, {
-  deep: true,
-  immediate: true,
-})
+watch(
+  () => [store.items, store.board, store.tags, store.priorities, groupBy.value] as const,
+  rebuildLocalColumns,
+  { deep: true, immediate: true },
+)
 
 // Cross-list drags in tag mode fire BOTH a remove (on the source column)
 // and an add (on the target column) for the same gesture, each handed only
@@ -169,8 +168,7 @@ async function handleAdd(columnId: string, event: DraggableEvent<WorkItem>): Pro
   const item = event.data
   if (!item) return
   if (groupBy.value === 'priority') {
-    if (item.priority !== columnId)
-      await store.updateItem(item.id, { priority: columnId as Priority })
+    if (item.priority !== columnId) await store.updateItem(item.id, { priority: columnId })
     return
   }
   if (groupBy.value === 'tag') {
@@ -214,6 +212,8 @@ async function addColumn(): Promise<void> {
   if (!name) return
   if (groupBy.value === 'tag') {
     await store.ensureTagRegistered(name)
+  } else if (groupBy.value === 'priority') {
+    await store.ensurePriorityRegistered(name)
   } else if (groupBy.value === 'status') {
     const maxOrder = store.board.reduce((max, column) => Math.max(max, column.order), -1)
     const updated = [
@@ -237,13 +237,19 @@ async function setDoneColumn(columnId: string): Promise<void> {
 
 // Reassigns order to match the dropped sequence exactly. Where that order
 // is persisted depends on groupBy: status columns are real BoardColumns
-// (order field on the entity), priority has no backing entity so its order
-// lives in this widget's config, and tag order is persisted on the Tag
-// entity (registering previously-unregistered tags in the process, since
-// they need a real Tag row to hold an order once the user arranges them).
+// (order field on the entity), and priority/tag order is persisted on their
+// respective registry entities (registering any previously-unregistered
+// name in the process, since it needs a real row to hold an order once the
+// user arranges it).
 async function reorderColumns(newOrder: ColumnView[]): Promise<void> {
   if (groupBy.value === 'priority') {
-    priorityOrder.value = newOrder.map((entry) => entry.id as Priority)
+    const byName = new Map(store.priorities.map((priority) => [priority.name, priority]))
+    const updated = newOrder.map((entry, index) => ({
+      id: byName.get(entry.id)?.id ?? crypto.randomUUID(),
+      name: entry.id,
+      order: index,
+    }))
+    await store.updatePriorities(updated)
     return
   }
   if (groupBy.value === 'tag') {
@@ -389,7 +395,7 @@ async function confirmRemoveColumn(): Promise<void> {
           </div>
         </VueDraggable>
 
-        <div v-if="groupBy !== 'priority'" class="column add-column">
+        <div class="column add-column">
           <input
             v-model="newColumnName"
             class="input type-body"

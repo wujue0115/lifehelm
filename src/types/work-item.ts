@@ -1,4 +1,13 @@
-export type Priority = 'low' | 'medium' | 'high' | 'urgent'
+// Open-ended: 'low'/'medium'/'high' are the built-in, i18n-labeled defaults
+// (see PriorityOption below), but the board lets users register arbitrary
+// additional priority values, so this can't stay a closed union.
+export type Priority = string
+
+export interface PriorityOption {
+  id: string
+  name: string
+  order: number
+}
 
 export interface BoardColumn {
   id: string

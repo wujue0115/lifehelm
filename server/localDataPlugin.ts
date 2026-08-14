@@ -5,6 +5,7 @@ import type {
   AttachmentMeta,
   BoardColumn,
   Comment,
+  PriorityOption,
   Tag,
   TimeEntry,
   WorkItem,
@@ -27,6 +28,7 @@ import {
 const ITEMS_FILE = 'items.json'
 const BOARD_FILE = 'board.json'
 const TAGS_FILE = 'list.json'
+const PRIORITIES_FILE = 'priorities.json'
 const VIEWS_FILE = 'views.json'
 const THEME_CONFIG_FILE = 'appearance.json'
 
@@ -44,6 +46,12 @@ const DEFAULT_BOARD: BoardColumn[] = [
 ]
 
 const DEFAULT_TAGS: Tag[] = []
+
+const DEFAULT_PRIORITIES: PriorityOption[] = [
+  { id: 'low', name: 'low', order: 0 },
+  { id: 'medium', name: 'medium', order: 1 },
+  { id: 'high', name: 'high', order: 2 },
+]
 
 async function readBody(req: IncomingMessage): Promise<unknown> {
   const chunks: Buffer[] = []
@@ -388,6 +396,22 @@ export function localDataPlugin(): Plugin {
               const tags = body ?? []
               await writeJsonFile(TAGS_FILE, tags)
               return sendJson(res, 200, tags)
+            }
+          }
+
+          if (segments[0] === 'priorities' && segments.length === 1) {
+            if (method === 'GET') {
+              const priorities = await readJsonFileOrSeed<PriorityOption[]>(
+                PRIORITIES_FILE,
+                DEFAULT_PRIORITIES,
+              )
+              return sendJson(res, 200, priorities)
+            }
+            if (method === 'PUT') {
+              const body = (await readBody(req)) as PriorityOption[] | undefined
+              const priorities = body ?? []
+              await writeJsonFile(PRIORITIES_FILE, priorities)
+              return sendJson(res, 200, priorities)
             }
           }
 
