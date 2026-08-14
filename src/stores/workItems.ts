@@ -1,19 +1,25 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { api } from '@/api/client'
-import type { BoardColumn, PriorityOption, Tag, TimeEntry, WorkItem } from '@/types/work-item'
-import { getDoneColumnId } from '@/utils/board'
+import type {
+  PriorityOption,
+  StatusOption,
+  TagOption,
+  TimeEntry,
+  WorkItem,
+} from '@/types/work-item'
+import { getDoneStatusId } from '@/utils/status'
 
 export const useWorkItemsStore = defineStore('workItems', () => {
   const items = ref<WorkItem[]>([])
-  const board = ref<BoardColumn[]>([])
-  const tags = ref<Tag[]>([])
+  const statuses = ref<StatusOption[]>([])
+  const tags = ref<TagOption[]>([])
   const priorities = ref<PriorityOption[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
 
-  const sortedBoard = computed(() => [...board.value].sort((a, b) => a.order - b.order))
-  const doneColumnId = computed(() => getDoneColumnId(board.value))
+  const sortedStatuses = computed(() => [...statuses.value].sort((a, b) => a.order - b.order))
+  const doneStatusId = computed(() => getDoneStatusId(statuses.value))
   const allTags = computed(() => {
     const tagSet = new Set<string>()
     for (const item of items.value) {
@@ -56,21 +62,21 @@ export const useWorkItemsStore = defineStore('workItems', () => {
   })
 
   function isItemCompleted(item: WorkItem): boolean {
-    return item.statusId === doneColumnId.value
+    return item.statusId === doneStatusId.value
   }
 
   async function fetchAll(): Promise<void> {
     loading.value = true
     error.value = null
     try {
-      const [fetchedItems, fetchedBoard, fetchedTags, fetchedPriorities] = await Promise.all([
+      const [fetchedItems, fetchedStatuses, fetchedTags, fetchedPriorities] = await Promise.all([
         api.listItems(),
-        api.getBoard(),
+        api.getStatuses(),
         api.getTags(),
         api.getPriorities(),
       ])
       items.value = fetchedItems
-      board.value = fetchedBoard
+      statuses.value = fetchedStatuses
       tags.value = fetchedTags
       priorities.value = fetchedPriorities
     } catch (err) {
@@ -101,11 +107,11 @@ export const useWorkItemsStore = defineStore('workItems', () => {
     items.value = items.value.filter((item) => item.id !== id)
   }
 
-  async function updateBoard(columns: BoardColumn[]): Promise<void> {
-    board.value = await api.updateBoard(columns)
+  async function updateStatuses(newStatuses: StatusOption[]): Promise<void> {
+    statuses.value = await api.updateStatuses(newStatuses)
   }
 
-  async function updateTags(newTags: Tag[]): Promise<void> {
+  async function updateTags(newTags: TagOption[]): Promise<void> {
     tags.value = await api.updateTags(newTags)
   }
 
@@ -168,11 +174,11 @@ export const useWorkItemsStore = defineStore('workItems', () => {
 
   return {
     items,
-    board,
+    statuses,
     tags,
     priorities,
-    sortedBoard,
-    doneColumnId,
+    sortedStatuses,
+    doneStatusId,
     allTags,
     sortedTagNames,
     sortedPriorities,
@@ -183,7 +189,7 @@ export const useWorkItemsStore = defineStore('workItems', () => {
     createItem,
     updateItem,
     deleteItem,
-    updateBoard,
+    updateStatuses,
     updateTags,
     ensureTagRegistered,
     updatePriorities,

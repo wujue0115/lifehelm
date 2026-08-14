@@ -72,6 +72,7 @@ export default {
     low: 'Low',
     medium: 'Medium',
     high: 'High',
+    none: 'No priority',
   },
   dueStatus: {
     overdue: 'Overdue',
@@ -129,6 +130,10 @@ export default {
       'Are you sure you want to delete this column? This cannot be undone.',
     deleteColumnWarningMessage:
       'Deleting this status will leave any work items currently in it without a status. Are you sure you want to delete it?',
+    deletePriorityWarningMessage:
+      'Deleting this priority will leave any work items currently set to it without a priority. Are you sure you want to delete it?',
+    deleteTagWarningMessage:
+      'Deleting this tag will remove it from any work items currently wearing it. Are you sure you want to delete it?',
     markAsDone: 'Mark as the completed status',
     doneColumnActive: 'This is the completed status',
     dragColumn: 'Drag to reorder',

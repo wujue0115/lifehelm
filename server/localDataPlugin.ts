@@ -3,10 +3,10 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { Plugin } from 'vite'
 import type {
   AttachmentMeta,
-  BoardColumn,
   Comment,
   PriorityOption,
-  Tag,
+  StatusOption,
+  TagOption,
   TimeEntry,
   WorkItem,
 } from '../src/types/work-item.js'
@@ -26,8 +26,8 @@ import {
 } from './dataStore.js'
 
 const ITEMS_FILE = 'items.json'
-const BOARD_FILE = 'board.json'
-const TAGS_FILE = 'list.json'
+const STATUS_FILE = 'status.json'
+const TAGS_FILE = 'tags.json'
 const PRIORITIES_FILE = 'priorities.json'
 const VIEWS_FILE = 'views.json'
 const THEME_CONFIG_FILE = 'appearance.json'
@@ -39,13 +39,13 @@ const DEFAULT_THEME_CONFIG: ThemeConfig = {
   spacingScale: 1,
 }
 
-const DEFAULT_BOARD: BoardColumn[] = [
+const DEFAULT_STATUSES: StatusOption[] = [
   { id: 'todo', name: '待處理', order: 0 },
   { id: 'doing', name: '進行中', order: 1 },
   { id: 'done', name: '已完成', order: 2, isDone: true },
 ]
 
-const DEFAULT_TAGS: Tag[] = []
+const DEFAULT_TAGS: TagOption[] = []
 
 const DEFAULT_PRIORITIES: PriorityOption[] = [
   { id: 'low', name: 'low', order: 0 },
@@ -89,13 +89,16 @@ export function localDataPlugin(): Plugin {
             if (method === 'POST') {
               const body = (await readBody(req)) as Partial<WorkItem> | undefined
               const items = await readJsonFile<WorkItem[]>(ITEMS_FILE, [])
-              const board = await readJsonFileOrSeed<BoardColumn[]>(BOARD_FILE, DEFAULT_BOARD)
+              const statuses = await readJsonFileOrSeed<StatusOption[]>(
+                STATUS_FILE,
+                DEFAULT_STATUSES,
+              )
               const now = new Date().toISOString()
               const newItem: WorkItem = {
                 id: randomUUID(),
                 title: body?.title ?? '',
                 description: body?.description ?? '',
-                statusId: body?.statusId ?? board[0]?.id ?? 'todo',
+                statusId: body?.statusId ?? statuses[0]?.id ?? 'todo',
                 priority: body?.priority ?? 'medium',
                 tags: body?.tags ?? [],
                 startDate: body?.startDate ?? null,
@@ -373,26 +376,29 @@ export function localDataPlugin(): Plugin {
             }
           }
 
-          if (segments[0] === 'board' && segments.length === 1) {
+          if (segments[0] === 'status' && segments.length === 1) {
             if (method === 'GET') {
-              const board = await readJsonFileOrSeed<BoardColumn[]>(BOARD_FILE, DEFAULT_BOARD)
-              return sendJson(res, 200, board)
+              const statuses = await readJsonFileOrSeed<StatusOption[]>(
+                STATUS_FILE,
+                DEFAULT_STATUSES,
+              )
+              return sendJson(res, 200, statuses)
             }
             if (method === 'PUT') {
-              const body = (await readBody(req)) as BoardColumn[] | undefined
-              const board = body ?? []
-              await writeJsonFile(BOARD_FILE, board)
-              return sendJson(res, 200, board)
+              const body = (await readBody(req)) as StatusOption[] | undefined
+              const statuses = body ?? []
+              await writeJsonFile(STATUS_FILE, statuses)
+              return sendJson(res, 200, statuses)
             }
           }
 
-          if (segments[0] === 'list' && segments.length === 1) {
+          if (segments[0] === 'tags' && segments.length === 1) {
             if (method === 'GET') {
-              const tags = await readJsonFileOrSeed<Tag[]>(TAGS_FILE, DEFAULT_TAGS)
+              const tags = await readJsonFileOrSeed<TagOption[]>(TAGS_FILE, DEFAULT_TAGS)
               return sendJson(res, 200, tags)
             }
             if (method === 'PUT') {
-              const body = (await readBody(req)) as Tag[] | undefined
+              const body = (await readBody(req)) as TagOption[] | undefined
               const tags = body ?? []
               await writeJsonFile(TAGS_FILE, tags)
               return sendJson(res, 200, tags)

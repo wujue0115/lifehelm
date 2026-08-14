@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { TAG_COLOR_KEYS, type TagColorKey } from '@/config/tagColors'
-import type { BoardColumn, Priority, PriorityOption } from '@/types/work-item'
+import type { Priority, PriorityOption, StatusOption } from '@/types/work-item'
 import { usePriorityLabel } from '@/composables/usePriorityLabel'
 import ModalOverlay from './ModalOverlay.vue'
 import DialogHeader from './DialogHeader.vue'
 
 const props = defineProps<{
   open: boolean
-  statuses: BoardColumn[]
+  statuses: StatusOption[]
   priorities: PriorityOption[]
   tags: string[]
   statusColors: Record<string, TagColorKey>

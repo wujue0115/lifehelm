@@ -6,7 +6,7 @@ import { computeStats } from '@/utils/stats'
 defineOptions({ inheritAttrs: false })
 
 const store = useWorkItemsStore()
-const stats = computed(() => computeStats(store.items, store.board, store.priorities))
+const stats = computed(() => computeStats(store.items, store.statuses, store.priorities))
 </script>
 
 <template>

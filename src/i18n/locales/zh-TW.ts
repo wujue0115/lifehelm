@@ -71,6 +71,7 @@ export default {
     low: '低',
     medium: '中',
     high: '高',
+    none: '無優先級',
   },
   dueStatus: {
     overdue: '已逾期',
@@ -127,6 +128,10 @@ export default {
     deleteColumnConfirmMessage: '確定要刪除這個欄位嗎？此動作無法復原。',
     deleteColumnWarningMessage:
       '如果刪除此狀態，目前套用此狀態的工作項目狀態將會變成空的。確定要刪除嗎？',
+    deletePriorityWarningMessage:
+      '如果刪除此優先級，目前套用此優先級的工作項目優先級將會變成空的。確定要刪除嗎？',
+    deleteTagWarningMessage:
+      '如果刪除此標籤，目前套用此標籤的工作項目將會移除這個標籤。確定要刪除嗎？',
     markAsDone: '設為完成狀態',
     doneColumnActive: '此為完成狀態',
     dragColumn: '拖曳排序',

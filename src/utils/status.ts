@@ -1,4 +1,4 @@
-import type { BoardColumn } from '@/types/work-item'
+import type { StatusOption } from '@/types/work-item'
 
 // The completed column is whichever one has `isDone: true`. Boards saved
 // before that field existed have it unset on every column — for those,
@@ -7,9 +7,9 @@ import type { BoardColumn } from '@/types/work-item'
 // the UI. This fallback is intentionally NOT persisted anywhere: once a
 // column is explicitly marked, order can change freely (columns added or
 // removed) without ever again silently moving which status counts as done.
-export function getDoneColumnId(board: BoardColumn[]): string | undefined {
-  const explicit = board.find((column) => column.isDone)
+export function getDoneStatusId(statuses: StatusOption[]): string | undefined {
+  const explicit = statuses.find((status) => status.isDone)
   if (explicit) return explicit.id
-  const sorted = [...board].sort((a, b) => a.order - b.order)
+  const sorted = [...statuses].sort((a, b) => a.order - b.order)
   return sorted[sorted.length - 1]?.id
 }

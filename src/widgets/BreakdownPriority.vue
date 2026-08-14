@@ -8,7 +8,7 @@ defineOptions({ inheritAttrs: false })
 
 const store = useWorkItemsStore()
 const priorityLabel = usePriorityLabel()
-const stats = computed(() => computeStats(store.items, store.board, store.priorities))
+const stats = computed(() => computeStats(store.items, store.statuses, store.priorities))
 const maxPriorityCount = computed(() =>
   Math.max(1, ...stats.value.priorityCounts.map((p) => p.count)),
 )

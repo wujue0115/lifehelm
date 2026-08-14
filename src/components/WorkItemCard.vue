@@ -18,7 +18,7 @@ const { t } = useI18n()
     </div>
     <div class="meta">
       <StatusBadge v-if="statusName" :name="statusName" :completed="isCompleted" />
-      <PriorityBadge :priority="item.priority" />
+      <PriorityBadge v-if="item.priority" :priority="item.priority" />
       <DueDateLabel
         :start-date="item.startDate"
         :due-date="item.dueDate"
