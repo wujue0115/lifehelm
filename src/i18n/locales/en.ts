@@ -1,5 +1,5 @@
 export default {
-  brand: 'Work Manager',
+  brand: 'Lifehelm',
   nav: {
     list: 'List',
     board: 'Board',
@@ -51,7 +51,7 @@ export default {
       serif: 'Serif',
       mono: 'Monospace',
     },
-    fontPreview: 'Work Manager Aa 123',
+    fontPreview: 'Lifehelm Aa 123',
     radius: 'Corner radius',
     radiusNames: {
       sharp: 'Sharp',

@@ -2,7 +2,7 @@ import { ref, watch } from 'vue'
 
 export type Theme = 'light' | 'dark'
 
-const STORAGE_KEY = 'work-manager-theme'
+const STORAGE_KEY = 'lifehelm-theme'
 
 function getInitialTheme(): Theme {
   const stored = localStorage.getItem(STORAGE_KEY)

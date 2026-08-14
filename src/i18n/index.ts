@@ -2,7 +2,7 @@ import { createI18n } from 'vue-i18n'
 import zhTW from './locales/zh-TW'
 import en from './locales/en'
 
-const STORAGE_KEY = 'work-manager-locale'
+const STORAGE_KEY = 'lifehelm-locale'
 
 function getInitialLocale(): 'en' | 'zh-TW' {
   const stored = localStorage.getItem(STORAGE_KEY)
