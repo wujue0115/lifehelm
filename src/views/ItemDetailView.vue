@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useWorkItemsStore } from '@/stores/workItems'
 import type { Priority, WorkItem } from '@/types/work-item'
+import { usePriorityLabel } from '@/composables/usePriorityLabel'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import ActionIcon from '@/components/ActionIcon.vue'
 import CommentList from '@/components/CommentList.vue'
@@ -16,6 +17,7 @@ const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
 const store = useWorkItemsStore()
+const priorityLabel = usePriorityLabel()
 
 const isNew = computed(() => route.name === 'item-new')
 const itemId = computed(() => (typeof route.params.id === 'string' ? route.params.id : undefined))
@@ -152,10 +154,13 @@ async function handleDelete(): Promise<void> {
           <label class="field">
             <span class="type-label">{{ t('itemDetail.fieldPriority') }}</span>
             <select v-model="form.priority" class="input type-body">
-              <option value="low">{{ t('priority.low') }}</option>
-              <option value="medium">{{ t('priority.medium') }}</option>
-              <option value="high">{{ t('priority.high') }}</option>
-              <option value="urgent">{{ t('priority.urgent') }}</option>
+              <option
+                v-for="priority in store.sortedPriorities"
+                :key="priority.id"
+                :value="priority.name"
+              >
+                {{ priorityLabel(priority.name) }}
+              </option>
             </select>
           </label>
 

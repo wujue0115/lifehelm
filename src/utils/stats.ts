@@ -1,4 +1,4 @@
-import type { BoardColumn, Priority, WorkItem } from '@/types/work-item'
+import type { BoardColumn, PriorityOption, WorkItem } from '@/types/work-item'
 import { getDueStatus } from './dueDate'
 import { getDoneColumnId } from './board'
 
@@ -13,6 +13,11 @@ export interface TagCount {
   count: number
 }
 
+export interface PriorityCount {
+  priority: string
+  count: number
+}
+
 export interface DashboardStats {
   total: number
   completed: number
@@ -22,12 +27,17 @@ export interface DashboardStats {
   dueSoonCount: number
   statusCounts: StatusCount[]
   tagCounts: TagCount[]
-  priorityCounts: Record<Priority, number>
+  priorityCounts: PriorityCount[]
   totalTrackedSeconds: number
 }
 
-export function computeStats(items: WorkItem[], board: BoardColumn[]): DashboardStats {
+export function computeStats(
+  items: WorkItem[],
+  board: BoardColumn[],
+  priorities: PriorityOption[],
+): DashboardStats {
   const sortedBoard = [...board].sort((a, b) => a.order - b.order)
+  const sortedPriorities = [...priorities].sort((a, b) => a.order - b.order)
   const doneColumnId = getDoneColumnId(board)
 
   const total = items.length
@@ -37,12 +47,12 @@ export function computeStats(items: WorkItem[], board: BoardColumn[]): Dashboard
   let overdueCount = 0
   let dueTodayCount = 0
   let dueSoonCount = 0
-  const priorityCounts: Record<Priority, number> = { low: 0, medium: 0, high: 0, urgent: 0 }
+  const priorityCountByName = new Map<string, number>()
   const tagMap = new Map<string, number>()
   let totalTrackedSeconds = 0
 
   for (const item of items) {
-    priorityCounts[item.priority] += 1
+    priorityCountByName.set(item.priority, (priorityCountByName.get(item.priority) ?? 0) + 1)
     for (const tag of item.tags) tagMap.set(tag, (tagMap.get(tag) ?? 0) + 1)
     for (const entry of item.timeEntries) totalTrackedSeconds += entry.durationSeconds ?? 0
 
@@ -57,6 +67,11 @@ export function computeStats(items: WorkItem[], board: BoardColumn[]): Dashboard
     columnId: column.id,
     name: column.name,
     count: items.filter((item) => item.statusId === column.id).length,
+  }))
+
+  const priorityCounts: PriorityCount[] = sortedPriorities.map((priority) => ({
+    priority: priority.name,
+    count: priorityCountByName.get(priority.name) ?? 0,
   }))
 
   const tagCounts: TagCount[] = Array.from(tagMap.entries())

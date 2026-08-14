@@ -10,6 +10,7 @@ import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import SortIcon from '@/components/SortIcon.vue'
 import ActionIcon from '@/components/ActionIcon.vue'
 import ListColorSettings from '@/components/ListColorSettings.vue'
+import { usePriorityLabel } from '@/composables/usePriorityLabel'
 
 type SortKey = 'title' | 'status' | 'priority' | 'tags' | 'dueDate' | 'updatedAt'
 
@@ -23,6 +24,7 @@ const emit = defineEmits<{ 'update:config': [ViewConfig] }>()
 
 const { t } = useI18n()
 const store = useWorkItemsStore()
+const priorityLabel = usePriorityLabel()
 
 const cfg = (props.config ?? {}) as Partial<ListViewConfig>
 const search = ref(cfg.search ?? '')
@@ -73,7 +75,11 @@ const statusOrderById = computed(() => {
   return map
 })
 
-const priorityOrder: Record<Priority, number> = { low: 0, medium: 1, high: 2, urgent: 3 }
+const priorityOrderById = computed(() => {
+  const map = new Map<string, number>()
+  store.sortedPriorities.forEach((priority, index) => map.set(priority.name, index))
+  return map
+})
 
 const filteredItems = computed(() => {
   const query = search.value.trim().toLowerCase()
@@ -101,7 +107,9 @@ const sortedItems = computed(() => {
       result =
         (statusOrderById.value.get(a.statusId) ?? 0) - (statusOrderById.value.get(b.statusId) ?? 0)
     else if (sortKey.value === 'priority')
-      result = priorityOrder[a.priority] - priorityOrder[b.priority]
+      result =
+        (priorityOrderById.value.get(a.priority) ?? 0) -
+        (priorityOrderById.value.get(b.priority) ?? 0)
     else if (sortKey.value === 'tags')
       result = [...a.tags]
         .sort()
@@ -169,10 +177,13 @@ async function confirmDelete(): Promise<void> {
         </select>
         <select v-model="priorityFilter" class="input type-body">
           <option value="all">{{ t('list.allPriority') }}</option>
-          <option value="low">{{ t('priority.low') }}</option>
-          <option value="medium">{{ t('priority.medium') }}</option>
-          <option value="high">{{ t('priority.high') }}</option>
-          <option value="urgent">{{ t('priority.urgent') }}</option>
+          <option
+            v-for="priority in store.sortedPriorities"
+            :key="priority.id"
+            :value="priority.name"
+          >
+            {{ priorityLabel(priority.name) }}
+          </option>
         </select>
         <select v-model="tagFilter" class="input type-body">
           <option value="all">{{ t('list.allTags') }}</option>
@@ -198,6 +209,7 @@ async function confirmDelete(): Promise<void> {
     <ListColorSettings
       :open="settingsOpen"
       :statuses="store.sortedBoard"
+      :priorities="store.sortedPriorities"
       :tags="store.allTags"
       :status-colors="statusColors"
       :priority-colors="priorityColors"

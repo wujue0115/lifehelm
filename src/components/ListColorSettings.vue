@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { TAG_COLOR_KEYS, type TagColorKey } from '@/config/tagColors'
-import type { BoardColumn, Priority } from '@/types/work-item'
+import type { BoardColumn, Priority, PriorityOption } from '@/types/work-item'
+import { usePriorityLabel } from '@/composables/usePriorityLabel'
 import ModalOverlay from './ModalOverlay.vue'
 import DialogHeader from './DialogHeader.vue'
 
 const props = defineProps<{
   open: boolean
   statuses: BoardColumn[]
+  priorities: PriorityOption[]
   tags: string[]
   statusColors: Record<string, TagColorKey>
   priorityColors: Partial<Record<Priority, TagColorKey>>
@@ -21,8 +23,7 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-
-const PRIORITIES: Priority[] = ['low', 'medium', 'high', 'urgent']
+const priorityLabel = usePriorityLabel()
 
 function setStatusColor(statusId: string, color: TagColorKey | null): void {
   const next = { ...props.statusColors }
@@ -77,27 +78,27 @@ function setTagColor(tag: string, color: TagColorKey | null): void {
         </div>
       </section>
 
-      <section class="group">
+      <section v-if="priorities.length" class="group">
         <h3 class="type-label group-title">{{ t('list.colorSettingsPriority') }}</h3>
-        <div v-for="priority in PRIORITIES" :key="priority" class="row">
-          <span class="type-body-sm row-label">{{ t(`priority.${priority}`) }}</span>
+        <div v-for="priority in priorities" :key="priority.id" class="row">
+          <span class="type-body-sm row-label">{{ priorityLabel(priority.name) }}</span>
           <div class="swatches">
             <button
               type="button"
               class="swatch none"
-              :class="{ selected: !priorityColors[priority] }"
+              :class="{ selected: !priorityColors[priority.name] }"
               :title="t('list.colorNone')"
-              @click="setPriorityColor(priority, null)"
+              @click="setPriorityColor(priority.name, null)"
             ></button>
             <button
               v-for="key in TAG_COLOR_KEYS"
               :key="key"
               type="button"
               class="swatch"
-              :class="{ selected: priorityColors[priority] === key }"
+              :class="{ selected: priorityColors[priority.name] === key }"
               :style="{ '--swatch-color': `var(--tag-color-${key})` }"
               :title="t(`list.colorNames.${key}`)"
-              @click="setPriorityColor(priority, key)"
+              @click="setPriorityColor(priority.name, key)"
             ></button>
           </div>
         </div>

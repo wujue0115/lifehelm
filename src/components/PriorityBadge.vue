@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 import type { Priority } from '@/types/work-item'
 import type { TagColorKey } from '@/config/tagColors'
+import { usePriorityLabel } from '@/composables/usePriorityLabel'
 
 const props = defineProps<{ priority: Priority; color?: TagColorKey }>()
 
-const { t } = useI18n()
-const label = computed(() => t(`priority.${props.priority}`))
+const priorityLabel = usePriorityLabel()
+const label = computed(() => priorityLabel(props.priority))
 const style = computed(() =>
   props.color ? { '--badge-color': `var(--tag-color-${props.color})` } : undefined,
 )

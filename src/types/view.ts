@@ -29,7 +29,6 @@ export type BoardGroupBy = 'status' | 'priority' | 'tag'
 
 export interface BoardViewConfig {
   groupBy: BoardGroupBy
-  priorityOrder?: Priority[]
 }
 
 export type ViewConfig = Partial<ListViewConfig> | Partial<BoardViewConfig> | Record<string, never>

@@ -1,30 +1,27 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { useWorkItemsStore } from '@/stores/workItems'
 import { computeStats } from '@/utils/stats'
-import type { Priority } from '@/types/work-item'
+import { usePriorityLabel } from '@/composables/usePriorityLabel'
 
 defineOptions({ inheritAttrs: false })
 
-const { t } = useI18n()
 const store = useWorkItemsStore()
-const stats = computed(() => computeStats(store.items, store.board))
-const maxPriorityCount = computed(() => Math.max(1, ...Object.values(stats.value.priorityCounts)))
-const priorityOrder: Priority[] = ['urgent', 'high', 'medium', 'low']
+const priorityLabel = usePriorityLabel()
+const stats = computed(() => computeStats(store.items, store.board, store.priorities))
+const maxPriorityCount = computed(() =>
+  Math.max(1, ...stats.value.priorityCounts.map((p) => p.count)),
+)
 </script>
 
 <template>
   <div class="bar-list">
-    <div v-for="key in priorityOrder" :key="key" class="bar-row">
-      <span class="type-body-sm bar-label">{{ t(`priority.${key}`) }}</span>
+    <div v-for="p in stats.priorityCounts" :key="p.priority" class="bar-row">
+      <span class="type-body-sm bar-label">{{ priorityLabel(p.priority) }}</span>
       <div class="bar-track">
-        <div
-          class="bar-fill"
-          :style="{ width: `${(stats.priorityCounts[key] / maxPriorityCount) * 100}%` }"
-        ></div>
+        <div class="bar-fill" :style="{ width: `${(p.count / maxPriorityCount) * 100}%` }"></div>
       </div>
-      <span class="type-caption bar-count">{{ stats.priorityCounts[key] }}</span>
+      <span class="type-caption bar-count">{{ p.count }}</span>
     </div>
   </div>
 </template>
