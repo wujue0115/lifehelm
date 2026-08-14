@@ -1,7 +1,7 @@
 import { ref, watch } from 'vue'
 
-const WIDTH_STORAGE_KEY = 'work-manager-sidebar-width'
-const COLLAPSED_STORAGE_KEY = 'work-manager-sidebar-collapsed'
+const WIDTH_STORAGE_KEY = 'lifehelm-sidebar-width'
+const COLLAPSED_STORAGE_KEY = 'lifehelm-sidebar-collapsed'
 
 export const SIDEBAR_MIN_WIDTH = 180
 export const SIDEBAR_MAX_WIDTH = 400

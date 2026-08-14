@@ -1,5 +1,5 @@
 export default {
-  brand: 'Work Manager',
+  brand: 'Lifehelm',
   nav: {
     list: '清單',
     board: '看板',
