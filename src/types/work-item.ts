@@ -1,3 +1,5 @@
+import type { TagColorKey } from '../config/tagColors.js'
+
 // Open-ended: 'low'/'medium'/'high' are the built-in, i18n-labeled defaults
 // (see PriorityOption below), but the board lets users register arbitrary
 // additional priority values, so this can't stay a closed union.
@@ -9,10 +11,17 @@ export type Priority = string
 // storage/list-rendering (Vue :key), not a lookup handle. A practical
 // consequence: renaming an entry's `name` orphans any WorkItem still holding
 // the old name, since nothing re-links by `id`.
+//
+// `color` is the *global* badge tint (DESIGN.md "Status/Priority/Tag Color"),
+// shared by every List/Board/Calendar view. A view can override it with its
+// own per-view mapping (ListViewConfig/BoardViewConfig/CalendarViewConfig's
+// statusColors/priorityColors/tagColors, src/types/view.ts) — see
+// src/utils/colors.ts#resolveColor for the view-wins-over-global rule.
 export interface PriorityOption {
   id: string
   name: string
   order: number
+  color?: TagColorKey
 }
 
 export interface StatusOption {
@@ -24,12 +33,14 @@ export interface StatusOption {
    * changes which status counts as done. At most one column should have this
    * set true at a time. */
   isDone?: boolean
+  color?: TagColorKey
 }
 
 export interface TagOption {
   id: string
   name: string
   order: number
+  color?: TagColorKey
 }
 
 export interface TimeEntry {

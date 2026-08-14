@@ -1,12 +1,20 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import type { WorkItem } from '@/types/work-item'
+import type { TagColorKey } from '@/config/tagColors'
 import StatusBadge from './StatusBadge.vue'
 import PriorityBadge from './PriorityBadge.vue'
 import TagPill from './TagPill.vue'
 import DueDateLabel from './DueDateLabel.vue'
 
-defineProps<{ item: WorkItem; statusName?: string; isCompleted?: boolean }>()
+defineProps<{
+  item: WorkItem
+  statusName?: string
+  isCompleted?: boolean
+  statusColor?: TagColorKey
+  priorityColor?: TagColorKey
+  tagColors?: Record<string, TagColorKey>
+}>()
 const { t } = useI18n()
 </script>
 
@@ -17,8 +25,13 @@ const { t } = useI18n()
       <p class="title type-body-sm">{{ item.title }}</p>
     </div>
     <div class="meta">
-      <StatusBadge v-if="statusName" :name="statusName" :completed="isCompleted" />
-      <PriorityBadge v-if="item.priority" :priority="item.priority" />
+      <StatusBadge
+        v-if="statusName"
+        :name="statusName"
+        :completed="isCompleted"
+        :color="statusColor"
+      />
+      <PriorityBadge v-if="item.priority" :priority="item.priority" :color="priorityColor" />
       <DueDateLabel
         :start-date="item.startDate"
         :due-date="item.dueDate"
@@ -26,7 +39,7 @@ const { t } = useI18n()
       />
     </div>
     <div v-if="item.tags.length" class="tags">
-      <TagPill v-for="tag in item.tags" :key="tag" :label="tag" />
+      <TagPill v-for="tag in item.tags" :key="tag" :label="tag" :color="tagColors?.[tag]" />
     </div>
   </RouterLink>
 </template>

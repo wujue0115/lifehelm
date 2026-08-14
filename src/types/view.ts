@@ -13,25 +13,38 @@ export interface WidgetLayoutEntry {
   config?: ViewConfig
 }
 
-export interface ListViewConfig {
+// Per-view override layer for the global status/priority/tag colors (see
+// PriorityOption/StatusOption/TagOption.color in work-item.ts). Shared by
+// every widget whose panel has a color-settings button — the view's own
+// mapping wins over the global color when both are set for the same name.
+export interface ColorConfig {
+  statusColors?: Record<string, TagColorKey>
+  priorityColors?: Partial<Record<Priority, TagColorKey>>
+  tagColors?: Record<string, TagColorKey>
+}
+
+export interface ListViewConfig extends ColorConfig {
   statusFilter: string
   priorityFilter: string
   tagFilter: string
   search: string
   sortKey: string
   sortDir: 'asc' | 'desc'
-  statusColors?: Record<string, TagColorKey>
-  priorityColors?: Partial<Record<Priority, TagColorKey>>
-  tagColors?: Record<string, TagColorKey>
 }
 
 export type BoardGroupBy = 'status' | 'priority' | 'tag'
 
-export interface BoardViewConfig {
+export interface BoardViewConfig extends ColorConfig {
   groupBy: BoardGroupBy
 }
 
-export type ViewConfig = Partial<ListViewConfig> | Partial<BoardViewConfig> | Record<string, never>
+export type CalendarViewConfig = ColorConfig
+
+export type ViewConfig =
+  | Partial<ListViewConfig>
+  | Partial<BoardViewConfig>
+  | Partial<CalendarViewConfig>
+  | Record<string, never>
 
 export const DEFAULT_LIST_CONFIG: ListViewConfig = {
   statusFilter: 'all',
