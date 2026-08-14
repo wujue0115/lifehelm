@@ -130,7 +130,13 @@ export default {
       '如果刪除此狀態，目前套用此狀態的工作項目狀態將會變成空的。確定要刪除嗎？',
     markAsDone: '設為完成狀態',
     doneColumnActive: '此為完成狀態',
+    dragColumn: '拖曳排序',
     addColumnPlaceholder: '+ 新增欄位',
+    groupBy: '分組依據',
+    groupByStatus: '狀態',
+    groupByPriority: '優先級',
+    groupByTag: '標籤',
+    noTag: '無標籤',
   },
   calendar: {
     prevMonth: '上個月',

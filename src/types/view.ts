@@ -25,7 +25,13 @@ export interface ListViewConfig {
   tagColors?: Record<string, TagColorKey>
 }
 
-export type ViewConfig = Partial<ListViewConfig> | Record<string, never>
+export type BoardGroupBy = 'status' | 'priority' | 'tag'
+
+export interface BoardViewConfig {
+  groupBy: BoardGroupBy
+}
+
+export type ViewConfig = Partial<ListViewConfig> | Partial<BoardViewConfig> | Record<string, never>
 
 export const DEFAULT_LIST_CONFIG: ListViewConfig = {
   statusFilter: 'all',

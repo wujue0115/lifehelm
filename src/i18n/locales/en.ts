@@ -132,7 +132,13 @@ export default {
       'Deleting this status will leave any work items currently in it without a status. Are you sure you want to delete it?',
     markAsDone: 'Mark as the completed status',
     doneColumnActive: 'This is the completed status',
+    dragColumn: 'Drag to reorder',
     addColumnPlaceholder: '+ Add column',
+    groupBy: 'Group by',
+    groupByStatus: 'Status',
+    groupByPriority: 'Priority',
+    groupByTag: 'Tag',
+    noTag: 'No tag',
   },
   calendar: {
     prevMonth: 'Prev',

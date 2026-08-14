@@ -1,16 +1,23 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import type { WorkItem } from '@/types/work-item'
+import StatusBadge from './StatusBadge.vue'
 import PriorityBadge from './PriorityBadge.vue'
 import TagPill from './TagPill.vue'
 import DueDateLabel from './DueDateLabel.vue'
 
-defineProps<{ item: WorkItem; isCompleted?: boolean }>()
+defineProps<{ item: WorkItem; statusName?: string; isCompleted?: boolean }>()
+const { t } = useI18n()
 </script>
 
 <template>
   <RouterLink :to="`/items/${item.id}`" class="work-card">
-    <p class="title type-body-sm">{{ item.title }}</p>
+    <div class="card-header">
+      <span class="card-drag-handle" :title="t('view.dragHandle')">⠿</span>
+      <p class="title type-body-sm">{{ item.title }}</p>
+    </div>
     <div class="meta">
+      <StatusBadge v-if="statusName" :name="statusName" :completed="isCompleted" />
       <PriorityBadge :priority="item.priority" />
       <DueDateLabel
         :start-date="item.startDate"
@@ -33,16 +40,34 @@ defineProps<{ item: WorkItem; isCompleted?: boolean }>()
   padding: var(--space-sm);
   text-decoration: none;
   color: var(--color-ink);
-  cursor: grab;
 }
 
 .work-card:hover {
   border-color: var(--color-border-strong);
 }
 
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.card-drag-handle {
+  cursor: grab;
+  color: var(--color-ink-muted);
+  flex-shrink: 0;
+}
+
+.card-drag-handle:active {
+  cursor: grabbing;
+}
+
 .title {
+  flex: 1;
+  min-width: 0;
   font-weight: 500;
-  margin: 0 0 8px;
+  margin: 0;
 }
 
 .meta {

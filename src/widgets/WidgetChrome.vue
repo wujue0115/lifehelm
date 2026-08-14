@@ -204,8 +204,12 @@ function startMove(event: MouseEvent): void {
   color: var(--color-ink-secondary);
 }
 
-.widget-drag-handle {
+.icon-btn.widget-drag-handle {
   cursor: grab;
+}
+
+.icon-btn.widget-drag-handle:active {
+  cursor: grabbing;
 }
 
 .icon-btn {
