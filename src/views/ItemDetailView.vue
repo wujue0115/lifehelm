@@ -106,11 +106,11 @@ async function handleSubmit(): Promise<void> {
       await store.ensureTagRegistered(tagName)
     }
     if (isNew.value) {
-      const created = await store.createItem(payload)
-      await router.push(`/items/${created.id}`)
+      await store.createItem(payload)
     } else if (itemId.value) {
       await store.updateItem(itemId.value, payload)
     }
+    router.back()
   } catch (err) {
     errorMessage.value = (err as Error).message
   } finally {
@@ -171,16 +171,6 @@ async function handleDelete(): Promise<void> {
               </option>
             </select>
           </label>
-
-          <label class="field">
-            <span class="type-label">{{ t('itemDetail.fieldStartDate') }}</span>
-            <input v-model="form.startDate" class="input type-body" type="date" />
-          </label>
-
-          <label class="field">
-            <span class="type-label">{{ t('itemDetail.fieldEndDate') }}</span>
-            <input v-model="form.dueDate" class="input type-body" type="date" />
-          </label>
         </div>
 
         <label class="field">
@@ -192,6 +182,18 @@ async function handleDelete(): Promise<void> {
             allow-create
           />
         </label>
+
+        <div class="row">
+          <label class="field">
+            <span class="type-label">{{ t('itemDetail.fieldStartDate') }}</span>
+            <input v-model="form.startDate" class="input type-body" type="date" />
+          </label>
+
+          <label class="field">
+            <span class="type-label">{{ t('itemDetail.fieldEndDate') }}</span>
+            <input v-model="form.dueDate" class="input type-body" type="date" />
+          </label>
+        </div>
 
         <div class="actions">
           <button

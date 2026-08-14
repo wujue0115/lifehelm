@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useViewsStore } from '@/stores/views'
 import { defaultLayoutEntry } from '@/widgets/registry'
@@ -12,6 +12,7 @@ import SwitchToggle from '@/components/SwitchToggle.vue'
 import type { View, WidgetLayoutEntry } from '@/types/view'
 
 const route = useRoute()
+const router = useRouter()
 const { t } = useI18n()
 const viewsStore = useViewsStore()
 
@@ -65,6 +66,7 @@ async function saveChanges(): Promise<void> {
       layout: draftLayout.value,
       layoutFlow: draftFlow.value,
     })
+    router.back()
   } catch (err) {
     saveError.value = (err as Error).message
   } finally {
