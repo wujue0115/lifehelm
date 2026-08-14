@@ -1,4 +1,10 @@
-import type { BoardColumn, PriorityOption, Tag, TimeEntry, WorkItem } from '@/types/work-item'
+import type {
+  PriorityOption,
+  StatusOption,
+  TagOption,
+  TimeEntry,
+  WorkItem,
+} from '@/types/work-item'
 import type { ThemeConfig } from '@/types/theme-config'
 import type { View } from '@/types/view'
 
@@ -24,13 +30,13 @@ export const api = {
     request<WorkItem>(`/api/items/${id}`, { method: 'PUT', body: JSON.stringify(input) }),
   deleteItem: (id: string) => request<void>(`/api/items/${id}`, { method: 'DELETE' }),
 
-  getBoard: () => request<BoardColumn[]>('/api/board'),
-  updateBoard: (columns: BoardColumn[]) =>
-    request<BoardColumn[]>('/api/board', { method: 'PUT', body: JSON.stringify(columns) }),
+  getStatuses: () => request<StatusOption[]>('/api/status'),
+  updateStatuses: (statuses: StatusOption[]) =>
+    request<StatusOption[]>('/api/status', { method: 'PUT', body: JSON.stringify(statuses) }),
 
-  getTags: () => request<Tag[]>('/api/list'),
-  updateTags: (tags: Tag[]) =>
-    request<Tag[]>('/api/list', { method: 'PUT', body: JSON.stringify(tags) }),
+  getTags: () => request<TagOption[]>('/api/tags'),
+  updateTags: (tags: TagOption[]) =>
+    request<TagOption[]>('/api/tags', { method: 'PUT', body: JSON.stringify(tags) }),
 
   getPriorities: () => request<PriorityOption[]>('/api/priorities'),
   updatePriorities: (priorities: PriorityOption[]) =>

@@ -2,11 +2,19 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{
-  modelValue: string[]
-  suggestions?: string[]
-  placeholder?: string
-}>()
+const props = withDefaults(
+  defineProps<{
+    modelValue: string[]
+    suggestions?: string[]
+    placeholder?: string
+    // Off by default — picking from existing tags only. The board's "add
+    // column" input (tag mode) is the one place new tags get registered, so
+    // typing a name that isn't a suggestion here goes nowhere rather than
+    // silently creating an unregistered tag.
+    allowCreate?: boolean
+  }>(),
+  { allowCreate: false },
+)
 
 const emit = defineEmits<{ 'update:modelValue': [string[]] }>()
 
@@ -32,6 +40,7 @@ const options = computed<Option[]>(() => {
   }))
 
   if (
+    props.allowCreate &&
     trimmed !== '' &&
     !props.modelValue.includes(trimmed) &&
     !(props.suggestions ?? []).some((tag) => tag.toLowerCase() === q)
@@ -77,7 +86,15 @@ function handleEnter(): void {
     return
   }
   const trimmed = query.value.trim()
-  if (trimmed) addTag(trimmed)
+  if (!trimmed) return
+  if (props.allowCreate) {
+    addTag(trimmed)
+    return
+  }
+  // Typing the exact name of an existing suggestion and hitting Enter
+  // without opening/navigating the dropdown should still work.
+  const match = (props.suggestions ?? []).find((tag) => tag.toLowerCase() === trimmed.toLowerCase())
+  if (match) addTag(match)
 }
 
 function handleBackspace(): void {

@@ -1,6 +1,6 @@
-import type { BoardColumn, PriorityOption, WorkItem } from '@/types/work-item'
+import type { PriorityOption, StatusOption, WorkItem } from '@/types/work-item'
 import { getDueStatus } from './dueDate'
-import { getDoneColumnId } from './board'
+import { getDoneStatusId } from './status'
 
 export interface StatusCount {
   columnId: string
@@ -33,15 +33,15 @@ export interface DashboardStats {
 
 export function computeStats(
   items: WorkItem[],
-  board: BoardColumn[],
+  statuses: StatusOption[],
   priorities: PriorityOption[],
 ): DashboardStats {
-  const sortedBoard = [...board].sort((a, b) => a.order - b.order)
+  const sortedStatuses = [...statuses].sort((a, b) => a.order - b.order)
   const sortedPriorities = [...priorities].sort((a, b) => a.order - b.order)
-  const doneColumnId = getDoneColumnId(board)
+  const doneStatusId = getDoneStatusId(statuses)
 
   const total = items.length
-  const completed = items.filter((item) => item.statusId === doneColumnId).length
+  const completed = items.filter((item) => item.statusId === doneStatusId).length
   const completionRate = total === 0 ? 0 : Math.round((completed / total) * 100)
 
   let overdueCount = 0
@@ -56,17 +56,17 @@ export function computeStats(
     for (const tag of item.tags) tagMap.set(tag, (tagMap.get(tag) ?? 0) + 1)
     for (const entry of item.timeEntries) totalTrackedSeconds += entry.durationSeconds ?? 0
 
-    const isCompleted = item.statusId === doneColumnId
+    const isCompleted = item.statusId === doneStatusId
     const status = getDueStatus(item.dueDate, isCompleted)
     if (status === 'overdue') overdueCount += 1
     else if (status === 'due-today') dueTodayCount += 1
     else if (status === 'due-soon') dueSoonCount += 1
   }
 
-  const statusCounts: StatusCount[] = sortedBoard.map((column) => ({
-    columnId: column.id,
-    name: column.name,
-    count: items.filter((item) => item.statusId === column.id).length,
+  const statusCounts: StatusCount[] = sortedStatuses.map((statusOption) => ({
+    columnId: statusOption.id,
+    name: statusOption.name,
+    count: items.filter((item) => item.statusId === statusOption.id).length,
   }))
 
   const priorityCounts: PriorityCount[] = sortedPriorities.map((priority) => ({

@@ -52,10 +52,10 @@ async function load(): Promise<void> {
   loading.value = true
   errorMessage.value = null
   try {
-    if (store.board.length === 0 || store.items.length === 0) await store.fetchAll()
+    if (store.statuses.length === 0 || store.items.length === 0) await store.fetchAll()
 
     if (isNew.value) {
-      form.statusId = store.sortedBoard[0]?.id ?? ''
+      form.statusId = store.sortedStatuses[0]?.id ?? ''
       return
     }
 
@@ -97,6 +97,14 @@ async function handleSubmit(): Promise<void> {
     dueDate: form.dueDate ? new Date(form.dueDate).toISOString() : null,
   }
   try {
+    // Sequential, not Promise.all — ensureTagRegistered does a read-modify-
+    // write of the whole tags.json array, so registering more than one new
+    // tag concurrently would race and silently drop all but the last write
+    // (same hazard as the board's tag-drag path). Already-registered names
+    // no-op immediately, so this stays cheap.
+    for (const tagName of payload.tags) {
+      await store.ensureTagRegistered(tagName)
+    }
     if (isNew.value) {
       const created = await store.createItem(payload)
       await router.push(`/items/${created.id}`)
@@ -145,7 +153,7 @@ async function handleDelete(): Promise<void> {
           <label class="field">
             <span class="type-label">{{ t('itemDetail.fieldStatus') }}</span>
             <select v-model="form.statusId" class="input type-body">
-              <option v-for="column in store.sortedBoard" :key="column.id" :value="column.id">
+              <option v-for="column in store.sortedStatuses" :key="column.id" :value="column.id">
                 {{ column.name }}
               </option>
             </select>
@@ -181,6 +189,7 @@ async function handleDelete(): Promise<void> {
             v-model="form.tags"
             :suggestions="store.allTags"
             :placeholder="t('itemDetail.tagsPlaceholder')"
+            allow-create
           />
         </label>
 

@@ -9,7 +9,7 @@ export interface PriorityOption {
   order: number
 }
 
-export interface BoardColumn {
+export interface StatusOption {
   id: string
   name: string
   order: number
@@ -20,7 +20,7 @@ export interface BoardColumn {
   isDone?: boolean
 }
 
-export interface Tag {
+export interface TagOption {
   id: string
   name: string
   order: number

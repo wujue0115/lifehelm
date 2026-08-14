@@ -3,7 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { VueDraggable, type DraggableEvent } from 'vue-draggable-plus'
 import { useWorkItemsStore } from '@/stores/workItems'
-import type { BoardColumn, WorkItem } from '@/types/work-item'
+import type { StatusOption, WorkItem } from '@/types/work-item'
 import type { BoardGroupBy, BoardViewConfig, ViewConfig } from '@/types/view'
 import WorkItemCard from '@/components/WorkItemCard.vue'
 import ActionIcon from '@/components/ActionIcon.vue'
@@ -38,7 +38,7 @@ interface ColumnView {
 }
 
 // The set of "columns" to render depends entirely on groupBy: real,
-// user-managed BoardColumns for status; the priority registry (low/medium/
+// user-managed StatusOptions for status; the priority registry (low/medium/
 // high defaults plus any board-added custom ones) for priority; and the
 // dynamic tag pool (plus the No tag bucket) for tag. Only status columns
 // carry rename/delete/mark-done management, and only status/priority/tag
@@ -58,12 +58,12 @@ const columns = computed<ColumnView[]>(() => {
       { id: NO_TAG_ID, name: t('board.noTag') },
     ]
   }
-  return store.sortedBoard
+  return store.sortedStatuses
 })
 
 const statusNameById = computed(() => {
   const map = new Map<string, string>()
-  for (const column of store.board) map.set(column.id, column.name)
+  for (const status of store.statuses) map.set(status.id, status.name)
   return map
 })
 
@@ -78,14 +78,21 @@ const editingColumnId = ref<string | null>(null)
 const editingName = ref('')
 const pendingDeleteColumnId = ref<string | null>(null)
 
-const pendingDeleteHasItems = computed(() =>
-  pendingDeleteColumnId.value
-    ? store.items.some((item) => item.statusId === pendingDeleteColumnId.value)
-    : false,
-)
+const pendingDeleteHasItems = computed(() => {
+  const columnId = pendingDeleteColumnId.value
+  if (!columnId) return false
+  if (groupBy.value === 'priority') return store.items.some((item) => item.priority === columnId)
+  if (groupBy.value === 'tag') return store.items.some((item) => item.tags.includes(columnId))
+  return store.items.some((item) => item.statusId === columnId)
+})
+const pendingDeleteWarningKey = computed(() => {
+  if (groupBy.value === 'priority') return 'board.deletePriorityWarningMessage'
+  if (groupBy.value === 'tag') return 'board.deleteTagWarningMessage'
+  return 'board.deleteColumnWarningMessage'
+})
 const pendingDeleteMessage = computed(() =>
   pendingDeleteHasItems.value
-    ? t('board.deleteColumnWarningMessage')
+    ? t(pendingDeleteWarningKey.value)
     : t('board.deleteColumnConfirmMessage'),
 )
 
@@ -118,7 +125,7 @@ function rebuildLocalColumns(): void {
 }
 
 watch(
-  () => [store.items, store.board, store.tags, store.priorities, groupBy.value] as const,
+  () => [store.items, store.statuses, store.tags, store.priorities, groupBy.value] as const,
   rebuildLocalColumns,
   { deep: true, immediate: true },
 )
@@ -189,9 +196,9 @@ function handleRemove(columnId: string, event: DraggableEvent<WorkItem>): void {
   schedulePendingTagMove()
 }
 
-function startEditColumn(column: BoardColumn): void {
-  editingColumnId.value = column.id
-  editingName.value = column.name
+function startEditColumn(status: StatusOption): void {
+  editingColumnId.value = status.id
+  editingName.value = status.name
 }
 
 async function saveColumnName(): Promise<void> {
@@ -199,10 +206,10 @@ async function saveColumnName(): Promise<void> {
   if (!columnId) return
   const name = editingName.value.trim()
   if (name) {
-    const updated = store.board.map((column) =>
-      column.id === columnId ? { ...column, name } : column,
+    const updated = store.statuses.map((status) =>
+      status.id === columnId ? { ...status, name } : status,
     )
-    await store.updateBoard(updated)
+    await store.updateStatuses(updated)
   }
   editingColumnId.value = null
 }
@@ -215,12 +222,12 @@ async function addColumn(): Promise<void> {
   } else if (groupBy.value === 'priority') {
     await store.ensurePriorityRegistered(name)
   } else if (groupBy.value === 'status') {
-    const maxOrder = store.board.reduce((max, column) => Math.max(max, column.order), -1)
+    const maxOrder = store.statuses.reduce((max, status) => Math.max(max, status.order), -1)
     const updated = [
-      ...store.board,
+      ...store.statuses,
       { id: crypto.randomUUID(), name, order: maxOrder + 1, isDone: false },
     ]
-    await store.updateBoard(updated)
+    await store.updateStatuses(updated)
   }
   newColumnName.value = ''
 }
@@ -230,13 +237,13 @@ async function addColumn(): Promise<void> {
 // one column can be the done column at a time, so setting it here clears
 // it everywhere else.
 async function setDoneColumn(columnId: string): Promise<void> {
-  if (columnId === store.doneColumnId) return
-  const updated = store.board.map((column) => ({ ...column, isDone: column.id === columnId }))
-  await store.updateBoard(updated)
+  if (columnId === store.doneStatusId) return
+  const updated = store.statuses.map((status) => ({ ...status, isDone: status.id === columnId }))
+  await store.updateStatuses(updated)
 }
 
 // Reassigns order to match the dropped sequence exactly. Where that order
-// is persisted depends on groupBy: status columns are real BoardColumns
+// is persisted depends on groupBy: status columns are real StatusOptions
 // (order field on the entity), and priority/tag order is persisted on their
 // respective registry entities (registering any previously-unregistered
 // name in the process, since it needs a real row to hold an order once the
@@ -264,14 +271,14 @@ async function reorderColumns(newOrder: ColumnView[]): Promise<void> {
     await store.updateTags(updated)
     return
   }
-  const byId = new Map(store.board.map((column) => [column.id, column]))
+  const byId = new Map(store.statuses.map((status) => [status.id, status]))
   const updated = newOrder
     .map((entry, index) => {
-      const column = byId.get(entry.id)
-      return column ? { ...column, order: index } : null
+      const status = byId.get(entry.id)
+      return status ? { ...status, order: index } : null
     })
-    .filter((column): column is BoardColumn => column !== null)
-  await store.updateBoard(updated)
+    .filter((status): status is StatusOption => status !== null)
+  await store.updateStatuses(updated)
 }
 
 function requestRemoveColumn(columnId: string): void {
@@ -281,14 +288,36 @@ function requestRemoveColumn(columnId: string): void {
 async function confirmRemoveColumn(): Promise<void> {
   const columnId = pendingDeleteColumnId.value
   if (!columnId) return
-  // Items sitting in this column lose their status entirely rather than
-  // silently keeping a reference to a column that no longer exists — the
-  // warning dialog tells the user this is about to happen before they
-  // confirm.
-  const affectedItems = store.items.filter((item) => item.statusId === columnId)
-  await Promise.all(affectedItems.map((item) => store.updateItem(item.id, { statusId: '' })))
-  const updated = store.board.filter((column) => column.id !== columnId)
-  await store.updateBoard(updated)
+  if (groupBy.value === 'priority') {
+    // Items set to this priority lose it entirely rather than silently
+    // keeping a reference to a priority that no longer exists — the
+    // warning dialog tells the user this is about to happen before they
+    // confirm.
+    const affectedItems = store.items.filter((item) => item.priority === columnId)
+    await Promise.all(affectedItems.map((item) => store.updateItem(item.id, { priority: '' })))
+    const updated = store.priorities.filter((priority) => priority.name !== columnId)
+    await store.updatePriorities(updated)
+  } else if (groupBy.value === 'tag') {
+    // Unlike status/priority, tags are multi-valued per item — deleting the
+    // tag just drops it from whichever items have it, not their other tags.
+    const affectedItems = store.items.filter((item) => item.tags.includes(columnId))
+    await Promise.all(
+      affectedItems.map((item) =>
+        store.updateItem(item.id, { tags: item.tags.filter((tag) => tag !== columnId) }),
+      ),
+    )
+    const updated = store.tags.filter((tag) => tag.name !== columnId)
+    await store.updateTags(updated)
+  } else {
+    // Items sitting in this column lose their status entirely rather than
+    // silently keeping a reference to a column that no longer exists — the
+    // warning dialog tells the user this is about to happen before they
+    // confirm.
+    const affectedItems = store.items.filter((item) => item.statusId === columnId)
+    await Promise.all(affectedItems.map((item) => store.updateItem(item.id, { statusId: '' })))
+    const updated = store.statuses.filter((status) => status.id !== columnId)
+    await store.updateStatuses(updated)
+  }
   pendingDeleteColumnId.value = null
 }
 </script>
@@ -340,17 +369,18 @@ async function confirmRemoveColumn(): Promise<void> {
                 v-else
                 class="type-label column-name"
                 :class="{ editable: groupBy === 'status' }"
-                @click="groupBy === 'status' && startEditColumn(column as BoardColumn)"
+                @click="groupBy === 'status' && startEditColumn(column as StatusOption)"
               >
                 {{ column.name }}
               </span>
-              <div v-if="groupBy === 'status'" class="column-actions">
+              <div v-if="groupBy !== 'tag' || column.id !== NO_TAG_ID" class="column-actions">
                 <button
+                  v-if="groupBy === 'status'"
                   type="button"
                   class="icon-btn done-toggle"
-                  :class="{ active: column.id === store.doneColumnId }"
+                  :class="{ active: column.id === store.doneStatusId }"
                   :title="
-                    column.id === store.doneColumnId
+                    column.id === store.doneStatusId
                       ? t('board.doneColumnActive')
                       : t('board.markAsDone')
                   "

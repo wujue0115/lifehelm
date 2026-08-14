@@ -65,13 +65,13 @@ watch([statusColors, priorityColors, tagColors], schedulePersist, { deep: true }
 
 const statusNameById = computed(() => {
   const map = new Map<string, string>()
-  for (const column of store.board) map.set(column.id, column.name)
+  for (const column of store.statuses) map.set(column.id, column.name)
   return map
 })
 
 const statusOrderById = computed(() => {
   const map = new Map<string, number>()
-  store.sortedBoard.forEach((column, index) => map.set(column.id, index))
+  store.sortedStatuses.forEach((column, index) => map.set(column.id, index))
   return map
 })
 
@@ -171,7 +171,7 @@ async function confirmDelete(): Promise<void> {
         />
         <select v-model="statusFilter" class="input type-body">
           <option value="all">{{ t('list.allStatus') }}</option>
-          <option v-for="column in store.sortedBoard" :key="column.id" :value="column.id">
+          <option v-for="column in store.sortedStatuses" :key="column.id" :value="column.id">
             {{ column.name }}
           </option>
         </select>
@@ -208,7 +208,7 @@ async function confirmDelete(): Promise<void> {
 
     <ListColorSettings
       :open="settingsOpen"
-      :statuses="store.sortedBoard"
+      :statuses="store.sortedStatuses"
       :priorities="store.sortedPriorities"
       :tags="store.allTags"
       :status-colors="statusColors"

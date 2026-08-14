@@ -8,7 +8,7 @@ defineOptions({ inheritAttrs: false })
 
 const { t } = useI18n()
 const store = useWorkItemsStore()
-const stats = computed(() => computeStats(store.items, store.board, store.priorities))
+const stats = computed(() => computeStats(store.items, store.statuses, store.priorities))
 const maxTagCount = computed(() =>
   Math.max(1, ...stats.value.tagCounts.map((tagCount) => tagCount.count)),
 )
