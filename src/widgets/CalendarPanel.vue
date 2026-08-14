@@ -260,7 +260,7 @@ const weekdayLabels = computed(() => {
           :key="week[0]?.key ?? weekIndex"
           class="week"
           :style="{
-            gridTemplateRows: `28px repeat(${laneCount(weekSegments[weekIndex] ?? [])}, 22px)`,
+            gridTemplateRows: `28px repeat(${laneCount(weekSegments[weekIndex] ?? [])}, 22px) minmax(0, 1fr)`,
           }"
         >
           <div
@@ -270,7 +270,7 @@ const weekdayLabels = computed(() => {
             :class="{ 'out-of-month': !cell.inMonth, today: cell.isToday }"
             :style="{
               gridColumn: dayIndex + 1,
-              gridRow: `1 / span ${laneCount(weekSegments[weekIndex] ?? []) + 1}`,
+              gridRow: `1 / span ${laneCount(weekSegments[weekIndex] ?? []) + 2}`,
             }"
           >
             <span class="type-caption day-number">{{ cell.date.getDate() }}</span>
@@ -305,7 +305,11 @@ const weekdayLabels = computed(() => {
 
 <style scoped>
 .calendar-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
   min-width: 0;
+  min-height: 0;
 }
 
 .toolbar {
@@ -314,6 +318,7 @@ const weekdayLabels = computed(() => {
   gap: var(--space-sm);
   margin-bottom: var(--space-md);
   flex-wrap: wrap;
+  flex-shrink: 0;
 }
 
 .month-label {
@@ -326,6 +331,7 @@ const weekdayLabels = computed(() => {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   margin-bottom: var(--space-xs);
+  flex-shrink: 0;
 }
 
 .weekday {
@@ -333,9 +339,15 @@ const weekdayLabels = computed(() => {
   color: var(--color-ink-secondary);
 }
 
+/* flex:1 on both this and .week below is what spreads any extra height the
+   widget has beyond the calendar's natural content size evenly across
+   every week row (and so every day cell, which shares its week's height) —
+   instead of leaving it as dead space under the grid. */
 .calendar {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-height: 0;
   background: var(--color-canvas-surface);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--rounded-md);
@@ -348,6 +360,8 @@ const weekdayLabels = computed(() => {
   column-gap: 0;
   row-gap: 4px;
   border-top: 1px solid var(--color-border-subtle);
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .week:first-child {
