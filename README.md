@@ -26,7 +26,7 @@ dense, information-first layouts where clarity and speed matter more than decora
   from a single settings panel.
 - **Localization** — English and Traditional Chinese via `vue-i18n`.
 - **Local-first storage** — a Vite dev-server plugin (`server/`) persists all data as JSON
-  files under `.manager/data`, with no separate backend process to run.
+  files under `.lifehelm/data`, with no separate backend process to run.
 
 ## Tech Stack
 

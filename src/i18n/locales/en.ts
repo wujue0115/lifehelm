@@ -66,7 +66,7 @@ export default {
     },
     reset: 'Reset to default',
     saveError:
-      "Couldn't save — applied to this page only, not written to .manager/config: {message}",
+      "Couldn't save — applied to this page only, not written to .lifehelm/config: {message}",
   },
   priority: {
     low: 'Low',
