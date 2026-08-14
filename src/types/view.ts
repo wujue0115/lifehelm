@@ -51,10 +51,16 @@ export interface BoardViewConfig extends ColorConfig, FilterConfig {
 
 export type CalendarViewConfig = ColorConfig & FilterConfig
 
+// The dashboard breakdown widgets (BreakdownStatus/Priority/Tag) — color
+// only, no filters: each is a small aggregate-over-all-items chart, not a
+// list of items to narrow down.
+export type BreakdownViewConfig = ColorConfig
+
 export type ViewConfig =
   | Partial<ListViewConfig>
   | Partial<BoardViewConfig>
   | Partial<CalendarViewConfig>
+  | Partial<BreakdownViewConfig>
   | Record<string, never>
 
 export const DEFAULT_LIST_CONFIG: ListViewConfig = {
