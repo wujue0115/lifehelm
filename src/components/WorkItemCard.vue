@@ -53,14 +53,17 @@ const { t } = useI18n()
   margin-bottom: 8px;
 }
 
+/* Pure visual affordance — the whole card is the drag surface (the inner
+   VueDraggable in BoardPanel.vue has no `handle`, so any mousedown that
+   moves far enough starts a drag; one that doesn't still navigates via the
+   RouterLink), so this just dims until the card itself is hovered. */
 .card-drag-handle {
-  cursor: grab;
   color: var(--color-ink-muted);
   flex-shrink: 0;
 }
 
-.card-drag-handle:active {
-  cursor: grabbing;
+.work-card:hover .card-drag-handle {
+  color: var(--color-ink);
 }
 
 .title {

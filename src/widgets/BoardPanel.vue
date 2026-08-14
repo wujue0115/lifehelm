@@ -19,18 +19,24 @@ const store = useWorkItemsStore()
 // grouped by tag, so they aren't just silently missing from the board.
 const NO_TAG_ID = '__no_tag__'
 
+const PRIORITIES: Priority[] = ['low', 'medium', 'high', 'urgent']
+
 const cfg = (props.config ?? {}) as Partial<BoardViewConfig>
 const groupBy = ref<BoardGroupBy>(cfg.groupBy ?? 'status')
+// User-arranged priority column order — priority has no backing entity to
+// store an order on (unlike status columns or tags), so it lives in this
+// widget's own view config instead.
+const priorityOrder = ref<Priority[]>(
+  cfg.priorityOrder && cfg.priorityOrder.length === PRIORITIES.length ? cfg.priorityOrder : PRIORITIES,
+)
 
 let persistTimer: ReturnType<typeof setTimeout> | undefined
-watch(groupBy, () => {
+watch([groupBy, priorityOrder], () => {
   clearTimeout(persistTimer)
   persistTimer = setTimeout(() => {
-    emit('update:config', { groupBy: groupBy.value })
+    emit('update:config', { groupBy: groupBy.value, priorityOrder: priorityOrder.value })
   }, 400)
 })
-
-const PRIORITIES: Priority[] = ['low', 'medium', 'high', 'urgent']
 
 interface ColumnView {
   id: string
@@ -38,17 +44,19 @@ interface ColumnView {
 }
 
 // The set of "columns" to render depends entirely on groupBy: real,
-// user-managed BoardColumns for status; a fixed 4-value set for priority;
-// and the dynamic tag pool (plus the No tag bucket) for tag. Only status
-// columns carry rename/delete/mark-done management — the other two modes
-// are read-only groupings over existing data, not user-defined columns.
+// user-managed BoardColumns for status; the fixed 4 priority values
+// (user-orderable) for priority; and the dynamic tag pool (plus the No tag
+// bucket) for tag. Only status columns carry rename/delete/mark-done
+// management, and only status/priority/tag (not the No tag bucket) support
+// reordering — the other two modes are otherwise read-only groupings over
+// existing data, not user-defined columns.
 const columns = computed<ColumnView[]>(() => {
   if (groupBy.value === 'priority') {
-    return PRIORITIES.map((priority) => ({ id: priority, name: t(`priority.${priority}`) }))
+    return priorityOrder.value.map((priority) => ({ id: priority, name: t(`priority.${priority}`) }))
   }
   if (groupBy.value === 'tag') {
     return [
-      ...store.allTags.map((tag) => ({ id: tag, name: tag })),
+      ...store.sortedTagNames.map((tag) => ({ id: tag, name: tag })),
       { id: NO_TAG_ID, name: t('board.noTag') },
     ]
   }
@@ -227,11 +235,29 @@ async function setDoneColumn(columnId: string): Promise<void> {
   await store.updateBoard(updated)
 }
 
-// Only meaningful in status mode — priority's 4 columns have a fixed
-// natural order, and tag columns aren't user-defined BoardColumns at all.
-// Reassigns `order` to match the dropped sequence exactly.
+// Reassigns order to match the dropped sequence exactly. Where that order
+// is persisted depends on groupBy: status columns are real BoardColumns
+// (order field on the entity), priority has no backing entity so its order
+// lives in this widget's config, and tag order is persisted on the Tag
+// entity (registering previously-unregistered tags in the process, since
+// they need a real Tag row to hold an order once the user arranges them).
 async function reorderColumns(newOrder: ColumnView[]): Promise<void> {
-  if (groupBy.value !== 'status') return
+  if (groupBy.value === 'priority') {
+    priorityOrder.value = newOrder.map((entry) => entry.id as Priority)
+    return
+  }
+  if (groupBy.value === 'tag') {
+    const byName = new Map(store.tags.map((tag) => [tag.name, tag]))
+    const updated = newOrder
+      .filter((entry) => entry.id !== NO_TAG_ID)
+      .map((entry, index) => ({
+        id: byName.get(entry.id)?.id ?? crypto.randomUUID(),
+        name: entry.id,
+        order: index,
+      }))
+    await store.updateTags(updated)
+    return
+  }
   const byId = new Map(store.board.map((column) => [column.id, column]))
   const updated = newOrder
     .map((entry, index) => {
@@ -284,15 +310,15 @@ async function confirmRemoveColumn(): Promise<void> {
           :model-value="columns"
           tag="div"
           class="column-list"
-          handle=".column-drag-handle"
-          :disabled="groupBy !== 'status'"
+          filter="button, input, .column-body"
+          :preventOnFilter="false"
           :animation="150"
           @update:model-value="reorderColumns"
         >
           <div v-for="column in columns" :key="column.id" class="column">
             <div class="column-header">
               <span
-                v-if="groupBy === 'status'"
+                v-if="groupBy !== 'tag' || column.id !== NO_TAG_ID"
                 class="column-drag-handle icon-btn"
                 :title="t('board.dragColumn')"
                 >⠿</span
@@ -346,7 +372,6 @@ async function confirmRemoveColumn(): Promise<void> {
             <VueDraggable
               :model-value="localColumns[column.id] ?? []"
               class="column-body"
-              handle=".card-drag-handle"
               :group="{ name: 'board-columns', put: column.id !== NO_TAG_ID }"
               :animation="150"
               @update:model-value="(value: WorkItem[]) => (localColumns[column.id] = value)"
@@ -441,15 +466,25 @@ async function confirmRemoveColumn(): Promise<void> {
   align-items: center;
   gap: var(--space-xs);
   margin-bottom: var(--space-sm);
-}
-
-.icon-btn.column-drag-handle {
   cursor: grab;
-  flex-shrink: 0;
 }
 
-.icon-btn.column-drag-handle:active {
+.column-header:active {
   cursor: grabbing;
+}
+
+/* The handle icon is a pure visual affordance now — the whole header is the
+   drag surface (see the outer VueDraggable's `filter`, which carves out
+   .column-body/button/input instead of requiring this specific handle) — so
+   it stays dim until the header itself is hovered, not just the icon. */
+.icon-btn.column-drag-handle {
+  flex-shrink: 0;
+  cursor: inherit;
+  color: var(--color-ink-muted);
+}
+
+.column-header:hover .icon-btn.column-drag-handle {
+  color: var(--color-ink);
 }
 
 .column-name {

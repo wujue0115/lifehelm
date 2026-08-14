@@ -179,7 +179,8 @@ function bringToFront(instanceId: string): void {
       v-model="localLayout"
       tag="div"
       class="widget-grid"
-      handle=".widget-drag-handle"
+      filter="button, .widget-body"
+      :preventOnFilter="false"
       :disabled="!editable || !flow"
       :animation="150"
     >

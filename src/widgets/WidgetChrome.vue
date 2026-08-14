@@ -148,12 +148,12 @@ function startMove(event: MouseEvent): void {
     }"
     @mousedown.capture="emit('focus')"
   >
-    <div class="widget-header">
-      <span
-        v-if="editable"
-        class="widget-drag-handle icon-btn"
-        :title="t('view.dragHandle')"
-        @mousedown="movable ? startMove($event) : undefined"
+    <div
+      class="widget-header"
+      :class="{ draggable: editable }"
+      @mousedown="movable ? startMove($event) : undefined"
+    >
+      <span v-if="editable" class="widget-drag-handle icon-btn" :title="t('view.dragHandle')"
         >⠿</span
       >
       <span class="type-label widget-title">{{ t(titleKey) }}</span>
@@ -163,6 +163,7 @@ function startMove(event: MouseEvent): void {
         class="icon-btn"
         :title="t('view.removeWidget')"
         @click="emit('remove')"
+        @mousedown.stop
       >
         ×
       </button>
@@ -199,17 +200,30 @@ function startMove(event: MouseEvent): void {
   gap: var(--space-xs);
 }
 
+.widget-header.draggable {
+  cursor: grab;
+}
+
+.widget-header.draggable:active {
+  cursor: grabbing;
+}
+
 .widget-title {
   flex: 1;
   color: var(--color-ink-secondary);
 }
 
+/* Pure visual affordance — the whole header is the drag surface (see the
+   outer VueDraggable's `filter` in GridLayout.vue, and `startMove` bound to
+   this header rather than just the icon), so it stays dim until the header
+   itself is hovered. */
 .icon-btn.widget-drag-handle {
-  cursor: grab;
+  cursor: inherit;
+  color: var(--color-ink-muted);
 }
 
-.icon-btn.widget-drag-handle:active {
-  cursor: grabbing;
+.widget-header:hover .icon-btn.widget-drag-handle {
+  color: var(--color-ink);
 }
 
 .icon-btn {
