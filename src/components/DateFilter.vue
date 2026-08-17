@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import DatePicker from './DatePicker.vue'
 import { resolveDateFilterRange, type DateFilterPreset } from '@/utils/dateFilterPresets'
+import { formatDateTime } from '@/utils/date'
 
 // v-model:preset (+ v-model:customStart/customEnd, only meaningful when
 // preset is 'custom') — same "flat strings on the widget's ViewConfig"
@@ -22,7 +23,7 @@ const emit = defineEmits<{
   'update:customEnd': [string]
 }>()
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 
 const open = ref(false)
 // wrapperEl wraps just the trigger button — the popover itself is
@@ -113,14 +114,17 @@ const pendingCustomStart = ref(props.customStart)
 const pendingCustomEnd = ref(props.customEnd)
 
 function formatDisplay(value: string): string {
-  return new Date(`${value}T00:00:00`).toLocaleDateString(locale.value)
+  // Parsed with an explicit local-midnight time component — see
+  // DatePicker.vue's own formatDisplay for why a bare 'YYYY-MM-DD' string
+  // isn't passed straight through.
+  return formatDateTime(new Date(`${value}T00:00:00`), 'YYYY/M/D')
 }
 
 function labelFor(preset: DateFilterPreset, customStart: string, customEnd: string): string {
   if (preset === 'all') return t('dateFilter.all')
   if (preset === 'custom') {
     if (customStart && customEnd)
-      return `${formatDisplay(customStart)} – ${formatDisplay(customEnd)}`
+      return `${formatDisplay(customStart)} ~ ${formatDisplay(customEnd)}`
     return t('dateFilter.custom')
   }
   return t(`dateFilter.preset.${preset}`)

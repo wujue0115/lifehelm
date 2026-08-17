@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getDueStatus } from '@/utils/dueDate'
+import { formatDateTime } from '@/utils/date'
 
 const props = defineProps<{
   startDate?: string | null
@@ -9,15 +10,15 @@ const props = defineProps<{
   isCompleted?: boolean
 }>()
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 
 function formatDate(value: string): string {
-  return new Date(value).toLocaleDateString(locale.value)
+  return formatDateTime(value, 'YYYY/M/D')
 }
 
 const dateLabel = computed(() => {
   if (props.startDate && props.dueDate) {
-    return `${formatDate(props.startDate)} → ${formatDate(props.dueDate)}`
+    return `${formatDate(props.startDate)} ~ ${formatDate(props.dueDate)}`
   }
   if (props.startDate) return t('dueDate.startSuffix', { date: formatDate(props.startDate) })
   if (props.dueDate) return formatDate(props.dueDate)
