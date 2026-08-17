@@ -227,10 +227,16 @@ function startResize(event: MouseEvent): void {
   color: var(--color-on-sidebar);
 }
 
+/* --space-xs (8px), not a smaller literal value — the Appearance panel's
+   spacing presets only span 0.85–1.15x (src/config/themePresets.ts's
+   SPACING_OPTIONS), so a tiny base gap barely moves and reads as unchanged;
+   8px moves enough to actually be visible switching between
+   Compact/Comfortable. Same reasoning as DateFilter.vue's preset-buttons
+   gap. */
 .nav {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--space-xs);
 }
 
 .nav-item {
@@ -275,7 +281,7 @@ function startResize(event: MouseEvent): void {
 .footer-nav {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--space-xs);
   margin-top: auto;
 }
 

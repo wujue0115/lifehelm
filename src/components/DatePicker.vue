@@ -458,7 +458,7 @@ function granularCellState(key: string, toGranular: (dateKey: string) => string)
 
 .popover {
   position: absolute;
-  top: calc(100% + 4px);
+  top: calc(100% + var(--space-xxs));
   left: 0;
   z-index: 20;
   width: 260px;
@@ -491,7 +491,7 @@ function granularCellState(key: string, toGranular: (dateKey: string) => string)
 .header-labels {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: var(--space-xxs);
 }
 
 .header-label {
@@ -529,7 +529,7 @@ function granularCellState(key: string, toGranular: (dateKey: string) => string)
 .weekday-row {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  margin-bottom: 2px;
+  margin-bottom: var(--space-xxs);
 }
 
 .weekday {
@@ -608,7 +608,7 @@ function granularCellState(key: string, toGranular: (dateKey: string) => string)
    7 (or a single cramped row of 12). */
 .grid-12 {
   grid-template-columns: repeat(3, 1fr);
-  gap: 4px;
+  gap: var(--space-xxs);
 }
 
 .cell {
@@ -701,6 +701,12 @@ function granularCellState(key: string, toGranular: (dateKey: string) => string)
   gap: var(--space-xs);
 }
 
+/* A control's own padding, not the room around it — stays a fixed literal
+   value regardless of the Appearance spacing setting, same as the global
+   `.btn`/`.input` classes (design-tokens.css) never scale their own
+   padding/min-height either. --space-scale governs the gaps BETWEEN
+   elements (see DESIGN.md "Appearance spacing: what scales"), not a
+   control's own size. */
 .confirm-btn {
   padding: 4px 10px;
   min-height: auto;
