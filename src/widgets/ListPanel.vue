@@ -11,6 +11,7 @@ import SortIcon from '@/components/SortIcon.vue'
 import ActionIcon from '@/components/ActionIcon.vue'
 import ColorSettings from '@/components/ColorSettings.vue'
 import DateFilter from '@/components/DateFilter.vue'
+import SelectMenu from '@/components/SelectMenu.vue'
 import { usePriorityLabel } from '@/composables/usePriorityLabel'
 import { resolveColor } from '@/utils/colors'
 import { resolveDateFilterRange, itemMatchesDateRange } from '@/utils/dateFilterPresets'
@@ -97,6 +98,22 @@ const priorityOrderById = computed(() => {
   store.sortedPriorities.forEach((priority, index) => map.set(priority.name, index))
   return map
 })
+
+const statusFilterOptions = computed(() => [
+  { value: 'all', label: t('list.allStatus') },
+  ...store.sortedStatuses.map((column) => ({ value: column.name, label: column.name })),
+])
+const priorityFilterOptions = computed(() => [
+  { value: 'all', label: t('list.allPriority') },
+  ...store.sortedPriorities.map((priority) => ({
+    value: priority.name,
+    label: priorityLabel(priority.name),
+  })),
+])
+const tagFilterOptions = computed(() => [
+  { value: 'all', label: t('list.allTags') },
+  ...store.allTags.map((tag) => ({ value: tag, label: tag })),
+])
 
 const dateFilterRange = computed(() =>
   resolveDateFilterRange(dateFilterPreset.value, {
@@ -212,26 +229,9 @@ async function confirmDelete(): Promise<void> {
           type="text"
           :placeholder="t('list.searchPlaceholder')"
         />
-        <select v-model="statusFilter" class="input type-body">
-          <option value="all">{{ t('list.allStatus') }}</option>
-          <option v-for="column in store.sortedStatuses" :key="column.id" :value="column.name">
-            {{ column.name }}
-          </option>
-        </select>
-        <select v-model="priorityFilter" class="input type-body">
-          <option value="all">{{ t('list.allPriority') }}</option>
-          <option
-            v-for="priority in store.sortedPriorities"
-            :key="priority.id"
-            :value="priority.name"
-          >
-            {{ priorityLabel(priority.name) }}
-          </option>
-        </select>
-        <select v-model="tagFilter" class="input type-body">
-          <option value="all">{{ t('list.allTags') }}</option>
-          <option v-for="tag in store.allTags" :key="tag" :value="tag">{{ tag }}</option>
-        </select>
+        <SelectMenu v-model="statusFilter" :options="statusFilterOptions" />
+        <SelectMenu v-model="priorityFilter" :options="priorityFilterOptions" />
+        <SelectMenu v-model="tagFilter" :options="tagFilterOptions" />
         <DateFilter
           v-model:preset="dateFilterPreset"
           v-model:custom-start="dateFilterCustomStart"

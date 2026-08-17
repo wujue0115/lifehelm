@@ -12,6 +12,7 @@ import AttachmentList from '@/components/AttachmentList.vue'
 import TimeTracker from '@/components/TimeTracker.vue'
 import TagsInput from '@/components/TagsInput.vue'
 import DatePicker from '@/components/DatePicker.vue'
+import SelectMenu from '@/components/SelectMenu.vue'
 import ChevronIcon from '@/components/ChevronIcon.vue'
 
 const route = useRoute()
@@ -38,6 +39,16 @@ const loading = ref(true)
 const saving = ref(false)
 const errorMessage = ref<string | null>(null)
 const showDeleteConfirm = ref(false)
+
+const statusOptions = computed(() =>
+  store.sortedStatuses.map((column) => ({ value: column.name, label: column.name })),
+)
+const priorityOptions = computed(() =>
+  store.sortedPriorities.map((priority) => ({
+    value: priority.name,
+    label: priorityLabel(priority.name),
+  })),
+)
 
 function applyItemToForm(item: WorkItem): void {
   form.title = item.title
@@ -151,27 +162,15 @@ async function handleDelete(): Promise<void> {
         </label>
 
         <div class="row">
-          <label class="field">
+          <div class="field">
             <span class="type-label">{{ t('itemDetail.fieldStatus') }}</span>
-            <select v-model="form.status" class="input type-body">
-              <option v-for="column in store.sortedStatuses" :key="column.id" :value="column.name">
-                {{ column.name }}
-              </option>
-            </select>
-          </label>
+            <SelectMenu v-model="form.status" :options="statusOptions" />
+          </div>
 
-          <label class="field">
+          <div class="field">
             <span class="type-label">{{ t('itemDetail.fieldPriority') }}</span>
-            <select v-model="form.priority" class="input type-body">
-              <option
-                v-for="priority in store.sortedPriorities"
-                :key="priority.id"
-                :value="priority.name"
-              >
-                {{ priorityLabel(priority.name) }}
-              </option>
-            </select>
-          </label>
+            <SelectMenu v-model="form.priority" :options="priorityOptions" />
+          </div>
         </div>
 
         <div class="row">
