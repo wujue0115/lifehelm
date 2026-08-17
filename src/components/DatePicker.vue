@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { buildMonthWeeks, startOfMonth } from '@/utils/calendarGrid'
+import { formatDateTime } from '@/utils/date'
 import ChevronIcon from './ChevronIcon.vue'
 
 // Single mode: v-model="value" (a 'YYYY-MM-DD' string, '' for no date).
@@ -126,13 +127,17 @@ function goToday(): void {
 }
 
 function formatDisplay(value: string): string {
-  return new Date(`${value}T00:00:00`).toLocaleDateString(locale.value)
+  // Parsed with an explicit local-midnight time component, not the bare
+  // 'YYYY-MM-DD' string — a date-only string parses as UTC midnight, which
+  // formatDateTime would then render in the local timezone and can land on
+  // the previous day for any UTC-negative offset.
+  return formatDateTime(new Date(`${value}T00:00:00`), 'YYYY/M/D')
 }
 
 const triggerLabel = computed(() => {
   if (props.mode === 'range') {
     if (props.start && props.end)
-      return `${formatDisplay(props.start)} – ${formatDisplay(props.end)}`
+      return `${formatDisplay(props.start)} ~ ${formatDisplay(props.end)}`
     if (props.start) return formatDisplay(props.start)
     return ''
   }
