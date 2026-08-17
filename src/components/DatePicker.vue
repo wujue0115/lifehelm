@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { buildMonthWeeks, startOfMonth } from '@/utils/calendarGrid'
 import ChevronIcon from './ChevronIcon.vue'
@@ -9,6 +9,14 @@ import ChevronIcon from './ChevronIcon.vue'
 // 'YYYY-MM-DD' strings, matching the same empty-string-means-unset contract
 // so callers (e.g. ItemDetailView's form.startDate/dueDate) don't need to
 // change shape to adopt this component.
+//
+// `inline` (used by DateFilter.vue's embedded custom-range calendar) skips
+// the trigger/popover/footer chrome entirely and renders just the nav+grid
+// as a plain block, always visible. It also drops the "stage, then Confirm"
+// gating below — every pick emits immediately — because in that mode a
+// *different* component (DateFilter's own popover) already owns the
+// stage/confirm gate; the calendar is a live-bound input, not its own
+// pending transaction.
 const props = withDefaults(
   defineProps<{
     mode?: 'single' | 'range'
@@ -16,8 +24,9 @@ const props = withDefaults(
     start?: string
     end?: string
     placeholder?: string
+    inline?: boolean
   }>(),
-  { mode: 'single', modelValue: '', start: '', end: '' },
+  { mode: 'single', modelValue: '', start: '', end: '', inline: false },
 )
 const emit = defineEmits<{
   'update:modelValue': [string]
@@ -141,6 +150,22 @@ function toggleOpen(): void {
   open.value = !open.value
 }
 
+// Inline mode has no open/close cycle to re-seed pending state on (see
+// toggleOpen above) — the caller can still push a new value in at any time
+// (DateFilter.vue does, e.g. when a preset changes what the calendar should
+// preview), so mirror it into pending* reactively instead. Not `immediate`:
+// the ref initializers above already seed the initial value once at setup.
+if (props.inline) {
+  watch(
+    () => [props.start, props.end, props.modelValue] as const,
+    ([start, end, modelValue]) => {
+      pendingSingle.value = modelValue
+      pendingStart.value = start
+      pendingEnd.value = end
+    },
+  )
+}
+
 function close(): void {
   open.value = false
 }
@@ -157,12 +182,14 @@ function handleFocusOut(event: FocusEvent): void {
 
 // Range picking: the first click after a complete (or empty) range starts a
 // fresh selection (sets start, clears end); the next click completes it
-// (sets end, auto-swapped into order if picked before start). Neither click
-// emits — only confirm() does, so the range isn't saved until the user
-// presses Confirm.
+// (sets end, auto-swapped into order if picked before start). Non-inline:
+// neither click emits — only confirm() does, so the range isn't saved until
+// the user presses Confirm. Inline: every click emits right away (see the
+// class comment on `inline` above for why that's safe).
 function selectDay(key: string): void {
   if (props.mode === 'single') {
     pendingSingle.value = key
+    if (props.inline) emit('update:modelValue', pendingSingle.value)
     return
   }
   const pickingEnd = pendingStart.value && !pendingEnd.value
@@ -176,6 +203,10 @@ function selectDay(key: string): void {
   } else {
     pendingStart.value = key
     pendingEnd.value = ''
+  }
+  if (props.inline) {
+    emit('update:start', pendingStart.value)
+    emit('update:end', pendingEnd.value)
   }
 }
 
@@ -271,13 +302,13 @@ function granularCellState(key: string, toGranular: (dateKey: string) => string)
 
 <template>
   <div ref="wrapperEl" class="date-picker" @focusout="handleFocusOut" @keydown.esc="close">
-    <button type="button" class="input type-body trigger" @click="toggleOpen">
+    <button v-if="!inline" type="button" class="input type-body trigger" @click="toggleOpen">
       <span class="trigger-text" :class="{ placeholder: !triggerLabel }">
         {{ triggerLabel || placeholder || t('datePicker.placeholder') }}
       </span>
     </button>
 
-    <div v-if="open" class="popover">
+    <div v-if="inline || open" class="popover" :class="{ inline }">
       <div class="nav">
         <button
           type="button"
@@ -386,7 +417,7 @@ function granularCellState(key: string, toGranular: (dateKey: string) => string)
         </button>
       </div>
 
-      <div class="footer">
+      <div v-if="!inline" class="footer">
         <div class="footer-left">
           <button type="button" class="link-btn type-body-sm" @mousedown.prevent @click="goToday">
             {{ t('calendar.today') }}
@@ -435,6 +466,19 @@ function granularCellState(key: string, toGranular: (dateKey: string) => string)
   background: var(--color-canvas-surface);
   border: 1px solid var(--color-border-strong);
   border-radius: var(--rounded-md);
+}
+
+/* Inline mode (DateFilter.vue's embedded custom-range calendar) renders as
+   a plain in-flow block, not a floating card — it already sits inside its
+   host's own bordered popover, so a second nested border/background would
+   just double up. */
+.popover.inline {
+  position: static;
+  width: auto;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
 }
 
 .nav {
