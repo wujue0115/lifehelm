@@ -378,12 +378,11 @@ const inlineEnd = computed({
 /* Divider against the calendar column, since the embedded DatePicker is
    `inline` (no border/background of its own — see DatePicker.vue's
    `.popover.inline`) and would otherwise run directly into the presets.
-   Slightly wider than DatePicker's own standalone-popover width (260px) —
-   day cells are aspect-ratio: 1, so a bit of extra width grows the cells
-   themselves, not just empty padding — but not as wide as it's been (was
-   340px): too large relative to the presets column it's paired with. */
+   Matches DatePicker's own standalone-popover width (260px) — it's been
+   wider before (340px, then 300px), each step too large relative to the
+   presets column it's paired with. */
 .calendar-col {
-  flex: 0 0 300px;
+  flex: 0 0 260px;
   padding-left: var(--space-sm);
   border-left: 1px solid var(--color-border-subtle);
 }
