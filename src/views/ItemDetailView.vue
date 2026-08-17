@@ -11,6 +11,7 @@ import CommentList from '@/components/CommentList.vue'
 import AttachmentList from '@/components/AttachmentList.vue'
 import TimeTracker from '@/components/TimeTracker.vue'
 import TagsInput from '@/components/TagsInput.vue'
+import DatePicker from '@/components/DatePicker.vue'
 import ChevronIcon from '@/components/ChevronIcon.vue'
 
 const route = useRoute()
@@ -173,25 +174,20 @@ async function handleDelete(): Promise<void> {
           </label>
         </div>
 
-        <label class="field">
-          <span class="type-label">{{ t('itemDetail.fieldTags') }}</span>
-          <TagsInput
-            v-model="form.tags"
-            :suggestions="store.allTags"
-            :placeholder="t('itemDetail.tagsPlaceholder')"
-            allow-create
-          />
-        </label>
-
         <div class="row">
           <label class="field">
-            <span class="type-label">{{ t('itemDetail.fieldStartDate') }}</span>
-            <input v-model="form.startDate" class="input type-body" type="date" />
+            <span class="type-label">{{ t('itemDetail.fieldTags') }}</span>
+            <TagsInput
+              v-model="form.tags"
+              :suggestions="store.allTags"
+              :placeholder="t('itemDetail.tagsPlaceholder')"
+              allow-create
+            />
           </label>
 
-          <label class="field">
-            <span class="type-label">{{ t('itemDetail.fieldEndDate') }}</span>
-            <input v-model="form.dueDate" class="input type-body" type="date" />
+          <label class="field date-field">
+            <span class="type-label">{{ t('itemDetail.fieldDateRange') }}</span>
+            <DatePicker mode="range" v-model:start="form.startDate" v-model:end="form.dueDate" />
           </label>
         </div>
 
@@ -271,6 +267,10 @@ async function handleDelete(): Promise<void> {
 .row .field {
   flex: 1;
   min-width: 160px;
+}
+
+.date-field {
+  max-width: 320px;
 }
 
 .actions {

@@ -153,6 +153,11 @@ export default {
     nextMonth: '下個月',
     today: '今天',
   },
+  datePicker: {
+    placeholder: '選擇日期',
+    clear: '清除',
+    confirm: '確定',
+  },
   dashboard: {
     total: '總項目數',
     completionRate: '完成率',
@@ -201,8 +206,7 @@ export default {
     fieldDescription: '描述',
     fieldStatus: '狀態',
     fieldPriority: '優先級',
-    fieldStartDate: '開始日期',
-    fieldEndDate: '結束日期',
+    fieldDateRange: '日期',
     fieldTags: '標籤',
     tagsPlaceholder: '輸入標籤名稱，按 Enter 新增',
     tagsCreateNew: '新增標籤「{tag}」',

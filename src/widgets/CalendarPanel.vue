@@ -7,17 +7,11 @@ import type { CalendarViewConfig, ViewConfig } from '@/types/view'
 import type { TagColorKey } from '@/config/tagColors'
 import { getDueStatus } from '@/utils/dueDate'
 import { resolveColor } from '@/utils/colors'
+import { buildMonthWeeks, startOfMonth, type CalendarCell } from '@/utils/calendarGrid'
 import { usePriorityLabel } from '@/composables/usePriorityLabel'
 import ChevronIcon from '@/components/ChevronIcon.vue'
 import ActionIcon from '@/components/ActionIcon.vue'
 import ColorSettings from '@/components/ColorSettings.vue'
-
-interface CalendarCell {
-  date: Date
-  key: string
-  inMonth: boolean
-  isToday: boolean
-}
 
 interface DateRange {
   fromKey: string
@@ -108,17 +102,6 @@ onMounted(() => {
   store.fetchAll()
 })
 
-function startOfMonth(date: Date): Date {
-  return new Date(date.getFullYear(), date.getMonth(), 1)
-}
-
-function dateKey(date: Date): string {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
-
 const currentMonth = ref(startOfMonth(new Date()))
 
 const monthLabel = computed(() =>
@@ -139,38 +122,7 @@ function goToday(): void {
   currentMonth.value = startOfMonth(new Date())
 }
 
-const calendarCells = computed<CalendarCell[]>(() => {
-  const first = currentMonth.value
-  const year = first.getFullYear()
-  const month = first.getMonth()
-  const firstWeekday = first.getDay()
-  const daysInMonth = new Date(year, month + 1, 0).getDate()
-  const todayKey = dateKey(new Date())
-
-  const cells: CalendarCell[] = []
-  for (let i = firstWeekday; i > 0; i--) {
-    const date = new Date(year, month, 1 - i)
-    cells.push({ date, key: dateKey(date), inMonth: false, isToday: dateKey(date) === todayKey })
-  }
-  for (let day = 1; day <= daysInMonth; day++) {
-    const date = new Date(year, month, day)
-    cells.push({ date, key: dateKey(date), inMonth: true, isToday: dateKey(date) === todayKey })
-  }
-  while (cells.length % 7 !== 0) {
-    const last = cells[cells.length - 1]
-    if (!last) break
-    const date = new Date(last.date.getFullYear(), last.date.getMonth(), last.date.getDate() + 1)
-    cells.push({ date, key: dateKey(date), inMonth: false, isToday: dateKey(date) === todayKey })
-  }
-  return cells
-})
-
-const weeks = computed<CalendarCell[][]>(() => {
-  const cells = calendarCells.value
-  const result: CalendarCell[][] = []
-  for (let i = 0; i < cells.length; i += 7) result.push(cells.slice(i, i + 7))
-  return result
-})
+const weeks = computed(() => buildMonthWeeks(currentMonth.value))
 
 function itemDateRange(item: WorkItem): DateRange | null {
   if (!item.startDate && !item.dueDate) return null
