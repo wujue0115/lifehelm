@@ -436,6 +436,7 @@ The sidebar's expanded/collapsed state and width are user-controlled and persist
 ### Touch Targets
 
 - Buttons and inputs hold a 36px minimum height — dense but still comfortably clickable for a desktop-first admin tool (this system is not optimized for a 44–50px marketing touch target).
+- Every widget's `.widget-body` (`src/widgets/WidgetChrome.vue`) carries a 4px padding for exactly one reason: its `overflow-y: auto` also computes `overflow-x` as `auto` per the CSS overflow spec, making it a clipping box on every side — and a panel's own root (List/Board/Calendar, …) has no padding of its own, so its first row of controls routinely sits flush against that edge. `:focus-visible`'s `outline: 2px` + `outline-offset: 2px` (`design-tokens.css`) extends 4px beyond a control's own box; without this padding that ring gets clipped on whichever side touches the widget edge. This 4px is a literal value, not `var(--space-*)` — see "Appearance spacing: what scales" under Layout — because it exists to fit a fixed-size rendering effect, not a spacing preference.
 
 ### Collapsing Strategy
 

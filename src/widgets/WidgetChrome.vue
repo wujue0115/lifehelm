@@ -240,12 +240,23 @@ function startMove(event: MouseEvent): void {
   color: var(--color-ink);
 }
 
+/* `overflow-y: auto` here also computes `overflow-x` as `auto` per the CSS
+   overflow spec (one axis non-`visible` forces the other) — meaning this
+   is a clipping box on every side, not just vertically. A focused input's
+   outline extends 2px + 2px `outline-offset` = 4px beyond its own box,
+   which gets clipped whenever a panel's content (List/Board/Calendar's own
+   root has no padding of its own) sits flush against this edge, as the
+   first filter input routinely does. 4px padding gives that ring room —
+   this exists purely to fit a fixed-size effect (the focus ring), not a
+   spacing preference, so it's a literal value rather than `var(--space-*)`
+   (see DESIGN.md "Appearance spacing: what scales"). */
 .widget-body {
   flex: 1;
   display: flex;
   flex-direction: column;
   min-width: 0;
   min-height: 0;
+  padding: 4px;
   overflow-y: auto;
 }
 
