@@ -14,6 +14,7 @@ import {
 import type { ThemePreset } from '@/config/themePresets'
 import ModalOverlay from './ModalOverlay.vue'
 import DialogHeader from './DialogHeader.vue'
+import SelectMenu from './SelectMenu.vue'
 
 const emit = defineEmits<{ close: [] }>()
 
@@ -21,6 +22,9 @@ const { t } = useI18n()
 const { config, update, saveError } = useThemeConfig()
 
 const activePresetId = computed(() => findMatchingPresetId(config))
+const fontOptions = computed(() =>
+  FONT_OPTIONS.map((font) => ({ value: font.id, label: t(`settings.fontNames.${font.id}`) })),
+)
 
 function applyPreset(preset: ThemePreset): void {
   update({ ...preset.config })
@@ -103,15 +107,11 @@ function reset(): void {
 
       <div class="section">
         <span class="type-label section-label">{{ t('settings.font') }}</span>
-        <select
-          class="input type-body"
-          :value="config.fontId"
-          @change="setFont(($event.target as HTMLSelectElement).value)"
-        >
-          <option v-for="font in FONT_OPTIONS" :key="font.id" :value="font.id">
-            {{ t(`settings.fontNames.${font.id}`) }}
-          </option>
-        </select>
+        <SelectMenu
+          :model-value="config.fontId"
+          :options="fontOptions"
+          @update:model-value="setFont"
+        />
         <p
           class="preview type-body"
           :style="{ fontFamily: FONT_OPTIONS.find((f) => f.id === config.fontId)?.stack }"

@@ -13,6 +13,7 @@ import ChevronIcon from '@/components/ChevronIcon.vue'
 import ActionIcon from '@/components/ActionIcon.vue'
 import ColorSettings from '@/components/ColorSettings.vue'
 import DateFilter from '@/components/DateFilter.vue'
+import SelectMenu from '@/components/SelectMenu.vue'
 import { resolveDateFilterRange, itemMatchesDateRange } from '@/utils/dateFilterPresets'
 import type { DateFilterPreset } from '@/utils/dateFilterPresets'
 
@@ -95,6 +96,22 @@ const dateFilterRange = computed(() =>
     end: dateFilterCustomEnd.value,
   }),
 )
+
+const statusFilterOptions = computed(() => [
+  { value: 'all', label: t('list.allStatus') },
+  ...store.sortedStatuses.map((column) => ({ value: column.name, label: column.name })),
+])
+const priorityFilterOptions = computed(() => [
+  { value: 'all', label: t('list.allPriority') },
+  ...store.sortedPriorities.map((priority) => ({
+    value: priority.name,
+    label: priorityLabel(priority.name),
+  })),
+])
+const tagFilterOptions = computed(() => [
+  { value: 'all', label: t('list.allTags') },
+  ...store.allTags.map((tag) => ({ value: tag, label: tag })),
+])
 
 // Same filter semantics as ListPanel/BoardPanel — narrows which items can
 // appear as bar-segments.
@@ -231,26 +248,9 @@ const weekdayLabels = computed(() => {
         type="text"
         :placeholder="t('list.searchPlaceholder')"
       />
-      <select v-model="statusFilter" class="input type-body">
-        <option value="all">{{ t('list.allStatus') }}</option>
-        <option v-for="column in store.sortedStatuses" :key="column.id" :value="column.name">
-          {{ column.name }}
-        </option>
-      </select>
-      <select v-model="priorityFilter" class="input type-body">
-        <option value="all">{{ t('list.allPriority') }}</option>
-        <option
-          v-for="priority in store.sortedPriorities"
-          :key="priority.id"
-          :value="priority.name"
-        >
-          {{ priorityLabel(priority.name) }}
-        </option>
-      </select>
-      <select v-model="tagFilter" class="input type-body">
-        <option value="all">{{ t('list.allTags') }}</option>
-        <option v-for="tag in store.allTags" :key="tag" :value="tag">{{ tag }}</option>
-      </select>
+      <SelectMenu v-model="statusFilter" :options="statusFilterOptions" />
+      <SelectMenu v-model="priorityFilter" :options="priorityFilterOptions" />
+      <SelectMenu v-model="tagFilter" :options="tagFilterOptions" />
       <DateFilter
         v-model:preset="dateFilterPreset"
         v-model:custom-start="dateFilterCustomStart"

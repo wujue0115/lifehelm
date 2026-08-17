@@ -11,6 +11,7 @@ import ActionIcon from '@/components/ActionIcon.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import ColorSettings from '@/components/ColorSettings.vue'
 import DateFilter from '@/components/DateFilter.vue'
+import SelectMenu from '@/components/SelectMenu.vue'
 import { usePriorityLabel } from '@/composables/usePriorityLabel'
 import { resolveColor } from '@/utils/colors'
 import { resolveDateFilterRange, itemMatchesDateRange } from '@/utils/dateFilterPresets'
@@ -81,6 +82,36 @@ const dateFilterRange = computed(() =>
     end: dateFilterCustomEnd.value,
   }),
 )
+
+const statusFilterOptions = computed(() => [
+  { value: 'all', label: t('list.allStatus') },
+  ...store.sortedStatuses.map((column) => ({ value: column.name, label: column.name })),
+])
+const priorityFilterOptions = computed(() => [
+  { value: 'all', label: t('list.allPriority') },
+  ...store.sortedPriorities.map((priority) => ({
+    value: priority.name,
+    label: priorityLabel(priority.name),
+  })),
+])
+const tagFilterOptions = computed(() => [
+  { value: 'all', label: t('list.allTags') },
+  ...store.allTags.map((tag) => ({ value: tag, label: tag })),
+])
+const groupByOptions = computed(() => [
+  { value: 'status', label: t('board.groupByStatus') },
+  { value: 'priority', label: t('board.groupByPriority') },
+  { value: 'tag', label: t('board.groupByTag') },
+])
+// SelectMenu's v-model is a plain string (it has no idea about
+// BoardGroupBy's closed union) — this proxy is just the narrowing cast
+// back.
+const groupByModel = computed({
+  get: () => groupBy.value,
+  set: (value: string) => {
+    groupBy.value = value as BoardGroupBy
+  },
+})
 
 // Same filter semantics as ListPanel — narrows which items get bucketed
 // into columns below. Doesn't affect column-delete's "N items are affected"
@@ -425,26 +456,9 @@ async function confirmRemoveColumn(): Promise<void> {
           type="text"
           :placeholder="t('list.searchPlaceholder')"
         />
-        <select v-model="statusFilter" class="input type-body">
-          <option value="all">{{ t('list.allStatus') }}</option>
-          <option v-for="column in store.sortedStatuses" :key="column.id" :value="column.name">
-            {{ column.name }}
-          </option>
-        </select>
-        <select v-model="priorityFilter" class="input type-body">
-          <option value="all">{{ t('list.allPriority') }}</option>
-          <option
-            v-for="priority in store.sortedPriorities"
-            :key="priority.id"
-            :value="priority.name"
-          >
-            {{ priorityLabel(priority.name) }}
-          </option>
-        </select>
-        <select v-model="tagFilter" class="input type-body">
-          <option value="all">{{ t('list.allTags') }}</option>
-          <option v-for="tag in store.allTags" :key="tag" :value="tag">{{ tag }}</option>
-        </select>
+        <SelectMenu v-model="statusFilter" :options="statusFilterOptions" />
+        <SelectMenu v-model="priorityFilter" :options="priorityFilterOptions" />
+        <SelectMenu v-model="tagFilter" :options="tagFilterOptions" />
         <DateFilter
           v-model:preset="dateFilterPreset"
           v-model:custom-start="dateFilterCustomStart"
@@ -452,14 +466,10 @@ async function confirmRemoveColumn(): Promise<void> {
         />
       </div>
       <div class="toolbar-actions">
-        <label class="group-by">
+        <div class="group-by">
           <span class="type-label">{{ t('board.groupBy') }}</span>
-          <select v-model="groupBy" class="input type-body">
-            <option value="status">{{ t('board.groupByStatus') }}</option>
-            <option value="priority">{{ t('board.groupByPriority') }}</option>
-            <option value="tag">{{ t('board.groupByTag') }}</option>
-          </select>
-        </label>
+          <SelectMenu v-model="groupByModel" :options="groupByOptions" />
+        </div>
         <button
           type="button"
           class="btn-ghost action-btn"
@@ -634,10 +644,6 @@ async function confirmRemoveColumn(): Promise<void> {
   display: flex;
   align-items: center;
   gap: var(--space-xs);
-}
-
-.group-by .input {
-  min-width: 140px;
 }
 
 .action-btn {
