@@ -10,8 +10,11 @@ import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import SortIcon from '@/components/SortIcon.vue'
 import ActionIcon from '@/components/ActionIcon.vue'
 import ColorSettings from '@/components/ColorSettings.vue'
+import DateFilter from '@/components/DateFilter.vue'
 import { usePriorityLabel } from '@/composables/usePriorityLabel'
 import { resolveColor } from '@/utils/colors'
+import { resolveDateFilterRange, itemMatchesDateRange } from '@/utils/dateFilterPresets'
+import type { DateFilterPreset } from '@/utils/dateFilterPresets'
 
 type SortKey = 'title' | 'status' | 'priority' | 'tags' | 'dueDate' | 'updatedAt'
 
@@ -32,6 +35,9 @@ const search = ref(cfg.search ?? '')
 const statusFilter = ref(cfg.statusFilter ?? 'all')
 const priorityFilter = ref<Priority | 'all'>((cfg.priorityFilter as Priority | 'all') ?? 'all')
 const tagFilter = ref(cfg.tagFilter ?? 'all')
+const dateFilterPreset = ref<DateFilterPreset>(cfg.dateFilterPreset ?? 'all')
+const dateFilterCustomStart = ref(cfg.dateFilterCustomStart ?? '')
+const dateFilterCustomEnd = ref(cfg.dateFilterCustomEnd ?? '')
 const sortKey = ref<SortKey>((cfg.sortKey as SortKey) ?? DEFAULT_SORT_KEY)
 const sortDir = ref<'asc' | 'desc'>(cfg.sortDir ?? DEFAULT_SORT_DIR)
 const pendingDeleteId = ref<string | null>(null)
@@ -53,6 +59,9 @@ function schedulePersist(): void {
       statusFilter: statusFilter.value,
       priorityFilter: priorityFilter.value,
       tagFilter: tagFilter.value,
+      dateFilterPreset: dateFilterPreset.value,
+      dateFilterCustomStart: dateFilterCustomStart.value,
+      dateFilterCustomEnd: dateFilterCustomEnd.value,
       sortKey: sortKey.value,
       sortDir: sortDir.value,
       statusColors: statusColors.value,
@@ -61,7 +70,20 @@ function schedulePersist(): void {
     })
   }, 400)
 }
-watch([search, statusFilter, priorityFilter, tagFilter, sortKey, sortDir], schedulePersist)
+watch(
+  [
+    search,
+    statusFilter,
+    priorityFilter,
+    tagFilter,
+    dateFilterPreset,
+    dateFilterCustomStart,
+    dateFilterCustomEnd,
+    sortKey,
+    sortDir,
+  ],
+  schedulePersist,
+)
 watch([statusColors, priorityColors, tagColors], schedulePersist, { deep: true })
 
 const statusOrderByName = computed(() => {
@@ -76,12 +98,24 @@ const priorityOrderById = computed(() => {
   return map
 })
 
+const dateFilterRange = computed(() =>
+  resolveDateFilterRange(dateFilterPreset.value, {
+    start: dateFilterCustomStart.value,
+    end: dateFilterCustomEnd.value,
+  }),
+)
+
 const filteredItems = computed(() => {
   const query = search.value.trim().toLowerCase()
   return store.items.filter((item) => {
     if (statusFilter.value !== 'all' && item.status !== statusFilter.value) return false
     if (priorityFilter.value !== 'all' && item.priority !== priorityFilter.value) return false
     if (tagFilter.value !== 'all' && !item.tags.includes(tagFilter.value)) return false
+    if (
+      dateFilterRange.value &&
+      !itemMatchesDateRange(item.startDate, item.dueDate, dateFilterRange.value)
+    )
+      return false
     if (
       query &&
       !item.title.toLowerCase().includes(query) &&
@@ -198,6 +232,11 @@ async function confirmDelete(): Promise<void> {
           <option value="all">{{ t('list.allTags') }}</option>
           <option v-for="tag in store.allTags" :key="tag" :value="tag">{{ tag }}</option>
         </select>
+        <DateFilter
+          v-model:preset="dateFilterPreset"
+          v-model:custom-start="dateFilterCustomStart"
+          v-model:custom-end="dateFilterCustomEnd"
+        />
       </div>
       <div class="toolbar-actions">
         <button

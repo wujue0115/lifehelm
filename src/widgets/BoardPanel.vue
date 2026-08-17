@@ -10,8 +10,11 @@ import WorkItemCard from '@/components/WorkItemCard.vue'
 import ActionIcon from '@/components/ActionIcon.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import ColorSettings from '@/components/ColorSettings.vue'
+import DateFilter from '@/components/DateFilter.vue'
 import { usePriorityLabel } from '@/composables/usePriorityLabel'
 import { resolveColor } from '@/utils/colors'
+import { resolveDateFilterRange, itemMatchesDateRange } from '@/utils/dateFilterPresets'
+import type { DateFilterPreset } from '@/utils/dateFilterPresets'
 
 const props = defineProps<{ instanceId: string; config?: ViewConfig }>()
 const emit = defineEmits<{ 'update:config': [ViewConfig] }>()
@@ -34,6 +37,9 @@ const search = ref(cfg.search ?? '')
 const statusFilter = ref(cfg.statusFilter ?? 'all')
 const priorityFilter = ref(cfg.priorityFilter ?? 'all')
 const tagFilter = ref(cfg.tagFilter ?? 'all')
+const dateFilterPreset = ref<DateFilterPreset>(cfg.dateFilterPreset ?? 'all')
+const dateFilterCustomStart = ref(cfg.dateFilterCustomStart ?? '')
+const dateFilterCustomEnd = ref(cfg.dateFilterCustomEnd ?? '')
 
 let persistTimer: ReturnType<typeof setTimeout> | undefined
 function schedulePersist(): void {
@@ -48,12 +54,33 @@ function schedulePersist(): void {
       statusFilter: statusFilter.value,
       priorityFilter: priorityFilter.value,
       tagFilter: tagFilter.value,
+      dateFilterPreset: dateFilterPreset.value,
+      dateFilterCustomStart: dateFilterCustomStart.value,
+      dateFilterCustomEnd: dateFilterCustomEnd.value,
     })
   }, 400)
 }
 watch(groupBy, schedulePersist)
 watch([statusColors, priorityColors, tagColors], schedulePersist, { deep: true })
-watch([search, statusFilter, priorityFilter, tagFilter], schedulePersist)
+watch(
+  [
+    search,
+    statusFilter,
+    priorityFilter,
+    tagFilter,
+    dateFilterPreset,
+    dateFilterCustomStart,
+    dateFilterCustomEnd,
+  ],
+  schedulePersist,
+)
+
+const dateFilterRange = computed(() =>
+  resolveDateFilterRange(dateFilterPreset.value, {
+    start: dateFilterCustomStart.value,
+    end: dateFilterCustomEnd.value,
+  }),
+)
 
 // Same filter semantics as ListPanel — narrows which items get bucketed
 // into columns below. Doesn't affect column-delete's "N items are affected"
@@ -64,6 +91,11 @@ const filteredItems = computed(() => {
     if (statusFilter.value !== 'all' && item.status !== statusFilter.value) return false
     if (priorityFilter.value !== 'all' && item.priority !== priorityFilter.value) return false
     if (tagFilter.value !== 'all' && !item.tags.includes(tagFilter.value)) return false
+    if (
+      dateFilterRange.value &&
+      !itemMatchesDateRange(item.startDate, item.dueDate, dateFilterRange.value)
+    )
+      return false
     if (
       query &&
       !item.title.toLowerCase().includes(query) &&
@@ -413,6 +445,11 @@ async function confirmRemoveColumn(): Promise<void> {
           <option value="all">{{ t('list.allTags') }}</option>
           <option v-for="tag in store.allTags" :key="tag" :value="tag">{{ tag }}</option>
         </select>
+        <DateFilter
+          v-model:preset="dateFilterPreset"
+          v-model:custom-start="dateFilterCustomStart"
+          v-model:custom-end="dateFilterCustomEnd"
+        />
       </div>
       <div class="toolbar-actions">
         <label class="group-by">

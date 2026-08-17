@@ -1,5 +1,6 @@
 import type { Priority } from './work-item.js'
 import type { TagColorKey } from '../config/tagColors.js'
+import type { DateFilterPreset } from '../utils/dateFilterPresets.js'
 
 export type ViewTemplateType = 'list' | 'board' | 'calendar' | 'dashboard'
 
@@ -24,14 +25,21 @@ export interface ColorConfig {
 }
 
 // Shared by every widget with a status/priority/tag + text filter row —
-// currently List and Board. 'all' is the sentinel for "no filter" on the
-// three select-driven fields (matching the option value each panel's
-// dropdown uses), not an empty string.
+// List, Board, and Calendar. 'all' is the sentinel for "no filter" on the
+// select-driven fields (matching the option value each panel's dropdown
+// uses), not an empty string. dateFilterCustomStart/End only matter when
+// dateFilterPreset is 'custom' (see DateFilter.vue/dateFilterPresets.ts) —
+// they stay populated even after switching to a different preset, so
+// re-selecting "custom" restores the last-picked range instead of an empty
+// one.
 export interface FilterConfig {
   statusFilter?: string
   priorityFilter?: string
   tagFilter?: string
   search?: string
+  dateFilterPreset?: DateFilterPreset
+  dateFilterCustomStart?: string
+  dateFilterCustomEnd?: string
 }
 
 export interface ListViewConfig extends ColorConfig, FilterConfig {
@@ -39,6 +47,9 @@ export interface ListViewConfig extends ColorConfig, FilterConfig {
   priorityFilter: string
   tagFilter: string
   search: string
+  dateFilterPreset: DateFilterPreset
+  dateFilterCustomStart: string
+  dateFilterCustomEnd: string
   sortKey: string
   sortDir: 'asc' | 'desc'
 }
@@ -68,6 +79,9 @@ export const DEFAULT_LIST_CONFIG: ListViewConfig = {
   priorityFilter: 'all',
   tagFilter: 'all',
   search: '',
+  dateFilterPreset: 'all',
+  dateFilterCustomStart: '',
+  dateFilterCustomEnd: '',
   sortKey: 'updatedAt',
   sortDir: 'desc',
 }
