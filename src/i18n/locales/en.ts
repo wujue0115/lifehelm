@@ -155,6 +155,11 @@ export default {
     nextMonth: 'Next',
     today: 'Today',
   },
+  datePicker: {
+    placeholder: 'Select date',
+    clear: 'Clear',
+    confirm: 'Confirm',
+  },
   dashboard: {
     total: 'Total items',
     completionRate: 'Completion rate',
@@ -203,8 +208,7 @@ export default {
     fieldDescription: 'Description',
     fieldStatus: 'Status',
     fieldPriority: 'Priority',
-    fieldStartDate: 'Start date',
-    fieldEndDate: 'End date',
+    fieldDateRange: 'Dates',
     fieldTags: 'Tags',
     tagsPlaceholder: 'Type a tag and press Enter',
     tagsCreateNew: 'Add tag "{tag}"',
