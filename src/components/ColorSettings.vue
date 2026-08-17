@@ -266,7 +266,7 @@ function setTagSwatch(name: string, color: TagColorKey | null): void {
 .swatches {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-xs);
   flex-shrink: 0;
 }
 

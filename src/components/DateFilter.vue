@@ -390,13 +390,19 @@ const inlineEnd = computed({
 
 .group-label {
   color: var(--color-ink-secondary);
-  margin-bottom: 4px;
+  margin-bottom: var(--space-xs);
 }
 
+/* --space-xs (8px), not --space-xxs (4px) — the Appearance panel's spacing
+   presets only span 0.85–1.15x (src/config/themePresets.ts's
+   SPACING_OPTIONS), so a 4px base gap barely moves (3.4px to 4.6px) and
+   reads as unchanged; 8px moves enough (6.8px to 9.2px) to actually be
+   visible when switching between Compact/Comfortable, which is the whole
+   point of this list of stacked buttons responding to it at all. */
 .preset-buttons {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-xs);
 }
 
 .preset-btn {
@@ -445,6 +451,11 @@ const inlineEnd = computed({
   justify-content: space-between;
 }
 
+/* A control's own padding, not the room around it — fixed, same as the
+   global `.btn`/`.input` classes (design-tokens.css) never scale their own
+   padding/min-height. --space-scale governs the gaps BETWEEN elements
+   (see DESIGN.md "Appearance spacing: what scales"), not a control's own
+   size. */
 .clear-btn,
 .confirm-btn {
   padding: 4px 10px;

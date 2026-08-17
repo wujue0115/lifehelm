@@ -166,7 +166,7 @@ function focusInput(): void {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-xs);
   height: auto;
   cursor: text;
 }

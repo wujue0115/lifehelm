@@ -49,7 +49,7 @@ function pick(widgetId: string): void {
   width: 220px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-xxs);
 }
 
 .picker-item {
