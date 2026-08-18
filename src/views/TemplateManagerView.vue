@@ -144,10 +144,7 @@ async function confirmDelete(): Promise<void> {
               <button
                 type="button"
                 class="btn btn-ghost action-btn"
-                :disabled="view.id.startsWith('default-')"
-                :title="
-                  view.id.startsWith('default-') ? t('view.defaultViewProtected') : t('view.delete')
-                "
+                :title="t('view.delete')"
                 @click="requestDelete(view.id)"
               >
                 <ActionIcon type="delete" />
