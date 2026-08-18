@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const props = withDefaults(
@@ -12,8 +12,14 @@ const props = withDefaults(
     // typing a name that isn't a suggestion here goes nowhere rather than
     // silently creating an unregistered tag.
     allowCreate?: boolean
+    // For callers that need the resting display to stay exactly a read-only
+    // pill list (WorkItemRow's inline tag editing) rather than an
+    // always-visible bordered input box — the chip/input editing UI moves
+    // into a floating popover that opens on click, pair with the `#trigger`
+    // slot to supply the pill content.
+    bare?: boolean
   }>(),
-  { allowCreate: false },
+  { allowCreate: false, bare: false },
 )
 
 const emit = defineEmits<{ 'update:modelValue': [string[]] }>()
@@ -24,6 +30,43 @@ const query = ref('')
 const open = ref(false)
 const highlightedIndex = ref(-1)
 const inputRef = ref<HTMLInputElement | null>(null)
+const wrapperEl = ref<HTMLElement | null>(null)
+const triggerEl = ref<HTMLButtonElement | null>(null)
+const popoverEl = ref<HTMLElement | null>(null)
+
+// Teleported to <body> (see template) for the same reason as
+// SelectMenu/DateFilter's own popovers: any ancestor with clipped overflow
+// (a modal's scroll body, `ListPanel`'s `.table-card` — this component is
+// used for inline tag editing inside table rows in `bare` mode) would
+// otherwise cut the popover/dropdown off. Anchored to the trigger button in
+// `bare` mode, to the inline input box otherwise.
+const popoverPos = ref({ top: 0, left: 0, width: 0 })
+function updatePopoverPosition(): void {
+  const anchor = props.bare ? triggerEl.value : wrapperEl.value
+  const rect = anchor?.getBoundingClientRect()
+  if (!rect) return
+  popoverPos.value = { top: rect.bottom + 4, left: rect.left, width: rect.width }
+}
+watch(open, (isOpen) => {
+  if (!isOpen) {
+    window.removeEventListener('scroll', updatePopoverPosition, true)
+    window.removeEventListener('resize', updatePopoverPosition)
+    return
+  }
+  updatePopoverPosition()
+  window.addEventListener('scroll', updatePopoverPosition, true)
+  window.addEventListener('resize', updatePopoverPosition)
+  // In bare mode the input only exists once the popover is open (it's part
+  // of the Teleported popover, not the always-visible trigger) — focus it
+  // each time, not just once on mount, since this component now stays
+  // mounted across repeated open/close cycles instead of being remounted
+  // per edit.
+  if (props.bare) nextTick(() => inputRef.value?.focus())
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', updatePopoverPosition, true)
+  window.removeEventListener('resize', updatePopoverPosition)
+})
 
 type Option = { value: string; label: string; isCreate: boolean }
 
@@ -116,51 +159,185 @@ function moveHighlight(delta: number): void {
 function focusInput(): void {
   inputRef.value?.focus()
 }
+
+function toggleBarePopover(): void {
+  open.value = !open.value
+}
+
+// Non-bare: chip-remove buttons and dropdown items both use
+// @mousedown.stop.prevent, so this only fires for a genuine "focus left the
+// whole widget."
+function handleBlur(): void {
+  open.value = false
+}
+
+// Bare: trigger and popover live in different DOM subtrees (the popover is
+// Teleported), so closing on outside click/Tab needs to check containment
+// against both — same relatedTarget-containment pattern as SelectMenu's
+// handleFocusOut.
+function handleBarePopoverFocusOut(event: FocusEvent): void {
+  const next = event.relatedTarget as Node | null
+  if (!next || (!triggerEl.value?.contains(next) && !popoverEl.value?.contains(next))) {
+    open.value = false
+  }
+}
 </script>
 
 <template>
-  <div class="tags-input input" @mousedown="focusInput">
-    <span v-for="tag in modelValue" :key="tag" class="chip type-label">
-      {{ tag }}
-      <button
-        type="button"
-        class="chip-remove"
-        :aria-label="t('itemDetail.tagsRemove', { tag })"
-        @mousedown.stop.prevent="removeTag(tag)"
+  <div class="tags-input-root">
+    <button
+      v-if="bare"
+      ref="triggerEl"
+      type="button"
+      class="bare-trigger"
+      @click="toggleBarePopover"
+      @focusout="handleBarePopoverFocusOut"
+    >
+      <slot name="trigger">
+        <span class="trigger-fallback type-body-sm">{{
+          modelValue.join(', ') || placeholder
+        }}</span>
+      </slot>
+    </button>
+
+    <div v-else ref="wrapperEl" class="tags-input input" @mousedown="focusInput">
+      <span v-for="tag in modelValue" :key="tag" class="chip type-label">
+        {{ tag }}
+        <button
+          type="button"
+          class="chip-remove"
+          :aria-label="t('itemDetail.tagsRemove', { tag })"
+          @mousedown.stop.prevent="removeTag(tag)"
+        >
+          ×
+        </button>
+      </span>
+      <input
+        ref="inputRef"
+        v-model="query"
+        type="text"
+        class="tags-input-field type-body"
+        :placeholder="modelValue.length ? '' : placeholder"
+        @focus="open = true"
+        @blur="handleBlur"
+        @keydown.enter.prevent="handleEnter"
+        @keydown.backspace="handleBackspace"
+        @keydown.down.prevent="moveHighlight(1)"
+        @keydown.up.prevent="moveHighlight(-1)"
+        @keydown.esc="open = false"
+      />
+      <Teleport to="body">
+        <ul
+          v-if="open && options.length"
+          class="dropdown"
+          :style="{
+            top: `${popoverPos.top}px`,
+            left: `${popoverPos.left}px`,
+            width: `${popoverPos.width}px`,
+          }"
+        >
+          <li
+            v-for="(option, index) in options"
+            :key="option.value"
+            class="dropdown-item type-body-sm"
+            :class="{ active: index === highlightedIndex, create: option.isCreate }"
+            @mousedown.stop.prevent="selectOption(option)"
+            @mouseenter="highlightedIndex = index"
+          >
+            <slot name="option" :option="option">{{ option.label }}</slot>
+          </li>
+        </ul>
+      </Teleport>
+    </div>
+
+    <Teleport v-if="bare" to="body">
+      <div
+        v-if="open"
+        ref="popoverEl"
+        class="popover"
+        :style="{
+          top: `${popoverPos.top}px`,
+          left: `${popoverPos.left}px`,
+          minWidth: `${popoverPos.width}px`,
+        }"
+        @focusout="handleBarePopoverFocusOut"
       >
-        ×
-      </button>
-    </span>
-    <input
-      ref="inputRef"
-      v-model="query"
-      type="text"
-      class="tags-input-field type-body"
-      :placeholder="modelValue.length ? '' : placeholder"
-      @focus="open = true"
-      @blur="open = false"
-      @keydown.enter.prevent="handleEnter"
-      @keydown.backspace="handleBackspace"
-      @keydown.down.prevent="moveHighlight(1)"
-      @keydown.up.prevent="moveHighlight(-1)"
-      @keydown.esc="open = false"
-    />
-    <ul v-if="open && options.length" class="dropdown">
-      <li
-        v-for="(option, index) in options"
-        :key="option.value"
-        class="dropdown-item type-body-sm"
-        :class="{ active: index === highlightedIndex, create: option.isCreate }"
-        @mousedown.stop.prevent="selectOption(option)"
-        @mouseenter="highlightedIndex = index"
-      >
-        {{ option.label }}
-      </li>
-    </ul>
+        <div class="tags-input popover-edit-box" @mousedown="focusInput">
+          <span v-for="tag in modelValue" :key="tag" class="chip type-label">
+            {{ tag }}
+            <button
+              type="button"
+              class="chip-remove"
+              :aria-label="t('itemDetail.tagsRemove', { tag })"
+              @mousedown.stop.prevent="removeTag(tag)"
+            >
+              ×
+            </button>
+          </span>
+          <input
+            ref="inputRef"
+            v-model="query"
+            type="text"
+            class="tags-input-field type-body"
+            :placeholder="modelValue.length ? '' : placeholder"
+            @keydown.enter.prevent="handleEnter"
+            @keydown.backspace="handleBackspace"
+            @keydown.down.prevent="moveHighlight(1)"
+            @keydown.up.prevent="moveHighlight(-1)"
+            @keydown.esc="open = false"
+          />
+        </div>
+        <ul v-if="options.length" class="dropdown popover-dropdown">
+          <li
+            v-for="(option, index) in options"
+            :key="option.value"
+            class="dropdown-item type-body-sm"
+            :class="{ active: index === highlightedIndex, create: option.isCreate }"
+            @mousedown.stop.prevent="selectOption(option)"
+            @mouseenter="highlightedIndex = index"
+          >
+            <slot name="option" :option="option">{{ option.label }}</slot>
+          </li>
+        </ul>
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <style scoped>
+.tags-input-root {
+  position: relative;
+}
+
+/* Matches SelectMenu's own `.bare-trigger` — a plain hit-target reset
+   around whatever the `#trigger` slot renders (a row of TagPills), so
+   clicking to edit never changes the resting cell's own appearance. */
+.bare-trigger {
+  display: inline-flex;
+  width: 100%;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  background: none;
+  border: none;
+  padding: 2px;
+  margin: -2px;
+  border-radius: var(--rounded-xs);
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  min-height: 24px;
+  text-align: left;
+}
+
+.bare-trigger:hover {
+  background: var(--color-surface-hover);
+}
+
+.trigger-fallback {
+  color: var(--color-ink-muted);
+}
+
 .tags-input {
   position: relative;
   display: flex;
@@ -213,12 +390,17 @@ function focusInput(): void {
   padding: 2px 0;
 }
 
+/* Teleported to <body> and `position: fixed` — see the script comment on
+   `popoverPos` for why. top/left/width come from that inline style, not
+   CSS — a plain `right: 0` (matching the trigger's width by spanning
+   between two anchored edges) only worked back when this was `position:
+   absolute` inside the trigger's own containing block; fixed positioning
+   has no such block to anchor `right` against. z-index 110 matches
+   SelectMenu's own (above ModalOverlay's 100), in case this ever ends up
+   inside a dialog too. */
 .dropdown {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  right: 0;
-  z-index: 20;
+  position: fixed;
+  z-index: 110;
   margin: 0;
   padding: 4px;
   list-style: none;
@@ -230,6 +412,8 @@ function focusInput(): void {
 }
 
 .dropdown-item {
+  display: flex;
+  align-items: center;
   padding: 6px 10px;
   border-radius: var(--rounded-xs);
   color: var(--color-ink);
@@ -243,5 +427,38 @@ function focusInput(): void {
 
 .dropdown-item.create {
   color: var(--color-ink-secondary);
+}
+
+/* Bare mode's floating edit popover — a bordered card like SelectMenu's own
+   popover, holding the chip/input editing row on top and the suggestion
+   list underneath, since here (unlike SelectMenu) there's live editing UI
+   in addition to a pick-list. */
+.popover {
+  position: fixed;
+  z-index: 110;
+  min-width: 220px;
+  max-width: 320px;
+  padding: var(--space-xxs);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xxs);
+  background: var(--color-canvas-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--rounded-md);
+}
+
+.popover-edit-box {
+  padding: 6px 8px;
+  border-radius: calc(var(--rounded-md) - var(--space-xxs));
+  border: 1px solid var(--color-border-subtle);
+}
+
+.popover-dropdown {
+  position: static;
+  z-index: auto;
+  max-height: 180px;
+  border: none;
+  border-radius: 0;
+  padding: 0;
 }
 </style>

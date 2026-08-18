@@ -13,14 +13,26 @@ export interface SelectMenuOption {
   label: string
 }
 
-const props = defineProps<{
-  modelValue: string
-  options: SelectMenuOption[]
-}>()
+const props = withDefaults(
+  defineProps<{
+    modelValue: string
+    options: SelectMenuOption[]
+    // For callers that need the trigger to look like something other than
+    // a text-input-styled dropdown box — WorkItemRow's inline status/
+    // priority editing wants the trigger to stay exactly the read-only
+    // badge it always shows, never swapping to a bordered field just
+    // because the popover happens to be closed. Drops the `.input`/`.trigger`
+    // chrome (border, min-height, chevron) in favor of a plain reset button;
+    // pair with the `#trigger` slot to supply the badge/pill content.
+    bare?: boolean
+  }>(),
+  { bare: false },
+)
 const emit = defineEmits<{ 'update:modelValue': [string] }>()
 
 const open = ref(false)
 const wrapperEl = ref<HTMLElement | null>(null)
+const triggerEl = ref<HTMLButtonElement | null>(null)
 const popoverEl = ref<HTMLElement | null>(null)
 const highlightedIndex = ref(0)
 
@@ -28,6 +40,12 @@ const selectedIndex = computed(() =>
   props.options.findIndex((option) => option.value === props.modelValue),
 )
 const triggerLabel = computed(() => props.options[selectedIndex.value]?.label ?? '')
+// Falls back to a label-less stand-in when `modelValue` doesn't match any
+// option (e.g. before data loads) — the `#option` slot below always gets a
+// real object to destructure, never `undefined`.
+const selectedOption = computed<SelectMenuOption>(
+  () => props.options[selectedIndex.value] ?? { value: props.modelValue, label: '' },
+)
 
 // Same Teleport-to-<body> + getBoundingClientRect positioning as
 // DateFilter.vue's popover, for the same reason: every widget's
@@ -122,22 +140,28 @@ function handleTriggerKeydown(event: KeyboardEvent): void {
 <template>
   <div ref="wrapperEl" class="select-menu" @focusout="handleFocusOut">
     <button
+      ref="triggerEl"
       type="button"
-      class="input type-body trigger"
+      class="trigger type-body"
+      :class="bare ? 'bare-trigger' : 'input styled-trigger'"
       @click="toggleOpen"
       @keydown="handleTriggerKeydown"
     >
-      <span class="trigger-text">{{ triggerLabel }}</span>
-      <svg class="arrow" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-        <path
-          d="M2.5 4.5l3.5 3.5 3.5-3.5"
-          stroke="currentColor"
-          stroke-width="1.3"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          fill="none"
-        />
-      </svg>
+      <slot name="trigger">
+        <span class="trigger-text">
+          <slot name="option" :option="selectedOption">{{ triggerLabel }}</slot>
+        </span>
+        <svg class="arrow" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+          <path
+            d="M2.5 4.5l3.5 3.5 3.5-3.5"
+            stroke="currentColor"
+            stroke-width="1.3"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            fill="none"
+          />
+        </svg>
+      </slot>
     </button>
 
     <Teleport to="body">
@@ -165,7 +189,7 @@ function handleTriggerKeydown(event: KeyboardEvent): void {
           @mouseenter="highlightedIndex = index"
           @click="selectOption(option)"
         >
-          {{ option.label }}
+          <slot name="option" :option="option">{{ option.label }}</slot>
         </button>
       </div>
     </Teleport>
@@ -177,19 +201,22 @@ function handleTriggerKeydown(event: KeyboardEvent): void {
   position: relative;
 }
 
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  text-align: left;
+  cursor: pointer;
+}
+
 /* min-width matches the `.filters .input` rule each panel's own scoped
    style applies to its native <select> filters — that selector can't reach
    this component's non-root trigger button, so it's set here instead (same
    fix as DateFilter.vue's own trigger). */
-.trigger {
-  display: flex;
-  align-items: center;
+.styled-trigger {
   justify-content: space-between;
   gap: var(--space-xs);
   width: 100%;
   min-width: 140px;
-  text-align: left;
-  cursor: pointer;
 }
 
 .trigger-text {
@@ -201,6 +228,28 @@ function handleTriggerKeydown(event: KeyboardEvent): void {
 .arrow {
   flex-shrink: 0;
   color: var(--color-ink-secondary);
+}
+
+/* For callers that need the trigger to stay visually identical to a
+   read-only badge/pill display (WorkItemRow's inline cell editing) — no
+   border/background/min-height, just a hit-target reset around whatever
+   the `#trigger` slot renders, matching a plain hover affordance rather
+   than "this is a form field." */
+.bare-trigger {
+  flex-wrap: wrap;
+  gap: 4px;
+  background: none;
+  border: none;
+  padding: 2px;
+  margin: -2px;
+  border-radius: var(--rounded-xs);
+  font: inherit;
+  color: inherit;
+  min-height: 24px;
+}
+
+.bare-trigger:hover {
+  background: var(--color-surface-hover);
 }
 
 /* Teleported to <body> and `position: fixed` — same reasoning as
@@ -263,15 +312,20 @@ function handleTriggerKeydown(event: KeyboardEvent): void {
   background: var(--color-surface-hover);
 }
 
-/* Accent, not ink — this marks which one of the peer options is currently
-   in effect, the same "current selection among equivalents" territory the
-   sidebar's active-nav-item and ThemeSettingsPanel's own active preset/
-   segment already use accent for (see DESIGN.md "Accent
-   (user-configurable)"), not DatePicker's single-mode `.selected` (a point
-   picked on a calendar, a different shape of "committed value"). */
+/* A light accent tint, not a solid accent fill — this still marks which
+   one of the peer options is currently in effect (the same "current
+   selection among equivalents" territory the sidebar's active-nav-item and
+   ThemeSettingsPanel's own active preset/segment use accent for, see
+   DESIGN.md "Accent (user-configurable)"), but many options render their
+   own colored badge/pill now (status/priority/tag pickers) — a solid
+   accent-filled row behind an already-colored badge read as two competing
+   shapes fighting for attention. A tint leaves the badge's own color as
+   the dominant signal without adding another indicator on top of it —
+   the trigger itself already shows the current value (see `selectedOption`
+   above), so the option list doesn't need its own separate "selected" mark
+   beyond this tint. */
 .option.selected {
-  background: var(--color-accent);
-  color: var(--color-accent-contrast);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
   font-weight: 700;
 }
 </style>
