@@ -505,11 +505,27 @@ async function confirmDelete(): Promise<void> {
   background: var(--color-canvas-surface);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--rounded-md);
-  overflow: hidden;
+  /* overflow-x: auto, not hidden — a row with enough tags/long text can
+     make the table wider than the card, and `hidden` was silently clipping
+     that content off the right edge instead of letting it scroll into
+     view. overflow-y stays hidden so the card's own rounded top/bottom
+     corners still clip the table's square ones. */
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .table {
   width: 100%;
+  /* `width: 100%` alone lets an auto-layout table shrink its columns
+     indefinitely to fit the card, which is what was defeating
+     `.table-card`'s own `overflow-x: auto` above — the table never
+     actually exceeded its container, it just squeezed every column
+     (long titles/many tags truncating hard) instead. `min-width:
+     max-content` puts a floor at the table's natural, unconstrained
+     width, so once real content demands more room than the card has, the
+     table genuinely overflows and the card scrolls instead of squeezing
+     forever. */
+  min-width: max-content;
   border-collapse: collapse;
 }
 
