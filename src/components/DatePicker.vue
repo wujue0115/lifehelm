@@ -523,6 +523,8 @@ function granularCellState(key: string, toGranular: (dateKey: string) => string)
    `.option.selected` uses) on top of the existing color shift, not the
    plain `{colors.surface-hover}` gray other ghost surfaces use. */
 .icon-btn {
+  width: 32px;
+  height: 32px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
