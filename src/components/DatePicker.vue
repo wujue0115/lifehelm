@@ -450,6 +450,8 @@ function granularCellState(key: string, toGranular: (dateKey: string) => string)
   position: relative;
 }
 
+/* No radius override needed — `.input` (design-tokens.css) is already
+   `{rounded.md}`, matching `.popover` below. */
 .trigger {
   display: block;
   width: 100%;
@@ -516,12 +518,17 @@ function granularCellState(key: string, toGranular: (dateKey: string) => string)
   background: var(--color-surface-hover);
 }
 
+/* border-radius matches every other button's {rounded.md}. Hover adds a
+   light accent tint background (same 12% mix SelectMenu's own
+   `.option.selected` uses) on top of the existing color shift, not the
+   plain `{colors.surface-hover}` gray other ghost surfaces use. */
 .icon-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   background: none;
   border: none;
+  border-radius: var(--rounded-md);
   cursor: pointer;
   color: var(--color-ink-muted);
   padding: 2px;
@@ -529,6 +536,7 @@ function granularCellState(key: string, toGranular: (dateKey: string) => string)
 
 .icon-btn:hover {
   color: var(--color-ink);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
 }
 
 .weekday-row {
@@ -549,6 +557,8 @@ function granularCellState(key: string, toGranular: (dateKey: string) => string)
   grid-template-columns: repeat(7, 1fr);
 }
 
+/* border-radius matches `.btn`'s own {rounded.md} — a day cell is a
+   button, so it gets the same radius as every other button. */
 .day {
   position: relative;
   aspect-ratio: 1;
@@ -557,7 +567,7 @@ function granularCellState(key: string, toGranular: (dateKey: string) => string)
   justify-content: center;
   background: none;
   border: none;
-  border-radius: var(--rounded-sm);
+  border-radius: var(--rounded-md);
   color: var(--color-ink);
   cursor: pointer;
 }
@@ -616,6 +626,8 @@ function granularCellState(key: string, toGranular: (dateKey: string) => string)
   gap: var(--space-xxs);
 }
 
+/* border-radius matches `.day`'s own {rounded.md} — same "it's a button"
+   reasoning, for the month/year grids' cells. */
 .cell {
   position: relative;
   aspect-ratio: 2;
@@ -624,7 +636,7 @@ function granularCellState(key: string, toGranular: (dateKey: string) => string)
   justify-content: center;
   background: none;
   border: none;
-  border-radius: var(--rounded-sm);
+  border-radius: var(--rounded-md);
   color: var(--color-ink);
   cursor: pointer;
 }

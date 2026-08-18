@@ -16,10 +16,20 @@ const style = computed(() =>
 </template>
 
 <style scoped>
+/* border-radius is {rounded.lg}, not {rounded.full} — {rounded.full} is
+   pinned to a fixed 9999px (never scaled by --radius-scale) so genuine
+   circles (swatches, toggle tracks, avatar dots) always stay perfectly
+   round regardless of the Appearance panel's radius preset. A text chip
+   needs the opposite: it should visibly respond to sharp/default/round
+   like every other rectangular surface, from a barely-rounded rectangle
+   at "sharp" (0.4x → 5.6px) up through a full pill at "default" and
+   beyond (1x → 14px, comfortably past this ~22px-tall badge's own
+   half-height, where a border-radius this large or larger always renders
+   as a full capsule). */
 .badge {
   display: inline-block;
-  padding: 2px 10px;
-  border-radius: var(--rounded-full);
+  padding: 4px 10px;
+  border-radius: var(--rounded-lg);
   border: 1px solid var(--color-border-strong);
   color: var(--color-ink-secondary);
   background: var(--color-canvas-surface);

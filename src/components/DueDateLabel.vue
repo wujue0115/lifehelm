@@ -59,9 +59,12 @@ const statusLabel = computed(() => {
   color: var(--color-ink-muted);
 }
 
+/* border-radius is {rounded.lg}, not {rounded.full} — see StatusBadge.vue
+   for why chips need a radius-scale-responsive value rather than a
+   circle-guaranteeing fixed one. */
 .status {
-  padding: 2px 8px;
-  border-radius: var(--rounded-full);
+  padding: 4px 8px;
+  border-radius: var(--rounded-lg);
   border: 1px solid var(--color-border-subtle);
   color: var(--color-ink-secondary);
   white-space: nowrap;

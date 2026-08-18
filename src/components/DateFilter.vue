@@ -320,6 +320,8 @@ const inlineEnd = computed({
   flex: 0 0 190px;
 }
 
+/* No radius override needed — `.input` (design-tokens.css) is already
+   `{rounded.md}`, matching `.popover` below. */
 .trigger {
   display: block;
   width: 100%;
@@ -408,12 +410,15 @@ const inlineEnd = computed({
   gap: var(--space-xs);
 }
 
+/* border-radius matches `.btn`'s own {rounded.md} — same reasoning as the
+   rest of this document's radius unification, applied to a hand-rolled
+   button rather than the shared `.btn` class. */
 .preset-btn {
   width: 100%;
   padding: 6px 8px;
   background: var(--color-canvas-surface);
   border: 1px solid var(--color-border-strong);
-  border-radius: var(--rounded-sm);
+  border-radius: var(--rounded-md);
   color: var(--color-ink);
   cursor: pointer;
   text-align: center;

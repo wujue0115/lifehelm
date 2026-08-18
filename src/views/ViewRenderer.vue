@@ -178,19 +178,27 @@ function finishRenameView(): void {
   max-width: 400px;
 }
 
+/* border-radius matches every other button's {rounded.md}. Hover adds a
+   light accent tint background (same 12% mix SelectMenu's own
+   `.option.selected` uses) on top of the existing color shift, not the
+   plain `{colors.surface-hover}` gray other ghost surfaces use. Padding
+   bumped from 0 to 2px so the new hover background has room to read as a
+   rounded box around the icon rather than hugging its glyph exactly. */
 .icon-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   background: none;
   border: none;
+  border-radius: var(--rounded-md);
   cursor: pointer;
   color: var(--color-ink-muted);
-  padding: 0;
+  padding: 2px;
 }
 
 .icon-btn:hover {
   color: var(--color-ink);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
 }
 
 .layout-toolbar {

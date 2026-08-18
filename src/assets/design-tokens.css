@@ -149,12 +149,15 @@ body {
   line-height: 1.4;
 }
 
+/* border-radius matches .input/.card's own {rounded.md} — buttons,
+   fields, cards, and popovers all share one radius now rather than
+   buttons sitting at a smaller {rounded.sm} of their own. */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  border-radius: var(--rounded-sm);
+  border-radius: var(--rounded-md);
   padding: 8px 16px;
   min-height: 36px;
   cursor: pointer;
@@ -209,11 +212,32 @@ body {
   background: var(--color-surface-hover);
 }
 
+/* Single-icon ghost buttons — `.action-btn` (edit/delete pencils/trash
+   across every row-level toolbar) and `.close-btn` (DialogHeader's × on
+   every modal) — get a light accent tint instead of the plain
+   `{colors.surface-hover}` gray every other `.btn-ghost` (including
+   text-labeled ones) uses. Same 12% mix SelectMenu's own
+   `.option.selected` uses; scoped to just these two classes rather than
+   changing `.btn-ghost:hover` itself, since a text button like
+   WidgetPicker's own ghost menu items isn't the "icon button" this is
+   about. Both classes are only ever combined with `.btn-ghost` in this
+   codebase, so the compound selector here is purely for clarity/specificity,
+   not narrowing an otherwise-broader rule. */
+.btn-ghost.action-btn:hover,
+.btn-ghost.close-btn:hover {
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+}
+
+/* border-radius matches .card's own {rounded.md} — every field in the app
+   (text inputs, textareas, SelectMenu/MultiSelectMenu/DateFilter/DatePicker's
+   text-input-styled triggers, TagsInput's box) shares one radius now,
+   rather than plain fields sitting at a smaller {rounded.xs} than the
+   triggers that happen to open a popover. */
 .input {
   background: var(--color-canvas-surface);
   color: var(--color-ink);
   border: 1px solid var(--color-border-strong);
-  border-radius: var(--rounded-xs);
+  border-radius: var(--rounded-md);
   padding: 8px 12px;
   min-height: 36px;
 }

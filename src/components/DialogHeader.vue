@@ -11,7 +11,7 @@ const { t } = useI18n()
     <span class="type-section-title">{{ title }}</span>
     <button
       type="button"
-      class="btn-ghost close-btn"
+      class="btn btn-ghost close-btn"
       :title="t('common.close')"
       @click="emit('close')"
     >

@@ -321,7 +321,7 @@ async function confirmDelete(): Promise<void> {
       <div class="toolbar-actions">
         <button
           type="button"
-          class="btn-ghost action-btn"
+          class="btn btn-ghost action-btn"
           :title="t('colorSettings.trigger')"
           @click="settingsOpen = true"
         >

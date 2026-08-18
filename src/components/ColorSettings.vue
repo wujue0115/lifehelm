@@ -209,20 +209,29 @@ function setTagSwatch(name: string, color: TagColorKey | null): void {
   margin-bottom: var(--space-md);
 }
 
+/* border-radius is {rounded.md}, matching every other bordered surface —
+   the "Global"/"This view" scope tabs. */
 .scope-toggle {
   display: flex;
   gap: 4px;
   padding: 3px;
   background: var(--color-canvas-app);
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--rounded-sm);
+  border-radius: var(--rounded-md);
 }
 
+/* border-radius is `.scope-toggle`'s own radius minus its 3px padding, not
+   a second flat {rounded.md} — concentric corners (same center point as
+   the track's own rounded corner) only line up when inner = outer -
+   padding; two independently-set equal radii drift apart the moment the
+   tab is inset from the track's edge by any padding at all, which is
+   exactly why this looked off before. Same formula as SelectMenu's own
+   `.option` relative to `.popover`. */
 .scope-btn {
   flex: 1;
   padding: 6px 12px;
   border: 1px solid transparent;
-  border-radius: var(--rounded-xs);
+  border-radius: calc(var(--rounded-md) - 3px);
   background: none;
   color: var(--color-ink-secondary);
   cursor: pointer;

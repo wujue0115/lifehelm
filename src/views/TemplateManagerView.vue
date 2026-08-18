@@ -128,14 +128,14 @@ async function confirmDelete(): Promise<void> {
             <td class="actions">
               <RouterLink
                 :to="`/views/${view.id}/edit`"
-                class="btn-ghost action-btn"
+                class="btn btn-ghost action-btn"
                 :title="t('view.editLayout')"
               >
                 <ActionIcon type="edit" />
               </RouterLink>
               <button
                 type="button"
-                class="btn-ghost action-btn"
+                class="btn btn-ghost action-btn"
                 :title="t('view.duplicate')"
                 @click="duplicate(view.id, view.name)"
               >
@@ -143,7 +143,7 @@ async function confirmDelete(): Promise<void> {
               </button>
               <button
                 type="button"
-                class="btn-ghost action-btn"
+                class="btn btn-ghost action-btn"
                 :disabled="view.id.startsWith('default-')"
                 :title="
                   view.id.startsWith('default-') ? t('view.defaultViewProtected') : t('view.delete')

@@ -226,18 +226,26 @@ function startMove(event: MouseEvent): void {
   color: var(--color-ink);
 }
 
+/* border-radius matches every other button's {rounded.md}. Hover adds a
+   light accent tint background (same 12% mix SelectMenu's own
+   `.option.selected` uses) on top of the existing color shift, not the
+   plain `{colors.surface-hover}` gray other ghost surfaces use. Padding
+   bumped from 0 to 2px so the new hover background has room to read as a
+   rounded box around the glyph rather than hugging it exactly. */
 .icon-btn {
   background: none;
   border: none;
+  border-radius: var(--rounded-md);
   cursor: pointer;
   color: var(--color-ink-muted);
   font-size: 18px;
   line-height: 1;
-  padding: 0;
+  padding: 2px;
 }
 
 .icon-btn:hover {
   color: var(--color-ink);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
 }
 
 /* `overflow-y: auto` here also computes `overflow-x` as `auto` per the CSS

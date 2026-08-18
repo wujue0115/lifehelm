@@ -174,10 +174,11 @@ function reset(): void {
   overflow-y: auto;
 }
 
+/* border-radius matches every other bordered surface's {rounded.md}. */
 .save-error {
   margin: 0;
   padding: 6px 8px;
-  border-radius: var(--rounded-xs);
+  border-radius: var(--rounded-md);
   border: 1px solid var(--color-border-strong);
   color: var(--color-ink-secondary);
 }
@@ -198,12 +199,18 @@ function reset(): void {
   gap: 6px;
 }
 
+/* border-radius is {rounded.lg}, not {rounded.full} — see StatusBadge.vue
+   for why chips need a radius-scale-responsive value rather than a
+   circle-guaranteeing fixed one. Especially relevant here: this chip
+   previews/applies a preset that includes a radius value, so it should
+   visibly react when the user later picks "sharp" below, not sit frozen
+   as a permanent pill regardless of what's selected. */
 .preset-chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 4px 10px;
-  border-radius: var(--rounded-full);
+  border-radius: var(--rounded-lg);
   border: 1px solid var(--color-border-strong);
   background: var(--color-canvas-surface);
   color: var(--color-ink);
@@ -258,6 +265,9 @@ function reset(): void {
   gap: 6px;
 }
 
+/* border-radius matches every other button's {rounded.md} — these are the
+   Corner Radius/Spacing preset buttons, so of all things in this panel
+   they'd be the most conspicuous to leave at a stale, un-unified radius. */
 .segment {
   flex: 1;
   display: flex;
@@ -265,7 +275,7 @@ function reset(): void {
   align-items: center;
   gap: 4px;
   padding: 6px;
-  border-radius: var(--rounded-xs);
+  border-radius: var(--rounded-md);
   border: 1px solid var(--color-border-strong);
   background: var(--color-canvas-surface);
   color: var(--color-ink-secondary);

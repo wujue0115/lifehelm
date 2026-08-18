@@ -107,12 +107,16 @@ function onTagsChange(tags: string[]): void {
       />
     </td>
     <td class="actions">
-      <RouterLink :to="`/items/${item.id}`" class="btn-ghost action-btn" :title="t('common.edit')">
+      <RouterLink
+        :to="`/items/${item.id}`"
+        class="btn btn-ghost action-btn"
+        :title="t('common.edit')"
+      >
         <ActionIcon type="edit" />
       </RouterLink>
       <button
         type="button"
-        class="btn-ghost action-btn"
+        class="btn btn-ghost action-btn"
         :title="t('common.delete')"
         @click="emit('delete', item.id)"
       >
