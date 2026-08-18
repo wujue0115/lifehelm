@@ -1,10 +1,15 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import ActionIcon from '@/components/ActionIcon.vue'
 
 const props = withDefaults(
   defineProps<{
     titleKey: string
+    // Per-instance override for the header label — see WidgetLayoutEntry's
+    // own `title` field (src/types/view.ts) for why: two List panels in
+    // the same view otherwise both just read "List".
+    title?: string
     editable: boolean
     colSpan: number
     rowSpan: number
@@ -27,10 +32,28 @@ const emit = defineEmits<{
   move: [colStart: number, rowStart: number]
   remove: []
   focus: []
+  rename: [title: string]
 }>()
 const { t } = useI18n()
 
 const rootEl = ref<HTMLElement | null>(null)
+
+// Same stage-then-commit rename pattern as ViewRenderer's own view-name
+// editing — click the pencil, edit in place, blur/Enter commits. An empty
+// trim doesn't commit (falls back to titleKey, the same "empty clears the
+// override" contract `renameWidget` in GridLayout.vue relies on).
+const editingTitle = ref(false)
+const titleInput = ref('')
+
+function startRenameTitle(): void {
+  titleInput.value = props.title ?? ''
+  editingTitle.value = true
+}
+
+function finishRenameTitle(): void {
+  emit('rename', titleInput.value.trim())
+  editingTitle.value = false
+}
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max)
@@ -156,7 +179,28 @@ function startMove(event: MouseEvent): void {
       <span v-if="editable" class="widget-drag-handle icon-btn" :title="t('view.dragHandle')"
         >⠿</span
       >
-      <span class="type-label widget-title">{{ t(titleKey) }}</span>
+      <input
+        v-if="editable && editingTitle"
+        v-model="titleInput"
+        class="input type-section-title title-input"
+        :placeholder="t(titleKey)"
+        @mousedown.stop
+        @blur="finishRenameTitle"
+        @keyup.enter="finishRenameTitle"
+      />
+      <span v-else class="title-group">
+        <span class="type-section-title widget-title">{{ title || t(titleKey) }}</span>
+        <button
+          v-if="editable"
+          type="button"
+          class="icon-btn"
+          :title="t('view.rename')"
+          @click="startRenameTitle"
+          @mousedown.stop
+        >
+          <ActionIcon type="edit" />
+        </button>
+      </span>
       <button
         v-if="editable && removable"
         type="button"
@@ -208,9 +252,39 @@ function startMove(event: MouseEvent): void {
   cursor: grabbing;
 }
 
-.widget-title {
+/* flex:1 lives on the group, not the title span itself — a title span with
+   its own flex:1 stretches to fill the header, which visually shoves the
+   rename button (its very next sibling in a flex row) all the way over
+   to sit beside the remove button on the far right instead of right next
+   to the text it renames. Grouping the text+button together and growing
+   the group instead keeps the two visually paired, with the leftover
+   space pushed after the button (where the remove button picks it up). */
+.title-group {
   flex: 1;
-  color: var(--color-ink-secondary);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+/* type-section-title, not type-label — this is a panel's own header
+   title, the same weight/size DialogHeader.vue's modal titles use, not a
+   small caption. No color override: type-section-title's default
+   {colors.ink} matches that same DialogHeader precedent, rather than
+   pairing bold/larger text with a muted secondary color. */
+.widget-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Compact override of `.input`'s own 36px min-height/8px-12px padding —
+   sized to fit inline in the header row next to the drag handle and
+   remove button, not a full-size form field. */
+.title-input {
+  flex: 1;
+  min-height: auto;
+  padding: 2px 6px;
 }
 
 /* Pure visual affordance — the whole header is the drag surface (see the
