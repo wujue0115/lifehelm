@@ -99,6 +99,12 @@ export default {
     filterNoneSelected: '未選取任何項目',
     tagsEmptyHint: '新增標籤…',
     addItem: '新增',
+    export: '匯出',
+    exportTitle: '匯出',
+    exportShowDate: '顯示日期',
+    exportDateFormatPlaceholder: 'M/D',
+    exportDateFormatHelp:
+      'YYYY/YY = 年,MM/M = 月,DD/D = 日。兩個字母會補零,一個字母不會。範例:M/D → 8/7,YYYY/MM/DD → 2026/08/07。',
     count: '共 {filtered} / {total} 筆工作項目',
     columnTitle: '標題',
     columnStatus: '狀態',
