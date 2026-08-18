@@ -1,48 +1,54 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
-import { useRoute } from "vue-router";
-import { useI18n } from "vue-i18n";
-import AppSidebar from "@/components/AppSidebar.vue";
-import DoneCelebration from "@/components/DoneCelebration.vue";
-import { useWorkItemsStore } from "@/stores/workItems";
-import { useViewsStore } from "@/stores/views";
-import { getDueStatus } from "@/utils/dueDate";
+import { computed, onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+import AppSidebar from '@/components/AppSidebar.vue'
+import DoneCelebration from '@/components/DoneCelebration.vue'
+import { useWorkItemsStore } from '@/stores/workItems'
+import { useViewsStore } from '@/stores/views'
+import { getDueStatus } from '@/utils/dueDate'
 
-const route = useRoute();
-const store = useWorkItemsStore();
-const viewsStore = useViewsStore();
-const { t } = useI18n();
-const dismissed = ref(false);
+const route = useRoute()
+const store = useWorkItemsStore()
+const viewsStore = useViewsStore()
+const { t } = useI18n()
+const dismissed = ref(false)
+
+declare global {
+  interface Window {
+    __wiStore?: unknown
+  }
+}
 
 onMounted(() => {
-  store.fetchAll();
-  viewsStore.fetchAll();
-  ;(window as any).__wiStore = store;
-});
+  store.fetchAll()
+  viewsStore.fetchAll()
+  window.__wiStore = store
+})
 
 const pageTitle = computed(() => {
-  if (route.name === "view" || route.name === "view-edit") {
-    const view = viewsStore.views.find((v) => v.id === route.params.viewId);
-    return view?.name ?? "";
+  if (route.name === 'view' || route.name === 'view-edit') {
+    const view = viewsStore.views.find((v) => v.id === route.params.viewId)
+    return view?.name ?? ''
   }
-  return typeof route.meta.titleKey === "string" ? t(route.meta.titleKey) : "";
-});
+  return typeof route.meta.titleKey === 'string' ? t(route.meta.titleKey) : ''
+})
 
 const overdueCount = computed(
   () =>
     store.items.filter(
-      (item) => getDueStatus(item.dueDate, store.isItemCompleted(item)) === "overdue",
+      (item) => getDueStatus(item.dueDate, store.isItemCompleted(item)) === 'overdue',
     ).length,
-);
+)
 const dueTodayCount = computed(
   () =>
     store.items.filter(
-      (item) => getDueStatus(item.dueDate, store.isItemCompleted(item)) === "due-today",
+      (item) => getDueStatus(item.dueDate, store.isItemCompleted(item)) === 'due-today',
     ).length,
-);
+)
 const showBanner = computed(
   () => !dismissed.value && (overdueCount.value > 0 || dueTodayCount.value > 0),
-);
+)
 </script>
 
 <template>
@@ -56,13 +62,13 @@ const showBanner = computed(
       <div v-if="showBanner" class="reminder-banner type-body-sm">
         <span>
           <template v-if="overdueCount > 0">{{
-            t("reminder.overdueCount", { count: overdueCount })
+            t('reminder.overdueCount', { count: overdueCount })
           }}</template>
           <template v-if="overdueCount > 0 && dueTodayCount > 0">{{
-            t("reminder.separator")
+            t('reminder.separator')
           }}</template>
           <template v-if="dueTodayCount > 0">{{
-            t("reminder.dueTodayCount", { count: dueTodayCount })
+            t('reminder.dueTodayCount', { count: dueTodayCount })
           }}</template>
         </span>
         <button

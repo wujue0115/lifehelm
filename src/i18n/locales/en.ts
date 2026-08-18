@@ -100,6 +100,12 @@ export default {
     filterNoneSelected: 'None selected',
     tagsEmptyHint: 'Add tags…',
     addItem: 'Add',
+    export: 'Export',
+    exportTitle: 'Export',
+    exportShowDate: 'Show date',
+    exportDateFormatPlaceholder: 'M/D',
+    exportDateFormatHelp:
+      'YYYY/YY = year, MM/M = month, DD/D = day. Two letters pad with a zero, one letter doesn’t. Example: M/D → 8/7, YYYY/MM/DD → 2026/08/07.',
     count: '{filtered} / {total} work items',
     columnTitle: 'Title',
     columnStatus: 'Status',

@@ -10,6 +10,7 @@ import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import SortIcon from '@/components/SortIcon.vue'
 import ActionIcon from '@/components/ActionIcon.vue'
 import ColorSettings from '@/components/ColorSettings.vue'
+import ExportDialog from '@/components/ExportDialog.vue'
 import DateFilter from '@/components/DateFilter.vue'
 import MultiSelectMenu from '@/components/MultiSelectMenu.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
@@ -57,6 +58,7 @@ const statusColors = ref<Record<string, TagColorKey>>({ ...cfg.statusColors })
 const priorityColors = ref<Partial<Record<Priority, TagColorKey>>>({ ...cfg.priorityColors })
 const tagColors = ref<Record<string, TagColorKey>>({ ...cfg.tagColors })
 const settingsOpen = ref(false)
+const exportOpen = ref(false)
 
 onMounted(() => {
   store.fetchAll()
@@ -327,12 +329,17 @@ async function confirmDelete(): Promise<void> {
         >
           <ActionIcon type="settings" />
         </button>
+        <button type="button" class="btn btn-secondary" @click="exportOpen = true">
+          {{ t('list.export') }}
+        </button>
         <RouterLink to="/items/new" class="btn btn-primary">
           <ActionIcon type="add" />
           <span class="icon-label">{{ t('list.addItem') }}</span>
         </RouterLink>
       </div>
     </div>
+
+    <ExportDialog :open="exportOpen" :items="sortedItems" @close="exportOpen = false" />
 
     <ColorSettings
       :open="settingsOpen"
