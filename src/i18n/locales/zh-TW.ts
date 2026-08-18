@@ -227,7 +227,6 @@ export default {
     delete: '刪除',
     pin: '釘選至側邊欄',
     unpin: '取消釘選',
-    defaultViewProtected: '預設檢視無法刪除',
     deleteConfirmTitle: '刪除檢視',
     deleteConfirmMessage: '確定要刪除這個檢視嗎？此動作無法復原。',
     notFound: '找不到這個檢視',

@@ -229,7 +229,6 @@ export default {
     delete: 'Delete',
     pin: 'Pin to sidebar',
     unpin: 'Unpin',
-    defaultViewProtected: "Default views can't be deleted",
     deleteConfirmTitle: 'Delete view',
     deleteConfirmMessage: 'Are you sure you want to delete this view? This cannot be undone.',
     notFound: 'View not found',
