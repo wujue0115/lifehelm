@@ -196,7 +196,7 @@ function startResize(event: MouseEvent): void {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  gap: var(--space-lg);
+  gap: var(--space-md);
 }
 
 .brand {
@@ -213,12 +213,13 @@ function startResize(event: MouseEvent): void {
 }
 
 .collapse-toggle {
+  width: 36px;
+  height: 36px;
   flex-shrink: 0;
   background: none;
   border: none;
   cursor: pointer;
   color: var(--color-on-sidebar-muted);
-  padding: 4px;
   border-radius: var(--rounded-xs);
 }
 
