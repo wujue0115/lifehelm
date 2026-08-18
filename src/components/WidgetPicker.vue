@@ -26,7 +26,7 @@ function pick(widgetId: string): void {
         v-for="widget in WIDGET_REGISTRY"
         :key="widget.id"
         type="button"
-        class="btn-ghost picker-item"
+        class="btn btn-ghost picker-item"
         @click="pick(widget.id)"
       >
         {{ t(widget.titleKey) }}
@@ -52,10 +52,11 @@ function pick(widgetId: string): void {
   gap: var(--space-xxs);
 }
 
+/* No radius override — `.btn-ghost` (`.btn`, design-tokens.css) is
+   already `{rounded.md}`, matching `.picker-menu`'s own `.card` radius. */
 .picker-item {
   justify-content: flex-start;
   text-align: left;
-  border-radius: var(--rounded-xs);
   padding: 8px 10px;
 }
 </style>

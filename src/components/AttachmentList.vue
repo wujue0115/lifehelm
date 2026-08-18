@@ -92,7 +92,7 @@ async function confirmRemoveAttachment(): Promise<void> {
         </span>
         <button
           type="button"
-          class="btn-ghost action-btn"
+          class="btn btn-ghost action-btn"
           :title="t('common.delete')"
           @click="requestRemoveAttachment(attachment.id)"
         >

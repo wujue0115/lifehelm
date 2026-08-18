@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useWorkItemsStore } from '@/stores/workItems'
 import type { Priority, WorkItem } from '@/types/work-item'
+import type { TagColorKey } from '@/config/tagColors'
 import { usePriorityLabel } from '@/composables/usePriorityLabel'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import ActionIcon from '@/components/ActionIcon.vue'
@@ -13,7 +14,11 @@ import TimeTracker from '@/components/TimeTracker.vue'
 import TagsInput from '@/components/TagsInput.vue'
 import DatePicker from '@/components/DatePicker.vue'
 import SelectMenu from '@/components/SelectMenu.vue'
+import StatusBadge from '@/components/StatusBadge.vue'
+import PriorityBadge from '@/components/PriorityBadge.vue'
+import TagPill from '@/components/TagPill.vue'
 import ChevronIcon from '@/components/ChevronIcon.vue'
+import { resolveColor } from '@/utils/colors'
 
 const route = useRoute()
 const router = useRouter()
@@ -49,6 +54,30 @@ const priorityOptions = computed(() =>
     label: priorityLabel(priority.name),
   })),
 )
+
+// This view isn't a widget with its own ViewConfig, so there's no per-view
+// color override layer to consult (unlike ListPanel/BoardPanel/
+// CalendarPanel's own statusColorMap/priorityColorMap) — just each status/
+// priority's global color, same as `resolveColor` falls back to when no
+// view-level mapping is passed.
+const statusColorMap = computed(() => {
+  const map: Record<string, TagColorKey | undefined> = {}
+  for (const status of store.sortedStatuses)
+    map[status.name] = resolveColor(status.name, store.statuses)
+  return map
+})
+const priorityColorMap = computed(() => {
+  const map: Record<string, TagColorKey | undefined> = {}
+  for (const priority of store.sortedPriorities) {
+    map[priority.name] = resolveColor(priority.name, store.priorities)
+  }
+  return map
+})
+const tagColorMap = computed(() => {
+  const map: Record<string, TagColorKey | undefined> = {}
+  for (const tag of store.allTags) map[tag] = resolveColor(tag, store.tags)
+  return map
+})
 
 function applyItemToForm(item: WorkItem): void {
   form.title = item.title
@@ -164,12 +193,20 @@ async function handleDelete(): Promise<void> {
         <div class="row">
           <div class="field">
             <span class="type-label">{{ t('itemDetail.fieldStatus') }}</span>
-            <SelectMenu v-model="form.status" :options="statusOptions" />
+            <SelectMenu v-model="form.status" :options="statusOptions">
+              <template #option="{ option }">
+                <StatusBadge :name="option.label" :color="statusColorMap[option.value]" />
+              </template>
+            </SelectMenu>
           </div>
 
           <div class="field">
             <span class="type-label">{{ t('itemDetail.fieldPriority') }}</span>
-            <SelectMenu v-model="form.priority" :options="priorityOptions" />
+            <SelectMenu v-model="form.priority" :options="priorityOptions">
+              <template #option="{ option }">
+                <PriorityBadge :priority="option.value" :color="priorityColorMap[option.value]" />
+              </template>
+            </SelectMenu>
           </div>
         </div>
 
@@ -181,7 +218,16 @@ async function handleDelete(): Promise<void> {
               :suggestions="store.allTags"
               :placeholder="t('itemDetail.tagsPlaceholder')"
               allow-create
-            />
+            >
+              <template #option="{ option }">
+                <TagPill
+                  v-if="!option.isCreate"
+                  :label="option.label"
+                  :color="tagColorMap[option.value]"
+                />
+                <span v-else>{{ option.label }}</span>
+              </template>
+            </TagsInput>
           </label>
 
           <label class="field date-field">

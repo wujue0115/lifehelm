@@ -358,6 +358,11 @@ function handleBarePopoverFocusOut(event: FocusEvent): void {
   color: var(--color-ink-muted);
 }
 
+/* No radius override needed — `.input` (design-tokens.css) is already
+   `{rounded.md}`, matching `.dropdown` below. `.popover-edit-box` (bare
+   mode's floating edit box, which reuses this same class) overrides it
+   again with its own concentric radius, so this class's own radius really
+   only governs the non-bare inline box. */
 .tags-input {
   position: relative;
   display: flex;
@@ -368,12 +373,15 @@ function handleBarePopoverFocusOut(event: FocusEvent): void {
   cursor: text;
 }
 
+/* border-radius is {rounded.lg}, not {rounded.full} — see StatusBadge.vue
+   for why chips need a radius-scale-responsive value rather than a
+   circle-guaranteeing fixed one. */
 .chip {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 2px 6px 2px 10px;
-  border-radius: var(--rounded-full);
+  padding: 4px 6px 4px 10px;
+  border-radius: var(--rounded-lg);
   background: var(--color-canvas-app);
   color: var(--color-ink-secondary);
   white-space: nowrap;
@@ -395,8 +403,15 @@ function handleBarePopoverFocusOut(event: FocusEvent): void {
   cursor: pointer;
 }
 
+/* Accent tint, not the plain {colors.surface-hover} gray other ghost
+   surfaces use — same treatment as every other single-icon button
+   (`.action-btn`/`.close-btn`/`.icon-btn`, design-tokens.css). Radius
+   stays {rounded.full} here rather than following those buttons'
+   {rounded.md} — this is a tiny circular glyph nested inside an already-
+   pill-shaped chip, not a standalone rectangular button, so a circle is
+   the correct shape regardless of the radius-scale preset. */
 .chip-remove:hover {
-  background: var(--color-surface-hover);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
   color: var(--color-ink);
 }
 
@@ -436,14 +451,16 @@ function handleBarePopoverFocusOut(event: FocusEvent): void {
   overflow-y: auto;
   background: var(--color-canvas-surface);
   border: 1px solid var(--color-border-strong);
-  border-radius: var(--rounded-xs);
+  border-radius: var(--rounded-md);
 }
 
+/* Concentric with `.dropdown`'s own radius minus its 4px padding — same
+   reasoning as SelectMenu's own `.option`. */
 .dropdown-item {
   display: flex;
   align-items: center;
   padding: 6px 10px;
-  border-radius: var(--rounded-xs);
+  border-radius: calc(var(--rounded-md) - var(--space-xxs));
   color: var(--color-ink);
   cursor: pointer;
 }

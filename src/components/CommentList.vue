@@ -54,7 +54,7 @@ async function confirmRemoveComment(): Promise<void> {
         </div>
         <button
           type="button"
-          class="btn-ghost action-btn"
+          class="btn btn-ghost action-btn"
           :title="t('common.delete')"
           @click="requestRemoveComment(comment.id)"
         >

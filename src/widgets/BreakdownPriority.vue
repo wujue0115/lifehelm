@@ -68,7 +68,7 @@ function barStyle(name: string, count: number): Record<string, string> {
     <div class="toolbar">
       <button
         type="button"
-        class="btn-ghost action-btn"
+        class="btn btn-ghost action-btn"
         :title="t('colorSettings.trigger')"
         @click="settingsOpen = true"
       >

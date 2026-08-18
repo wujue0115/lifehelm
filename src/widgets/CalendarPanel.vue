@@ -289,7 +289,7 @@ const weekdayLabels = computed(() => {
       </button>
       <button
         type="button"
-        class="btn-ghost action-btn"
+        class="btn btn-ghost action-btn"
         :title="t('colorSettings.trigger')"
         @click="settingsOpen = true"
       >

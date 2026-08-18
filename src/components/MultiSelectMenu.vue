@@ -299,6 +299,8 @@ function handleTriggerKeydown(event: KeyboardEvent): void {
   cursor: pointer;
 }
 
+/* No radius override needed — `.input` (design-tokens.css) is already
+   `{rounded.md}`, matching `.popover` below. */
 .styled-trigger {
   justify-content: space-between;
   gap: var(--space-xs);
@@ -340,7 +342,8 @@ function handleTriggerKeydown(event: KeyboardEvent): void {
   border-top: 1px solid var(--color-border-subtle);
 }
 
-/* Same fixed-height-row reasoning as SelectMenu's `.option`. */
+/* Same fixed-height-row and concentric-radius reasoning as SelectMenu's
+   own `.option`. */
 .option {
   display: flex;
   align-items: center;

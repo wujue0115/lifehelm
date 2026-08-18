@@ -45,11 +45,16 @@ const { t } = useI18n()
 </template>
 
 <style scoped>
+/* border-radius matches the global `.card` class (design-tokens.css) and
+   every other bordered surface-on-canvas container in the app
+   (`.table-card`, `BoardPanel`'s own `.column`) — this was `{rounded.sm}`,
+   the odd one out among cards (that's the button-family radius), with no
+   documented reason to differ. */
 .work-card {
   display: block;
   background: var(--color-canvas-surface);
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--rounded-sm);
+  border-radius: var(--rounded-md);
   padding: var(--space-sm);
   text-decoration: none;
   color: var(--color-ink);

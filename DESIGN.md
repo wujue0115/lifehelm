@@ -131,36 +131,45 @@ components:
     typography: '{typography.page-title}'
     padding: 0px 24px
   btn-primary:
+    # rounded matches {rounded.md} — buttons share the app's one unified
+    # radius (fields, cards, popovers, buttons, option rows) rather than
+    # sitting at their own smaller {rounded.sm}, which this used before.
     backgroundColor: '{colors.ink}'
     textColor: '{colors.canvas-surface}'
     typography: '{typography.body-sm}'
-    rounded: '{rounded.sm}'
+    rounded: '{rounded.md}'
     padding: 8px 16px
   btn-secondary:
     backgroundColor: '{colors.canvas-surface}'
     textColor: '{colors.ink}'
     typography: '{typography.body-sm}'
-    rounded: '{rounded.sm}'
+    rounded: '{rounded.md}'
     padding: 8px 16px
   btn-ghost:
     backgroundColor: 'transparent'
     textColor: '{colors.ink-secondary}'
     typography: '{typography.body-sm}'
-    rounded: '{rounded.sm}'
+    rounded: '{rounded.md}'
     padding: 8px 16px
   text-input:
+    # rounded matches {rounded.md} — the same radius as .card and every
+    # popover in this document, not the tighter {rounded.xs} this used
+    # before. A form field and the popover a similarly-styled trigger opens
+    # (date-picker-popover, select-menu's own popover) now share one
+    # radius throughout the app, rather than plain fields sitting at a
+    # smaller radius than trigger-shaped fields right next to them.
     backgroundColor: '{colors.canvas-surface}'
     textColor: '{colors.ink}'
     typography: '{typography.body}'
-    rounded: '{rounded.xs}'
+    rounded: '{rounded.md}'
     padding: 8px 12px
   date-picker-trigger:
-    # Same visual spec as text-input — a button styled to read as a field,
-    # not a text box you type into.
+    # Same visual spec as text-input, rounded included — a button styled
+    # to read as a field, not a text box you type into.
     backgroundColor: '{colors.canvas-surface}'
     textColor: '{colors.ink}'
     typography: '{typography.body}'
-    rounded: '{rounded.xs}'
+    rounded: '{rounded.md}'
     padding: 8px 12px
   date-picker-popover:
     backgroundColor: '{colors.canvas-surface}'
@@ -185,14 +194,14 @@ components:
     textColor: '{colors.ink}'
     typography: '{typography.label}'
     rounded: '{rounded.full}'
-    padding: 2px 10px
+    padding: 4px 10px
   status-badge-colored:
     backgroundColor: 'color-mix(in srgb, {tag-color} 16%, {colors.canvas-surface})'
     borderColor: 'color-mix(in srgb, {tag-color} 55%, {colors.border-strong})'
     textColor: '{colors.ink}'
     typography: '{typography.label}'
     rounded: '{rounded.full}'
-    padding: 2px 10px
+    padding: 4px 10px
 ---
 
 ## Overview
@@ -208,7 +217,7 @@ The palette's base state is strictly monochrome — black, white, and a grayscal
 - Fixed 240px dark left sidebar (`{colors.canvas-sidebar}`) for navigation; everything else lives in a light content column.
 - Strictly monochrome grayscale by default — no brand accent color baked into the base system, same discipline as the previous iteration, now expressed as tonal steps instead of photography. A user-configurable accent color exists as an opt-in override (see "Accent (user-configurable)" under Colors) but ships off.
 - Normal-case typography throughout — no forced uppercase, no wide letter-spacing (CJK-appropriate).
-- Small-radius rectangular buttons (`{rounded.sm}` 6px) for actions; full-pill radius (`{rounded.full}`) reserved for status badges/chips, not buttons.
+- Rectangular buttons and fields share one `{rounded.md}` (10px) radius with cards and popovers — nothing rectangular sits at its own smaller radius anymore; pill-shaped status badges/chips use `{rounded.lg}` (scales with the radius preset), never buttons, and `{rounded.full}` (fixed, never scaled) is reserved for genuine circles — swatches, toggles, dots.
 - Flat 1px-bordered cards and tables — no shadows, no blurs, no gradients. Depth is a border and a shade of gray, never elevation.
 - Dense spacing — 14px default body text, 36px control height, built for scanning rows of data, not for a single hero message.
 
@@ -320,15 +329,15 @@ No drop shadows, blurs, glows, or gradients — same discipline as the previous 
 
 ### Border Radius Scale
 
-| Token            | Value  | Use                                                         |
-| ---------------- | ------ | ----------------------------------------------------------- |
-| `{rounded.xs}`   | 4px    | Form inputs                                                 |
-| `{rounded.sm}`   | 6px    | Buttons — the default interactive-element radius            |
-| `{rounded.md}`   | 10px   | Cards, tables, panels                                       |
-| `{rounded.lg}`   | 14px   | Modals/dialogs                                              |
-| `{rounded.full}` | 9999px | Status badges/chips and avatar circles only — never buttons |
+| Token            | Value  | Use                                                                                                    |
+| ---------------- | ------ | ------------------------------------------------------------------------------------------------------ |
+| `{rounded.xs}`   | 4px    | Small internal accents that aren't their own bordered surface — sidebar nav-item hover, checkbox, hit-target reset backgrounds on `bare`-mode triggers |
+| `{rounded.sm}`   | 6px    | Sidebar nav-items and hover states only — the sidebar's own dark chrome, never part of the buttons/fields/cards unification below |
+| `{rounded.md}`   | 10px   | The one shared radius for everything rectangular that isn't a modal or an `{rounded.xs}` internal accent — buttons, form inputs/textareas/triggers, dropdown/popover option rows, cards, tables, panels, day-picker cells |
+| `{rounded.lg}`   | 14px   | Modals/dialogs, **and pill-shaped text chips** (`StatusBadge`/`PriorityBadge`/`TagPill`/`DueDateLabel`'s due-status chip/`TagsInput`'s removable chip/`ThemeSettingsPanel`'s preset chip) — see `{rounded.full}` below for why chips don't use that token despite reading as pills |
+| `{rounded.full}` | 9999px | Genuine circles only — swatches, `SwitchToggle`'s track/thumb, avatar/preset dots, the sidebar's active-nav indicator bar. Fixed at 9999px, never scaled by `--radius-scale`, so these always render as perfect circles regardless of the Appearance panel's radius preset — which is exactly why text chips *don't* use it: a chip should visibly flatten toward a rounded rectangle at "sharp" and read as a full pill at "default"/"round," the same radius-scale responsiveness every other rectangular element in the app has, so `{rounded.lg}` (which scales) is used there instead. At `{rounded.lg}`'s default 14px, a ~22px-tall chip's height already exceeds twice that, so it still renders as a full pill at the default scale — the visual difference only shows up at "sharp" (0.4x → 5.6px, clearly boxier) or below. |
 
-The previous system's signature 32px pill button is gone. Admin dashboards use small-radius rectangular buttons; pill/full radius is reserved for status chips, which is where it reads as "state," not "action."
+The previous system's signature 32px pill button is gone. Admin dashboards use rectangular buttons, sharing the same `{rounded.md}` radius as the rest of the app's surfaces; pill/full radius is reserved for status chips, which is where it reads as "state," not "action."
 
 ## Components
 
@@ -336,7 +345,7 @@ The previous system's signature 32px pill button is gone. Admin dashboards use s
 
 **`btn-primary`** — the primary action in any given context (save, create).
 
-- Background `{colors.accent}`, text `{colors.accent-contrast}`, type `{typography.body-sm}`, padding `{spacing.xs} {spacing.md}` (8px 16px), rounded `{rounded.sm}` 6px, min-height 36px. `{colors.accent}` defaults to `{colors.ink}` (white-on-near-black, same as the previous unaccented spec) unless the user has picked a custom accent — see "Accent (user-configurable)" under Colors.
+- Background `{colors.accent}`, text `{colors.accent-contrast}`, type `{typography.body-sm}`, padding `{spacing.xs} {spacing.md}` (8px 16px), rounded `{rounded.md}` 10px, min-height 36px. `{colors.accent}` defaults to `{colors.ink}` (white-on-near-black, same as the previous unaccented spec) unless the user has picked a custom accent — see "Accent (user-configurable)" under Colors.
 
 **`btn-secondary`** — secondary actions (cancel, back, confirming a destructive action).
 
@@ -345,6 +354,8 @@ The previous system's signature 32px pill button is gone. Admin dashboards use s
 **`btn-ghost`** — lowest-emphasis inline actions (row-level edit/delete links).
 
 - Transparent background, text `{colors.ink-secondary}`, background lifts to `{colors.surface-hover}` on hover, no border.
+- **Single-icon ghost buttons get a light `{colors.accent}` tint on hover instead** — `.action-btn` (row-level edit/delete, used across every table/card/list toolbar) and `.close-btn` (`DialogHeader`'s × on every modal), `color-mix(in srgb, {colors.accent} 12%, transparent)`, the same mix `select-menu`'s own `.option.selected` uses. Scoped to just these two classes, not `.btn-ghost` itself — a text-labeled ghost button (`WidgetPicker`'s own menu items) keeps the plain gray hover, since this is specifically about single-icon actions reading as "clickable" more clearly than a color-only cursor change did. Every hand-rolled `.icon-btn` outside the `.btn` family (`DatePicker`'s month nav, `BoardPanel`'s column drag/done/delete, `WidgetChrome`'s drag handle/settings, `ViewRenderer`'s rename) gets the identical treatment plus `{rounded.md}` — none of them had a radius at all before, just a text-color hover shift. `TagsInput`'s `.chip-remove` (the × inside a tag chip) gets the same accent-tint hover too, but keeps `{rounded.full}`, not `{rounded.md}` — it's a small circular glyph nested inside an already-pill-shaped chip, not a standalone rectangular button.
+- **`.action-btn`/`.close-btn`/`WidgetPicker`'s `.picker-item` were all missing the base `.btn` class in their markup** (`class="btn-ghost action-btn"`, not `class="btn btn-ghost action-btn"`) — since `.btn-ghost` only sets background/text-color/border-color, not `.btn`'s own radius/border/cursor/font, every one of these silently rendered with the browser's native button chrome underneath (`cursor: default`, a 2px outset border, the system font, zero border-radius) rather than this system's actual button spec. Fixed by adding the missing class everywhere it was missing, not by duplicating `.btn`'s properties into `.action-btn`'s own (per-file, sizing-only) rule.
 
 ### Cards & Containers
 
@@ -360,21 +371,22 @@ The previous system's signature 32px pill button is gone. Admin dashboards use s
 
 **`text-input`** — form input.
 
-- Background `{colors.canvas-surface}`, text `{colors.ink}`, type `{typography.body}`, padding `{spacing.xs} {spacing.sm}` (8px 12px), rounded `{rounded.xs}` 4px, 1px `{colors.border-strong}` border, min-height 36px.
+- Background `{colors.canvas-surface}`, text `{colors.ink}`, type `{typography.body}`, padding `{spacing.xs} {spacing.sm}` (8px 12px), rounded `{rounded.md}` 10px, 1px `{colors.border-strong}` border, min-height 36px. This is the shared global `.input` class — every plain text/textarea field in the app (Title/Description/Comments in `ItemDetailView`, filter search boxes, `TimeTracker`'s manual-entry fields, etc.) as well as `date-picker-trigger`/`select-menu`/`multi-select-menu`/`date-filter`'s own triggers and `TagsInput`'s box all resolve to this one class — so the whole "form field" surface reads as one consistent radius, not fields-with-a-popover at one radius and plain fields at another.
 
 **`select-menu`** (`src/components/SelectMenu.vue`) — a drop-in replacement for a native `<select>`, used everywhere a single value is picked from a list (Board's group-by, the item form's status/priority fields, the Appearance panel's font picker, `WorkItemRow`'s inline status/priority editing): every one of these across the whole app is this component now, never a bare `<select>`. Same v-model contract as a native select (`modelValue`/`options: {value, label}[]`), but styled consistently with the rest of this system instead of OS-native chrome, which can't be made to match. The status/priority/tag *filters* in List/Board/Calendar are a related but distinct component — see `multi-select-menu` below — since a filter needs to narrow to several values at once, not just one.
 
-- **Trigger is `text-input`-spec by default** (identical padding/border/radius/min-height), plus a small `currentColor` chevron on the right so it still reads as "opens a list" the way a native select's own arrow did. A `bare` prop drops this chrome entirely (no border/background/min-height/chevron) in favor of a plain reset-button hit-target, for callers supplying their own trigger visual via the `#trigger` slot — see "Inline row editing" below for why.
+- **Trigger is `text-input`-spec by default** (identical padding/border/radius/min-height, `.input`), plus a small `currentColor` chevron on the right so it still reads as "opens a list" the way a native select's own arrow did. A `bare` prop drops this chrome entirely (no border/background/min-height/chevron/radius) in favor of a plain reset-button hit-target, for callers supplying their own trigger visual via the `#trigger` slot — see "Inline row editing" below for why.
 - **Popover is `date-picker-popover`-spec** — same bordered card (`1px {colors.border-strong}`, `{rounded.md}`, no shadow) as `DatePicker`'s, positioned directly under the trigger, `max-height: 260px` with its own scroll for long lists (tag filters especially). Its `min-width` matches the trigger's own width — tracked in JS via `getBoundingClientRect()` alongside its `top`/`left`, not CSS `min-width: 100%`: percentage widths on a `position: fixed` box resolve against the viewport, not the trigger, so that read as "100% of the viewport" (and silently beat `max-width: 280px` too, since a min-width bigger than max-width always wins) — the popover rendered nearly viewport-wide before this was caught.
 - **Each option is a fixed 36px tall** (`.input`/`.btn`'s own fixed height, not `{spacing.*}`-driven padding) — every row is exactly this tall regardless of its label, rather than each row sizing independently off its own content/font metrics, which read as inconsistent and visibly shallower than the trigger. The list as a whole is what scrolls past `.popover`'s `max-height`, never an individual row.
+- **`.option`'s own radius is `calc({rounded.md} - {spacing.xxs})`, concentric with `.popover`'s radius, not a flat `{rounded.md}` matching it directly.** Concentric corners (same center point as the popover's own rounded corner) only line up when inner radius = outer radius − the padding separating them (`.popover`'s own `{spacing.xxs}`) — two independently-set *equal* radii drift apart the moment the option is inset from the popover's edge by any padding at all, which reads as visibly "off" once you're looking for it (compare: a card mat cut to the exact same radius as the frame around it doesn't sit flush at the corners — the mat's corner has to be tighter by exactly the mat's own width). A fixed value here would also drift out of sync the moment either `{rounded.md}` or `{spacing.xxs}` changes (e.g. the Appearance panel's radius/spacing presets) — the `calc()` keeps it correct at any scale. `multi-select-menu`'s own `.option` and `TagsInput`'s `.dropdown-item` use the identical formula against their own popovers, and `ColorSettings`'s `.scope-btn` against its `.scope-toggle` track (`calc({rounded.md} - 3px)`, that track's own literal padding).
 - **No stage-then-Confirm** — unlike `DatePicker`/`DateFilter`, clicking an option commits immediately and closes, same as a native select firing `change`. There's nothing to preview, so there's nothing to gate behind an extra step.
 - **Current value gets a light `{colors.accent}` tint (~12% mix), not a solid fill and no separate checkmark.** This still marks "which one of these several peer options is in effect right now" (see "Accent (user-configurable)"), but a solid accent-filled row sits behind whatever the option renders — and once options started rendering real `StatusBadge`/`PriorityBadge`/`TagPill` content (see `#option` slot below), a full-opacity accent rectangle directly behind an already-colored, already-bordered badge read as two competing shapes. A trailing checkmark was tried too, but it's redundant on top of the tint — and redundant with the trigger itself, which already shows the current value (next point) — so it was dropped rather than layering a third "this one's selected" signal onto two that already exist.
 - **`Teleport`ed to `<body>`**, same reasoning and mechanism as `DateFilter`'s popover (every widget's `.widget-body` clips overflow on every side) — but at `z-index: 110`, above `ModalOverlay`'s own backdrop (`z-index: 100`), not `DatePicker`/`DateFilter`'s `20`. This component is also used inside modal dialogs (the Appearance panel's font picker lives in a `ModalOverlay`), and since the backdrop is Teleported to `<body>` too, a lower z-index would let the backdrop paint on top and make the options unclickable.
 - **Arrow-key navigation**, matching a native select: Up/Down move a highlighted option (opening the popover on the first press if it's closed), Enter/Space commits the highlighted option, Escape closes without committing. The highlight is tracked in component state rather than real DOM focus — focus stays pinned on the trigger throughout, the same `@mousedown.prevent`-everywhere pattern `DatePicker`/`DateFilter` use.
 - **Options can render as the same badge/pill a value uses everywhere else**, via a `#option="{ option }"` scoped slot (falls back to plain `option.label` text when a caller doesn't provide one, so unstyled usages like Board's group-by or the Appearance panel's font picker are unaffected). `WorkItemRow`'s inline editors (below) use this so a status/priority reads as the exact same `StatusBadge`/`PriorityBadge` whether it's sitting in a table cell or listed as a pickable option — picking from a dropdown of plain-text labels next to a table full of colored badges would make the two feel like different vocabularies for the same thing. `TagsInput`'s suggestion dropdown and `MultiSelectMenu` (both below) expose the identical `#option` slot for the same reason.
-- **The default (non-`bare`) trigger renders through this same `#option` slot for the currently selected value**, not `option.label` as plain text — a caller that styles its options as badges gets a badge in the closed trigger too, rather than the dropdown reading "badges inside, text on the label" as two different vocabularies for the same value. Falls back through the same chain as the options themselves (`#option` slot → `option.label` text) when a caller doesn't supply one, so plain-text usages (`ItemDetailView`'s form fields, Board's group-by) are unaffected. `bare` mode ignores this entirely — its `#trigger` slot is a full replacement, not layered on top.
+- **The default (non-`bare`) trigger renders through this same `#option` slot for the currently selected value**, not `option.label` as plain text — a caller that styles its options as badges gets a badge in the closed trigger too, rather than the dropdown reading "badges inside, text on the label" as two different vocabularies for the same value. Falls back through the same chain as the options themselves (`#option` slot → `option.label` text) when a caller doesn't supply one, so plain-text usages (Board's group-by) are unaffected — `ItemDetailView`'s own status/priority fields use it too now, matching the filters' own badge-styled options.
 
-**`multi-select-menu`** (`src/components/MultiSelectMenu.vue`) — the status/priority/tag filters in List/Board/Calendar's toolbar, narrowing to "any of these values" rather than one. Shares `select-menu`'s trigger/popover shell (same `text-input`-spec trigger, same `date-picker-popover`-spec card, same Teleport/z-index/positioning) but the interaction model is checkbox-list, not commit-and-close:
+**`multi-select-menu`** (`src/components/MultiSelectMenu.vue`) — the status/priority/tag filters in List/Board/Calendar's toolbar, narrowing to "any of these values" rather than one. Shares `select-menu`'s trigger/popover shell (same trigger radius/spec, same `date-picker-popover`-spec card, same Teleport/z-index/positioning) but the interaction model is checkbox-list, not commit-and-close:
 
 - **`modelValue` is `string[]`, the specifically-*excluded-from-implicit* values in one sense, but simplest read as: empty means `All`, this app's existing "no restriction" filter state** (previously a single `'all'` sentinel string on `FilterConfig`, see `src/types/view.ts`). `All` and the individual options form a master/child checkbox group, not independent checkboxes: whenever `modelValue` is empty, every option renders checked too (everything's implicitly included), and unchecking one option in that state narrows to "every option except that one" — it doesn't clear the rest. Checking every individual option by hand folds back to `[]` so `All`'s own checkbox reflects "everything's checked" too, however that state was reached.
 - **An `All` row sits above a divider, above the real options** — a real toggle, not a one-way reset: clicking it when checked flips to a genuine "nothing checked" state (every option below it reads unchecked, and the filter matches zero items), clicking it again goes back to `All`. That "nothing checked" state can't be represented by `[]` (already spoken for as `All`), so it's encoded as a single-element array holding a private, unexported sentinel value that can never collide with a real status/priority/tag name and is never displayed — every existing `!statusFilter.includes(item.status)`-style predicate in `ListPanel`/`BoardPanel`/`CalendarPanel` already treats an array containing only that sentinel as "matches nothing," with no caller-side changes needed.
@@ -384,7 +396,7 @@ The previous system's signature 32px pill button is gone. Admin dashboards use s
 
 **Date picker** (`src/components/DatePicker.vue`) — a `date-picker-trigger` button (identical spec to `text-input`, so it sits in a form exactly like any other field) that opens a `date-picker-popover` calendar underneath it on click. Supports two modes: single date (`v-model`) or a date range (`v-model:start`/`v-model:end`, e.g. a work item's start/due dates) — same component, same popover, the range mode just tracks two dates and auto-orders them if the second pick lands before the first.
 
-- **Day cells are small rounded squares, not circles.** Consistent with "small-radius rectangular buttons, `{rounded.full}` reserved for badges/chips" — a day cell is a button, so it gets `{rounded.sm}` like every other button, not the circular treatment typical of calendar widgets elsewhere.
+- **Day cells are small rounded squares, not circles.** Consistent with "rectangular buttons, `{rounded.full}` reserved for badges/chips" — a day cell is a button, so it gets `{rounded.md}` like every other button, not the circular treatment typical of calendar widgets elsewhere.
 - **Single-mode selected state is a solid ink fill**, mirroring `bar-segment.overdue`/`.filled` badges elsewhere: the picked day gets `{colors.ink}` background and `{colors.canvas-surface}` text — the strongest, most legible state, not a tinted accent.
 - **Range mode uses `{colors.accent}`, not ink.** The range's start/end caps are a solid `{colors.accent}`/`{colors.accent-contrast}` fill, and the days between them (plus the live hover preview before the second pick) are a flat `{colors.accent}` tint at 16% opacity, square-cornered (rounded only at the start/end caps) with no gap between cells so the band reads as one continuous stretch. This is the same "current selection in progress" territory `btn-primary`/the sidebar's active-nav-item already use accent for (see "Accent (user-configurable)") — not the status/priority/tag color mechanism (`{tag-palette.*}` never appears here), and not the single-mode ink fill either, since a range is inherently two-ended rather than one committed value.
 - **A Confirm button, bottom-right of the popover footer, in both modes.** The footer splits left (`Today`, `Clear`, both plain `link-btn` text buttons) from right (`Confirm`, a compact `btn-primary`) via `justify-content: space-between`. Both modes only preview the pending pick — single mode's clicked day, range mode's start/end — without committing until Confirm is pressed; closing the popover any other way (outside click, Escape) discards the pending pick instead of saving it. In range mode, Confirm stays disabled only until a start is picked — confirming with just a start (no end yet) is a valid one-day range, committing the same date as both start and end, not an incomplete pick that needs blocking.
@@ -392,14 +404,14 @@ The previous system's signature 32px pill button is gone. Admin dashboards use s
 - **The month/year containing the pending pick(s) is filled**, the same `.selected`/`.range-start`/`.range-end`/`.in-range` fill language the day grid uses (solid `{colors.ink}` for a single-mode pick, `{colors.accent}` caps with a 16% `{colors.accent}` tint between them for a range) — so drilling up from the day grid doesn't lose track of what's picked. Unlike the day grid, cells here don't flatten a corner to fuse into a band: a 3-column wrapped grid has no linear adjacency to fuse across, so every filled cell stays a fully rounded chip regardless of whether it's a start/end cap or a spanned month/year in between.
 - **Today/this-month/this-year share one marker**, distinct from the "currently in view" bold above (a grid can show both at once — e.g. the viewed month bold as `.current`, and a past/future month plain — since one is drill context and the other is the real calendar date). All three use the same treatment — bold text plus a small dot below it — so day/month/year read as one convention rather than three different ones. The dot is drawn in `currentColor`, not a fixed color, specifically so it survives being layered under any other state: it automatically becomes `{colors.canvas-surface}` on a single-mode `.selected` ink fill, `{colors.accent-contrast}` on a range `.range-start`/`.range-end` accent fill, or stays `{colors.ink}` unselected — never a same-color-as-fill ring that would disappear. None of this uses `{colors.accent}` on its own — the accent is reserved for actual selections (see "Range mode" above and "Accent (user-configurable)"), not a locator.
 - **A lone range-start pick (no end, no hover-preview band yet) is fully rounded on all four corners**, not flattened — the flat "open" edge on `range-start`/`range-end` signals a band continuing in that direction, and with no end picked and no hover forming a preview yet, there's no band to connect to. The corner flattens back in as soon as either a hover starts previewing a band or an end is picked.
-- **No shadow, no backdrop.** The popover is a bordered card (`1px {colors.border-strong}`, `{rounded.md}`) positioned directly under the trigger, same visual weight as `TagsInput`'s suggestion dropdown — not a `ModalOverlay`-style dialog, since picking a date isn't a focused task that needs to block the rest of the page.
+- **No shadow, no backdrop.** The popover is a bordered card (`1px {colors.border-strong}`, `{rounded.md}`) positioned directly under the trigger, same spec as `TagsInput`'s own suggestion dropdown (which, like its always-visible inline box, is `{rounded.md}` too — see `text-input` above) — not a `ModalOverlay`-style dialog, since picking a date isn't a focused task that needs to block the rest of the page. Both dropdowns' own option/item rows nest concentrically inside at `calc({rounded.md} - {spacing.xxs})` (`select-menu`'s `.option`, `TagsInput`'s `.dropdown-item`) — see `select-menu` below for why a flat, non-concentric radius doesn't actually line up here.
 
 **Date filter** (`src/components/DateFilter.vue`) — an advanced date-range filter for the same List/Board/Calendar filters row as the status/priority/tag `select-menu`s (`src/types/view.ts`'s `FilterConfig`), styled as the same `date-picker-trigger`-spec button opening a popover under it.
 
 - **The popover is `Teleport`ed to `<body>`**, not a CSS-anchored absolute child of the trigger like `DatePicker`'s own — every widget's `.widget-body` is `overflow-y: auto`, which per the CSS overflow spec also forces `overflow-x` to `auto`, clipping/scrolling any absolutely-positioned descendant that overflows it. This popover (two columns plus an embedded calendar) is wide enough to hit that routinely, so it escapes to `<body>` and positions itself with `position: fixed` + inline `top`/`right` pixel coordinates computed from the trigger's own `getBoundingClientRect()`, recomputed on open, window resize, and scroll (capture-phase, so it also tracks a *specific* scrolling ancestor like `.widget-body`, not just the window). Anchored via `right`, not `left`, growing leftward from the trigger's right edge, for the same reason as before teleporting: this popover is wide enough that left-aligning under a trigger anywhere but the row's left edge would push it off the viewport.
 - Because the trigger and the (teleported) popover now live in two separate DOM subtrees, the "focus left the widget" outside-click detection checks containment against *both* trees, not just one.
 
-- **Two columns: presets on the left, the calendar itself on the right.** The left column stacks two preset groups — "current period" (today/this week/this fortnight/this month/this year — the calendar period containing today) and "past period" (last week/last two weeks/last month/last year — the period immediately before the current one, never including today) — as full-width small rectangular buttons, `{rounded.sm}` like every other button. The right column embeds `DatePicker` itself in `inline` mode (see Date Picker's `inline` prop below): no trigger/popover/footer chrome of its own, just the nav+grid, always visible, separated from the presets by a `1px {colors.border-subtle}` divider instead of a second nested border. Matches `DatePicker`'s own standalone-popover width (260px) — it's been wider before (340px, then 300px), each a step too large relative to the presets column it's paired with.
+- **Two columns: presets on the left, the calendar itself on the right.** The left column stacks two preset groups — "current period" (today/this week/this fortnight/this month/this year — the calendar period containing today) and "past period" (last week/last two weeks/last month/last year — the period immediately before the current one, never including today) — as full-width rectangular buttons, `{rounded.md}` like every other button. The right column embeds `DatePicker` itself in `inline` mode (see Date Picker's `inline` prop below): no trigger/popover/footer chrome of its own, just the nav+grid, always visible, separated from the presets by a `1px {colors.border-subtle}` divider instead of a second nested border. Matches `DatePicker`'s own standalone-popover width (260px) — it's been wider before (340px, then 300px), each a step too large relative to the presets column it's paired with.
 - **The trigger has a fixed flex-basis (190px), not just a min-width.** Its text otherwise drives the button's own width (a flex item with no other constraint sizes to content), which would make the field visibly widen the moment a range is picked instead of already having room for one — sized up front for a full custom range ("8/3/2026 – 8/10/2026"-ish) so nothing shifts. Overflow text-ellipsis-truncates rather than growing further.
 - **The calendar column sets the popover's height; the presets column is capped to match and scrolls internally** rather than stretching the popover taller than the (usually shorter) calendar next to it — tracked via a `ResizeObserver` on the calendar column rather than a fixed pixel guess, since its own height already varies (a 5- vs. 6-week month in the day grid, or the drilled-up month/year grids, which are shorter still).
 - **Solid `{colors.accent}` fill for the active preset**, not ink — a *staged* preset is a live, in-progress choice (closer to `DatePicker`'s range-mode start/end caps than its single-mode `.selected`), and this filter is range-shaped underneath regardless of which preset is picked.
@@ -429,7 +441,7 @@ The previous system's signature 32px pill button is gone. Admin dashboards use s
 
 **`status-badge`** — used for work-item status/priority/tag chips.
 
-- Rounded `{rounded.full}` (the one place pill radius survives), padding 2px 10px, type `{typography.label}`. Default: `{colors.canvas-surface}` background with a `{colors.ink}` (or `{colors.border-strong}` for lower-emphasis variants) border. "Completed"/highest-emphasis states invert to solid `{colors.ink}` background with `{colors.canvas-surface}` text — grayscale intensity signals state by default.
+- Rounded `{rounded.lg}` (pill-shaped at the default scale, but — unlike `{rounded.full}` — responds to the Appearance panel's radius preset, see the Border Radius Scale table above), padding 4px 10px, type `{typography.label}`. Default: `{colors.canvas-surface}` background with a `{colors.ink}` (or `{colors.border-strong}` for lower-emphasis variants) border. "Completed"/highest-emphasis states invert to solid `{colors.ink}` background with `{colors.canvas-surface}` text — grayscale intensity signals state by default. Every other pill/chip in the app shares this same `{rounded.lg}` radius and `4px 10px` padding (`PriorityBadge`, `TagPill`, `DueDateLabel`'s due-status chip, `TagsInput`'s removable tag chips, `ThemeSettingsPanel`'s preset chips) — both were previously inconsistent (a fixed `{rounded.full}` that never reacted to "sharp"/"round," and a `2px` vertical padding everywhere except `ThemeSettingsPanel`), which is what this was unified to.
 - **`status-badge-colored`** — same geometry, opt-in. See "Status/Priority/Tag Color (opt-in, global + per-view override)" under Colors: background/border tint from one of the eight `{tag-palette.*}` swatches, text stays `{colors.ink}`. Only appears where a person has explicitly assigned a swatch to that status/priority/tag, globally or in that specific view's settings — never a default state.
 
 **Inline row editing** (`src/components/WorkItemRow.vue`) — the List table's status/priority/tags cells are editable directly, no navigating to the item detail page: click the badge/pills and a popover opens underneath to pick a new value, via `SelectMenu` (status/priority) or `TagsInput` (tags, `allow-create`) in `bare` mode.
@@ -447,7 +459,7 @@ The previous system's signature 32px pill button is gone. Admin dashboards use s
 - Keep the sidebar fixed and dark on every screen — it's the one constant piece of chrome.
 - Use weight and size (not color, not letter-spacing) to build hierarchy in Chinese UI text.
 - Border every card/table against `{colors.canvas-app}` — there's no shadow to do that job.
-- Reserve `{rounded.full}` for status chips; every button and input stays rectangular with `{rounded.sm}`/`{rounded.xs}`.
+- Reserve `{rounded.full}` for genuine circles (never status chips, which use `{rounded.lg}`); every button and input stays rectangular with `{rounded.md}`.
 - Keep the palette to ink/canvas/border grayscale steps by default — accent (`{colors.accent}`) is an explicit, user-opted-in override (see "Accent (user-configurable)"), not something a component reaches for on its own.
 
 ### Don't

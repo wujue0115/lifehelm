@@ -211,7 +211,9 @@ function handleTriggerKeydown(event: KeyboardEvent): void {
 /* min-width matches the `.filters .input` rule each panel's own scoped
    style applies to its native <select> filters — that selector can't reach
    this component's non-root trigger button, so it's set here instead (same
-   fix as DateFilter.vue's own trigger). */
+   fix as DateFilter.vue's own trigger). No radius override needed here —
+   `.input` (design-tokens.css) is already `{rounded.md}`, matching
+   `.popover` below. */
 .styled-trigger {
   justify-content: space-between;
   gap: var(--space-xs);
@@ -276,12 +278,14 @@ function handleTriggerKeydown(event: KeyboardEvent): void {
   border-radius: var(--rounded-md);
 }
 
-/* border-radius is `.popover`'s own radius minus its padding, not a fixed
-   token — concentric corners (same center point as the popover's own
-   rounded corner) only line up when inner = outer - padding; a fixed value
-   here would drift out of sync the moment either `{rounded.md}` or
-   `{space.xxs}` changes (e.g. the Appearance panel's radius/spacing
-   presets).
+/* border-radius is `.popover`'s own radius minus its padding, not a flat
+   {rounded.md} — concentric corners (same center point as the popover's
+   own rounded corner) only line up when inner = outer - padding; two
+   independently-set equal radii drift apart the moment the option is
+   inset from the popover's edge by any padding at all (`{space.xxs}`
+   here). A fixed value would also drift out of sync the moment either
+   `{rounded.md}` or `{space.xxs}` changes (e.g. the Appearance panel's
+   radius/spacing presets).
 
    height is a fixed 36px, not padding-driven — matching `.input`/`.btn`'s
    own fixed min-height (design-tokens.css) rather than letting content/font

@@ -24,8 +24,12 @@ instead of inventing new values. It defines a back-office admin dashboard system
   `text-transform: uppercase` / positive letter-spacing (both Latin-only conventions) have no
   effect on CJK glyphs and are not used. Hierarchy comes from weight/size (`{typography.page-title}`
   down to `{typography.label}`).
-- **Small-radius rectangular buttons** (`{rounded.sm}`, 6px) — `btn-primary`/`btn-secondary`/
-  `btn-ghost`. `{rounded.full}` (pill) is reserved for status badges/chips only, never buttons.
+- **Rectangular buttons share `{rounded.md}` (10px) with fields, cards, and popovers** —
+  `btn-primary`/`btn-secondary`/`btn-ghost`, same radius as everything else rectangular in the
+  app, not a smaller radius of their own. Status badges/chips are pill-shaped via `{rounded.lg}`
+  (which scales with the Appearance panel's radius preset, unlike `{rounded.full}`) — never
+  buttons. `{rounded.full}` itself is fixed at 9999px and reserved for genuine circles (swatches,
+  toggles, dots), since those must stay perfectly round regardless of the radius preset.
 - **No shadows, blurs, or gradients** — cards/tables separate from the page background with a 1px
   border (`{colors.border-subtle}`/`{colors.border-strong}`), never elevation.
 - Component specs (buttons, cards, tables, sidebar, topbar) are defined under `components:` in

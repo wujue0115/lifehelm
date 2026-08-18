@@ -20,10 +20,13 @@ const style = computed(() =>
 </template>
 
 <style scoped>
+/* border-radius is {rounded.lg}, not {rounded.full} — see StatusBadge.vue
+   for why chips need a radius-scale-responsive value rather than a
+   circle-guaranteeing fixed one. */
 .badge {
   display: inline-block;
-  padding: 2px 10px;
-  border-radius: var(--rounded-full);
+  padding: 4px 10px;
+  border-radius: var(--rounded-lg);
   color: var(--color-ink-secondary);
   border: 1px solid var(--color-border-subtle);
   white-space: nowrap;

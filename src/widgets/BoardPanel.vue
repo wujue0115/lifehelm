@@ -489,7 +489,7 @@ async function confirmRemoveColumn(): Promise<void> {
         </div>
         <button
           type="button"
-          class="btn-ghost action-btn"
+          class="btn btn-ghost action-btn"
           :title="t('colorSettings.trigger')"
           @click="settingsOpen = true"
         >
@@ -749,15 +749,25 @@ async function confirmRemoveColumn(): Promise<void> {
   flex-shrink: 0;
 }
 
+/* border-radius matches every other button's {rounded.md}. Hover is a
+   light accent tint, not the plain `{colors.surface-hover}` gray other
+   ghost surfaces use — same tint SelectMenu's own `.option.selected`
+   uses (12% mix), applied here as an interactive hover instead of a
+   selected-state fill. */
 .icon-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   background: none;
   border: none;
+  border-radius: var(--rounded-md);
   cursor: pointer;
   color: var(--color-ink-muted);
   padding: 2px;
+}
+
+.icon-btn:hover {
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
 }
 
 .done-toggle.active {
