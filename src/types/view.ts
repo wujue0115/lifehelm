@@ -12,6 +12,8 @@ export interface WidgetLayoutEntry {
   colStart?: number
   rowStart?: number
   config?: ViewConfig
+  /** Per-instance override for the widget's own title-key label (WidgetChrome's header) — lets two List panels in the same view read as e.g. "Backlog" / "In Review" instead of both just "List". Unset falls back to the widget definition's titleKey. */
+  title?: string
 }
 
 // Per-view override layer for the global status/priority/tag colors (see

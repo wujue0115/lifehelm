@@ -159,6 +159,19 @@ function updateConfig(instanceId: string, config: ViewConfig): void {
   )
 }
 
+// An empty/whitespace-only title clears the override (falls back to the
+// widget definition's own titleKey) rather than persisting an empty
+// string — matches WidgetChrome's finishRenameTitle, which already trims
+// before emitting.
+function renameWidget(instanceId: string, title: string): void {
+  emit(
+    'update:layout',
+    props.layout.map((entry) =>
+      entry.instanceId === instanceId ? { ...entry, title: title || undefined } : entry,
+    ),
+  )
+}
+
 // Explicit-position panels can overlap while being dragged/resized in
 // non-flow mode; whichever one the user last clicked or grabbed a
 // handle on should paint above the rest instead of staying tucked
@@ -188,6 +201,7 @@ function bringToFront(instanceId: string): void {
         v-for="entry in localLayout"
         :key="entry.instanceId"
         :title-key="getWidgetDefinition(entry.widgetId).titleKey"
+        :title="entry.title"
         :editable="editable"
         :col-span="entry.colSpan"
         :row-span="entry.rowSpan"
@@ -203,6 +217,7 @@ function bringToFront(instanceId: string): void {
         "
         @move="(colStart, rowStart) => updatePosition(entry.instanceId, colStart, rowStart)"
         @remove="removeWidget(entry.instanceId)"
+        @rename="(title) => renameWidget(entry.instanceId, title)"
         @focus="bringToFront(entry.instanceId)"
       >
         <component
