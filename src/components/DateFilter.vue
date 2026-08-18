@@ -6,9 +6,9 @@ import { resolveDateFilterRange, type DateFilterPreset } from '@/utils/dateFilte
 import { formatDateTime } from '@/utils/date'
 
 // v-model:preset (+ v-model:customStart/customEnd, only meaningful when
-// preset is 'custom') — same "flat strings on the widget's ViewConfig"
-// contract as statusFilter/priorityFilter/tagFilter (src/types/view.ts),
-// so this drops into the same filters row and persists the same way.
+// preset is 'custom') — persisted directly on the widget's ViewConfig
+// (src/types/view.ts) alongside statusFilter/priorityFilter/tagFilter, so
+// this drops into the same filters row and persists the same way.
 const props = withDefaults(
   defineProps<{
     preset?: DateFilterPreset

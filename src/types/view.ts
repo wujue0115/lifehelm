@@ -25,17 +25,18 @@ export interface ColorConfig {
 }
 
 // Shared by every widget with a status/priority/tag + text filter row —
-// List, Board, and Calendar. 'all' is the sentinel for "no filter" on the
-// select-driven fields (matching the option value each panel's dropdown
-// uses), not an empty string. dateFilterCustomStart/End only matter when
+// List, Board, and Calendar. `statusFilter`/`priorityFilter`/`tagFilter`
+// are the specifically-included values for each field (MultiSelectMenu's
+// `modelValue`) — an empty array is "no restriction," not an empty string
+// or a sentinel value. dateFilterCustomStart/End only matter when
 // dateFilterPreset is 'custom' (see DateFilter.vue/dateFilterPresets.ts) —
 // they stay populated even after switching to a different preset, so
 // re-selecting "custom" restores the last-picked range instead of an empty
 // one.
 export interface FilterConfig {
-  statusFilter?: string
-  priorityFilter?: string
-  tagFilter?: string
+  statusFilter?: string[]
+  priorityFilter?: string[]
+  tagFilter?: string[]
   search?: string
   dateFilterPreset?: DateFilterPreset
   dateFilterCustomStart?: string
@@ -43,9 +44,9 @@ export interface FilterConfig {
 }
 
 export interface ListViewConfig extends ColorConfig, FilterConfig {
-  statusFilter: string
-  priorityFilter: string
-  tagFilter: string
+  statusFilter: string[]
+  priorityFilter: string[]
+  tagFilter: string[]
   search: string
   dateFilterPreset: DateFilterPreset
   dateFilterCustomStart: string
@@ -75,9 +76,9 @@ export type ViewConfig =
   | Record<string, never>
 
 export const DEFAULT_LIST_CONFIG: ListViewConfig = {
-  statusFilter: 'all',
-  priorityFilter: 'all',
-  tagFilter: 'all',
+  statusFilter: [],
+  priorityFilter: [],
+  tagFilter: [],
   search: '',
   dateFilterPreset: 'all',
   dateFilterCustomStart: '',

@@ -7,17 +7,37 @@ import PriorityBadge from './PriorityBadge.vue'
 import TagPill from './TagPill.vue'
 import DueDateLabel from './DueDateLabel.vue'
 import ActionIcon from './ActionIcon.vue'
+import SelectMenu, { type SelectMenuOption } from './SelectMenu.vue'
+import TagsInput from './TagsInput.vue'
 
 const { t } = useI18n()
-defineProps<{
+const props = defineProps<{
   item: WorkItem
   statusName: string
   isCompleted: boolean
   statusColor?: TagColorKey
   priorityColor?: TagColorKey
   tagColors?: Record<string, TagColorKey>
+  statusOptions: SelectMenuOption[]
+  priorityOptions: SelectMenuOption[]
+  statusColorMap?: Record<string, TagColorKey | undefined>
+  priorityColorMap?: Record<string, TagColorKey | undefined>
+  allTags: string[]
 }>()
-const emit = defineEmits<{ delete: [id: string] }>()
+const emit = defineEmits<{
+  delete: [id: string]
+  update: [id: string, patch: Partial<Pick<WorkItem, 'status' | 'priority' | 'tags'>>]
+}>()
+
+function pickStatus(value: string): void {
+  emit('update', props.item.id, { status: value })
+}
+function pickPriority(value: string): void {
+  emit('update', props.item.id, { priority: value })
+}
+function onTagsChange(tags: string[]): void {
+  emit('update', props.item.id, { tags })
+}
 </script>
 
 <template>
@@ -25,10 +45,59 @@ const emit = defineEmits<{ delete: [id: string] }>()
     <td class="type-body-sm">
       <RouterLink :to="`/items/${item.id}`" class="title-link">{{ item.title }}</RouterLink>
     </td>
-    <td><StatusBadge :name="statusName" :completed="isCompleted" :color="statusColor" /></td>
-    <td><PriorityBadge :priority="item.priority" :color="priorityColor" /></td>
     <td>
-      <TagPill v-for="tag in item.tags" :key="tag" :label="tag" :color="tagColors?.[tag]" />
+      <SelectMenu
+        bare
+        :model-value="item.status"
+        :options="statusOptions"
+        @update:model-value="pickStatus"
+      >
+        <template #trigger>
+          <StatusBadge :name="statusName" :completed="isCompleted" :color="statusColor" />
+        </template>
+        <template #option="{ option }">
+          <StatusBadge :name="option.label" :color="statusColorMap?.[option.value]" />
+        </template>
+      </SelectMenu>
+    </td>
+    <td>
+      <SelectMenu
+        bare
+        :model-value="item.priority"
+        :options="priorityOptions"
+        @update:model-value="pickPriority"
+      >
+        <template #trigger>
+          <PriorityBadge :priority="item.priority" :color="priorityColor" />
+        </template>
+        <template #option="{ option }">
+          <PriorityBadge :priority="option.value" :color="priorityColorMap?.[option.value]" />
+        </template>
+      </SelectMenu>
+    </td>
+    <td>
+      <TagsInput
+        bare
+        :model-value="item.tags"
+        :suggestions="allTags"
+        allow-create
+        @update:model-value="onTagsChange"
+      >
+        <template #trigger>
+          <TagPill v-for="tag in item.tags" :key="tag" :label="tag" :color="tagColors?.[tag]" />
+          <span v-if="!item.tags.length" class="tags-empty type-caption">{{
+            t('list.tagsEmptyHint')
+          }}</span>
+        </template>
+        <template #option="{ option }">
+          <TagPill
+            v-if="!option.isCreate"
+            :label="option.label"
+            :color="tagColors?.[option.value]"
+          />
+          <span v-else>{{ option.label }}</span>
+        </template>
+      </TagsInput>
     </td>
     <td>
       <DueDateLabel
@@ -75,6 +144,10 @@ const emit = defineEmits<{ delete: [id: string] }>()
 
 .title-link:hover {
   text-decoration: underline;
+}
+
+.tags-empty {
+  color: var(--color-ink-muted);
 }
 
 .actions {

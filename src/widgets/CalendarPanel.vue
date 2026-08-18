@@ -13,7 +13,7 @@ import ChevronIcon from '@/components/ChevronIcon.vue'
 import ActionIcon from '@/components/ActionIcon.vue'
 import ColorSettings from '@/components/ColorSettings.vue'
 import DateFilter from '@/components/DateFilter.vue'
-import SelectMenu from '@/components/SelectMenu.vue'
+import MultiSelectMenu from '@/components/MultiSelectMenu.vue'
 import { resolveDateFilterRange, itemMatchesDateRange } from '@/utils/dateFilterPresets'
 import type { DateFilterPreset } from '@/utils/dateFilterPresets'
 
@@ -50,10 +50,18 @@ const statusColors = ref<Record<string, TagColorKey>>({ ...cfg.statusColors })
 const priorityColors = ref<Partial<Record<Priority, TagColorKey>>>({ ...cfg.priorityColors })
 const tagColors = ref<Record<string, TagColorKey>>({ ...cfg.tagColors })
 const settingsOpen = ref(false)
+// Existing persisted configs may still carry the pre-multi-select 'all'
+// sentinel string rather than an array — normalize anything that isn't
+// already an array down to `[]`, the multi-select equivalent of "no
+// restriction" (see ListPanel.vue's own copy of this for more).
+function normalizeFilterValues(value: unknown): string[] {
+  return Array.isArray(value) ? value : []
+}
+
 const search = ref(cfg.search ?? '')
-const statusFilter = ref(cfg.statusFilter ?? 'all')
-const priorityFilter = ref(cfg.priorityFilter ?? 'all')
-const tagFilter = ref(cfg.tagFilter ?? 'all')
+const statusFilter = ref(normalizeFilterValues(cfg.statusFilter))
+const priorityFilter = ref(normalizeFilterValues(cfg.priorityFilter))
+const tagFilter = ref(normalizeFilterValues(cfg.tagFilter))
 const dateFilterPreset = ref<DateFilterPreset>(cfg.dateFilterPreset ?? 'all')
 const dateFilterCustomStart = ref(cfg.dateFilterCustomStart ?? '')
 const dateFilterCustomEnd = ref(cfg.dateFilterCustomEnd ?? '')
@@ -97,30 +105,26 @@ const dateFilterRange = computed(() =>
   }),
 )
 
-const statusFilterOptions = computed(() => [
-  { value: 'all', label: t('list.allStatus') },
-  ...store.sortedStatuses.map((column) => ({ value: column.name, label: column.name })),
-])
-const priorityFilterOptions = computed(() => [
-  { value: 'all', label: t('list.allPriority') },
-  ...store.sortedPriorities.map((priority) => ({
+const statusFilterOptions = computed(() =>
+  store.sortedStatuses.map((column) => ({ value: column.name, label: column.name })),
+)
+const priorityFilterOptions = computed(() =>
+  store.sortedPriorities.map((priority) => ({
     value: priority.name,
     label: priorityLabel(priority.name),
   })),
-])
-const tagFilterOptions = computed(() => [
-  { value: 'all', label: t('list.allTags') },
-  ...store.allTags.map((tag) => ({ value: tag, label: tag })),
-])
+)
+const tagFilterOptions = computed(() => store.allTags.map((tag) => ({ value: tag, label: tag })))
 
 // Same filter semantics as ListPanel/BoardPanel — narrows which items can
 // appear as bar-segments.
 const filteredItems = computed(() => {
   const query = search.value.trim().toLowerCase()
   return store.items.filter((item) => {
-    if (statusFilter.value !== 'all' && item.status !== statusFilter.value) return false
-    if (priorityFilter.value !== 'all' && item.priority !== priorityFilter.value) return false
-    if (tagFilter.value !== 'all' && !item.tags.includes(tagFilter.value)) return false
+    if (statusFilter.value.length && !statusFilter.value.includes(item.status)) return false
+    if (priorityFilter.value.length && !priorityFilter.value.includes(item.priority)) return false
+    if (tagFilter.value.length && !tagFilter.value.some((tag) => item.tags.includes(tag)))
+      return false
     if (
       dateFilterRange.value &&
       !itemMatchesDateRange(item.startDate, item.dueDate, dateFilterRange.value)
@@ -248,9 +252,21 @@ const weekdayLabels = computed(() => {
         type="text"
         :placeholder="t('list.searchPlaceholder')"
       />
-      <SelectMenu v-model="statusFilter" :options="statusFilterOptions" />
-      <SelectMenu v-model="priorityFilter" :options="priorityFilterOptions" />
-      <SelectMenu v-model="tagFilter" :options="tagFilterOptions" />
+      <MultiSelectMenu
+        v-model="statusFilter"
+        :options="statusFilterOptions"
+        :all-label="t('list.allStatus')"
+      />
+      <MultiSelectMenu
+        v-model="priorityFilter"
+        :options="priorityFilterOptions"
+        :all-label="t('list.allPriority')"
+      />
+      <MultiSelectMenu
+        v-model="tagFilter"
+        :options="tagFilterOptions"
+        :all-label="t('list.allTags')"
+      />
       <DateFilter
         v-model:preset="dateFilterPreset"
         v-model:custom-start="dateFilterCustomStart"

@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useWorkItemsStore } from '@/stores/workItems'
-import type { Priority } from '@/types/work-item'
+import type { Priority, WorkItem } from '@/types/work-item'
 import type { ListViewConfig, ViewConfig } from '@/types/view'
 import type { TagColorKey } from '@/config/tagColors'
 import WorkItemRow from '@/components/WorkItemRow.vue'
@@ -11,7 +11,10 @@ import SortIcon from '@/components/SortIcon.vue'
 import ActionIcon from '@/components/ActionIcon.vue'
 import ColorSettings from '@/components/ColorSettings.vue'
 import DateFilter from '@/components/DateFilter.vue'
-import SelectMenu from '@/components/SelectMenu.vue'
+import MultiSelectMenu from '@/components/MultiSelectMenu.vue'
+import StatusBadge from '@/components/StatusBadge.vue'
+import PriorityBadge from '@/components/PriorityBadge.vue'
+import TagPill from '@/components/TagPill.vue'
 import { usePriorityLabel } from '@/composables/usePriorityLabel'
 import { resolveColor } from '@/utils/colors'
 import { resolveDateFilterRange, itemMatchesDateRange } from '@/utils/dateFilterPresets'
@@ -31,11 +34,19 @@ const { t } = useI18n()
 const store = useWorkItemsStore()
 const priorityLabel = usePriorityLabel()
 
+// Existing persisted configs may still carry the pre-multi-select 'all'
+// sentinel string rather than an array (single-select's "no filter" value)
+// — normalize anything that isn't already an array down to `[]`, the
+// multi-select equivalent of "no restriction."
+function normalizeFilterValues(value: unknown): string[] {
+  return Array.isArray(value) ? value : []
+}
+
 const cfg = (props.config ?? {}) as Partial<ListViewConfig>
 const search = ref(cfg.search ?? '')
-const statusFilter = ref(cfg.statusFilter ?? 'all')
-const priorityFilter = ref<Priority | 'all'>((cfg.priorityFilter as Priority | 'all') ?? 'all')
-const tagFilter = ref(cfg.tagFilter ?? 'all')
+const statusFilter = ref(normalizeFilterValues(cfg.statusFilter))
+const priorityFilter = ref(normalizeFilterValues(cfg.priorityFilter))
+const tagFilter = ref(normalizeFilterValues(cfg.tagFilter))
 const dateFilterPreset = ref<DateFilterPreset>(cfg.dateFilterPreset ?? 'all')
 const dateFilterCustomStart = ref(cfg.dateFilterCustomStart ?? '')
 const dateFilterCustomEnd = ref(cfg.dateFilterCustomEnd ?? '')
@@ -99,21 +110,48 @@ const priorityOrderById = computed(() => {
   return map
 })
 
-const statusFilterOptions = computed(() => [
-  { value: 'all', label: t('list.allStatus') },
-  ...store.sortedStatuses.map((column) => ({ value: column.name, label: column.name })),
-])
-const priorityFilterOptions = computed(() => [
-  { value: 'all', label: t('list.allPriority') },
-  ...store.sortedPriorities.map((priority) => ({
+const statusFilterOptions = computed(() =>
+  store.sortedStatuses.map((column) => ({ value: column.name, label: column.name })),
+)
+const priorityFilterOptions = computed(() =>
+  store.sortedPriorities.map((priority) => ({
     value: priority.name,
     label: priorityLabel(priority.name),
   })),
-])
-const tagFilterOptions = computed(() => [
-  { value: 'all', label: t('list.allTags') },
-  ...store.allTags.map((tag) => ({ value: tag, label: tag })),
-])
+)
+const tagFilterOptions = computed(() => store.allTags.map((tag) => ({ value: tag, label: tag })))
+
+// Every status/priority's resolved color, keyed by name — not just the
+// current row's own status/priority like resolveColor's usual call site,
+// since the dropdown for inline editing (and the filter selects) need to
+// render every option as its own colored badge, matching how that same
+// status/priority already renders in the table body.
+const statusColorMap = computed(() => {
+  const map: Record<string, TagColorKey | undefined> = {}
+  for (const status of store.sortedStatuses) {
+    map[status.name] = resolveColor(status.name, store.statuses, statusColors.value)
+  }
+  return map
+})
+const priorityColorMap = computed(() => {
+  const map: Record<string, TagColorKey | undefined> = {}
+  for (const priority of store.sortedPriorities) {
+    map[priority.name] = resolveColor(priority.name, store.priorities, priorityColors.value)
+  }
+  return map
+})
+
+// Same options minus the "all" sentinel — for editing a single item's
+// status/priority inline in its own row, not filtering the whole table.
+const statusOptions = computed(() =>
+  store.sortedStatuses.map((column) => ({ value: column.name, label: column.name })),
+)
+const priorityOptions = computed(() =>
+  store.sortedPriorities.map((priority) => ({
+    value: priority.name,
+    label: priorityLabel(priority.name),
+  })),
+)
 
 const dateFilterRange = computed(() =>
   resolveDateFilterRange(dateFilterPreset.value, {
@@ -125,9 +163,10 @@ const dateFilterRange = computed(() =>
 const filteredItems = computed(() => {
   const query = search.value.trim().toLowerCase()
   return store.items.filter((item) => {
-    if (statusFilter.value !== 'all' && item.status !== statusFilter.value) return false
-    if (priorityFilter.value !== 'all' && item.priority !== priorityFilter.value) return false
-    if (tagFilter.value !== 'all' && !item.tags.includes(tagFilter.value)) return false
+    if (statusFilter.value.length && !statusFilter.value.includes(item.status)) return false
+    if (priorityFilter.value.length && !priorityFilter.value.includes(item.priority)) return false
+    if (tagFilter.value.length && !tagFilter.value.some((tag) => item.tags.includes(tag)))
+      return false
     if (
       dateFilterRange.value &&
       !itemMatchesDateRange(item.startDate, item.dueDate, dateFilterRange.value)
@@ -209,6 +248,23 @@ function onViewTagColorsUpdate(next: Record<string, TagColorKey>): void {
   }
 }
 
+// Same rule as ItemDetailView's own submit / the color-settings tag flow:
+// register any newly-picked tag before saving so it persists (tags.json)
+// even if every item wearing it is later retagged or deleted. Sequential,
+// not Promise.all — see ItemDetailView.vue's handleSubmit for why
+// concurrent registrations of more than one new tag would race.
+async function handleInlineUpdate(
+  id: string,
+  patch: Partial<Pick<WorkItem, 'status' | 'priority' | 'tags'>>,
+): Promise<void> {
+  if (patch.tags) {
+    for (const tagName of patch.tags) {
+      await store.ensureTagRegistered(tagName)
+    }
+  }
+  await store.updateItem(id, patch)
+}
+
 function requestDelete(id: string): void {
   pendingDeleteId.value = id
 }
@@ -229,9 +285,33 @@ async function confirmDelete(): Promise<void> {
           type="text"
           :placeholder="t('list.searchPlaceholder')"
         />
-        <SelectMenu v-model="statusFilter" :options="statusFilterOptions" />
-        <SelectMenu v-model="priorityFilter" :options="priorityFilterOptions" />
-        <SelectMenu v-model="tagFilter" :options="tagFilterOptions" />
+        <MultiSelectMenu
+          v-model="statusFilter"
+          :options="statusFilterOptions"
+          :all-label="t('list.allStatus')"
+        >
+          <template #option="{ option }">
+            <StatusBadge :name="option.label" :color="statusColorMap[option.value]" />
+          </template>
+        </MultiSelectMenu>
+        <MultiSelectMenu
+          v-model="priorityFilter"
+          :options="priorityFilterOptions"
+          :all-label="t('list.allPriority')"
+        >
+          <template #option="{ option }">
+            <PriorityBadge :priority="option.value" :color="priorityColorMap[option.value]" />
+          </template>
+        </MultiSelectMenu>
+        <MultiSelectMenu
+          v-model="tagFilter"
+          :options="tagFilterOptions"
+          :all-label="t('list.allTags')"
+        >
+          <template #option="{ option }">
+            <TagPill :label="option.label" :color="effectiveTagColors[option.value]" />
+          </template>
+        </MultiSelectMenu>
         <DateFilter
           v-model:preset="dateFilterPreset"
           v-model:custom-start="dateFilterCustomStart"
@@ -354,7 +434,13 @@ async function confirmDelete(): Promise<void> {
               :status-color="resolveColor(item.status, store.statuses, statusColors)"
               :priority-color="resolveColor(item.priority, store.priorities, priorityColors)"
               :tag-colors="effectiveTagColors"
+              :status-options="statusOptions"
+              :priority-options="priorityOptions"
+              :status-color-map="statusColorMap"
+              :priority-color-map="priorityColorMap"
+              :all-tags="store.allTags"
               @delete="requestDelete"
+              @update="handleInlineUpdate"
             />
           </tbody>
         </table>
