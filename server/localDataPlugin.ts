@@ -11,6 +11,7 @@ import type {
   WorkItem,
 } from '../src/types/work-item.js'
 import type { ThemeConfig } from '../src/types/theme-config.js'
+import type { ExportConfig } from '../src/types/export-config.js'
 import type { View } from '../src/types/view.js'
 import { DEFAULT_VIEWS } from '../src/config/defaultViews.js'
 import {
@@ -31,12 +32,24 @@ const TAGS_FILE = 'tags.json'
 const PRIORITIES_FILE = 'priorities.json'
 const VIEWS_FILE = 'views.json'
 const THEME_CONFIG_FILE = 'appearance.json'
+const EXPORT_CONFIG_FILE = 'export-format.json'
 
 const DEFAULT_THEME_CONFIG: ThemeConfig = {
   accentColor: null,
   fontId: 'default',
   radiusScale: 1,
   spacingScale: 1,
+}
+
+const DEFAULT_EXPORT_CONFIG: ExportConfig = {
+  groupBy: 'status',
+  prefixStyle: 'number',
+  prefixSuffix: '.',
+  titlePrefix: '',
+  titleSuffix: '',
+  showDate: false,
+  dateFormat: 'M/D',
+  datePosition: 'after',
 }
 
 // Same id format as tags (randomUUID, not a semantic string) — status/
@@ -493,6 +506,27 @@ export function localDataPlugin(): Plugin {
               const body = (await readBody(req)) as Partial<ThemeConfig> | undefined
               const config: ThemeConfig = { ...DEFAULT_THEME_CONFIG, ...body }
               await writeConfigJsonFile(THEME_CONFIG_FILE, config)
+              return sendJson(res, 200, config)
+            }
+          }
+
+          if (segments[0] === 'export-config' && segments.length === 1) {
+            if (method === 'GET') {
+              // Spread over the defaults (not returned raw) so a file saved
+              // before a new field existed (e.g. titlePrefix/titleSuffix)
+              // still round-trips a complete ExportConfig instead of
+              // silently omitting the new keys.
+              const stored = await readConfigJsonFile<Partial<ExportConfig>>(
+                EXPORT_CONFIG_FILE,
+                DEFAULT_EXPORT_CONFIG,
+              )
+              const config: ExportConfig = { ...DEFAULT_EXPORT_CONFIG, ...stored }
+              return sendJson(res, 200, config)
+            }
+            if (method === 'PUT') {
+              const body = (await readBody(req)) as Partial<ExportConfig> | undefined
+              const config: ExportConfig = { ...DEFAULT_EXPORT_CONFIG, ...body }
+              await writeConfigJsonFile(EXPORT_CONFIG_FILE, config)
               return sendJson(res, 200, config)
             }
           }
