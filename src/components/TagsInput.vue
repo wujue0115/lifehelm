@@ -47,15 +47,34 @@ function updatePopoverPosition(): void {
   if (!rect) return
   popoverPos.value = { top: rect.bottom + 4, left: rect.left, width: rect.width }
 }
+// Adding/removing a tag while the popover is open doesn't just change the
+// popover's own content — in `bare` mode it also changes what the trigger
+// itself renders (the pill list, via `#trigger`, updates live off the same
+// `modelValue`), and `.bare-trigger` wraps (`flex-wrap: wrap`), so picking
+// up a second row of pills grows the trigger's own height right under the
+// popover. Scroll/resize listeners alone don't catch that — the window
+// never scrolled or resized, only the trigger did — so the popover would
+// stay pinned at its original `top` and start overlapping the now-taller
+// trigger. A `ResizeObserver` on the anchor element catches this (and any
+// other reflow that changes its box) generically, without having to
+// enumerate every state that could grow it.
+let resizeObserver: ResizeObserver | undefined
 watch(open, (isOpen) => {
   if (!isOpen) {
     window.removeEventListener('scroll', updatePopoverPosition, true)
     window.removeEventListener('resize', updatePopoverPosition)
+    resizeObserver?.disconnect()
+    resizeObserver = undefined
     return
   }
   updatePopoverPosition()
   window.addEventListener('scroll', updatePopoverPosition, true)
   window.addEventListener('resize', updatePopoverPosition)
+  const anchor = props.bare ? triggerEl.value : wrapperEl.value
+  if (anchor) {
+    resizeObserver = new ResizeObserver(updatePopoverPosition)
+    resizeObserver.observe(anchor)
+  }
   // In bare mode the input only exists once the popover is open (it's part
   // of the Teleported popover, not the always-visible trigger) — focus it
   // each time, not just once on mount, since this component now stays
@@ -66,6 +85,7 @@ watch(open, (isOpen) => {
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', updatePopoverPosition, true)
   window.removeEventListener('resize', updatePopoverPosition)
+  resizeObserver?.disconnect()
 })
 
 type Option = { value: string; label: string; isCreate: boolean }
@@ -380,9 +400,17 @@ function handleBarePopoverFocusOut(event: FocusEvent): void {
   color: var(--color-ink);
 }
 
+/* min-width is deliberately small (just enough to type into), not a
+   generous fixed typing area — this field sits after however many chips
+   are already picked, in a box that isn't always wide (ItemDetailView's
+   own Tags field shares its row with Dates, ~300px total). A larger floor
+   forced the input onto its own empty-looking second line the moment less
+   than that much space was left after the chips, even with real (if
+   smaller) room still open on the current line — wrapping should kick in
+   when content actually runs out, not ahead of time. */
 .tags-input-field {
   flex: 1;
-  min-width: 120px;
+  min-width: 40px;
   border: none;
   outline: none;
   background: transparent;
