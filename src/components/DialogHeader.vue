@@ -27,8 +27,16 @@ const { t } = useI18n()
   justify-content: space-between;
 }
 
+/* Matches the single-icon `.action-btn` footprint used across the app
+   (e.g. ListPanel's settings gear): 16px content + 6px padding + 1px
+   border on each side = 30px square. `.action-btn` gets there via
+   padding alone since its content is a 16px SVG; the "×" glyph here
+   isn't 16px wide, so width/height are set explicitly instead of
+   padding to land on the same 30px box. */
 .close-btn {
-  padding: 2px 8px;
+  width: 30px;
+  height: 30px;
+  padding: 0;
   min-height: auto;
   font-size: 16px;
   line-height: 1;

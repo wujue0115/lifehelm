@@ -6,6 +6,7 @@ import type {
   WorkItem,
 } from '@/types/work-item'
 import type { ThemeConfig } from '@/types/theme-config'
+import type { ExportConfig } from '@/types/export-config'
 import type { View } from '@/types/view'
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
@@ -78,6 +79,10 @@ export const api = {
   getThemeConfig: () => request<ThemeConfig>('/api/theme-config'),
   updateThemeConfig: (config: ThemeConfig) =>
     request<ThemeConfig>('/api/theme-config', { method: 'PUT', body: JSON.stringify(config) }),
+
+  getExportConfig: () => request<ExportConfig>('/api/export-config'),
+  updateExportConfig: (config: ExportConfig) =>
+    request<ExportConfig>('/api/export-config', { method: 'PUT', body: JSON.stringify(config) }),
 
   listViews: () => request<View[]>('/api/views'),
   createView: (input: Partial<View>) =>
