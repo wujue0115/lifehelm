@@ -15,6 +15,15 @@
     "format": "oxfmt src/ server/"
   },
   "dependencies": {
+    "@tsparticles/basic": "4.3.2",
+    "@tsparticles/engine": "^4.3.2",
+    "@tsparticles/plugin-emitters": "4.3.2",
+    "@tsparticles/plugin-interactivity": "4.3.2",
+    "@tsparticles/shape-line": "4.3.2",
+    "@tsparticles/updater-destroy": "4.3.2",
+    "@tsparticles/updater-life": "4.3.2",
+    "@tsparticles/updater-rotate": "4.3.2",
+    "@tsparticles/vue3": "^4.3.2",
     "pinia": "^4.0.2",
     "vue": "^3.5.40",
     "vue-draggable-plus": "^0.6.1",
