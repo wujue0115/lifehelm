@@ -43,6 +43,14 @@ export const useViewsStore = defineStore('views', () => {
     views.value = views.value.filter((view) => view.id !== id)
   }
 
+  // Array order is the source of truth for both AppSidebar's nav (see
+  // `pinnedViews` above) and this table's own default row order — there's
+  // no separate `order` field on View, so persisting a drag reorder means
+  // persisting the whole array's order to views.json.
+  async function reorderViews(ids: string[]): Promise<void> {
+    views.value = await api.reorderViews(ids)
+  }
+
   async function duplicateView(id: string, name: string): Promise<View> {
     const source = views.value.find((view) => view.id === id)
     if (!source) throw new Error('view not found')
@@ -68,5 +76,6 @@ export const useViewsStore = defineStore('views', () => {
     updateView,
     deleteView,
     duplicateView,
+    reorderViews,
   }
 })

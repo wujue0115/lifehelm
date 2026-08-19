@@ -219,6 +219,8 @@ export default {
     columnName: '名稱',
     columnPinned: '側邊欄',
     columnActions: '操作',
+    dragRow: '拖曳排序——決定側邊欄順序',
+    dragRowDisabled: '請先清除排序才能拖曳',
   },
   view: {
     rename: '重新命名',

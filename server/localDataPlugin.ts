@@ -461,6 +461,28 @@ export function localDataPlugin(): Plugin {
             }
           }
 
+          // Checked ahead of the generic `/api/views/:id` block below, which
+          // would otherwise treat "reorder" itself as an id and 404.
+          if (segments[0] === 'views' && segments.length === 2 && segments[1] === 'reorder') {
+            if (method === 'PUT') {
+              const body = (await readBody(req)) as { ids?: string[] } | undefined
+              const orderedIds = body?.ids ?? []
+              const views = await readConfigJsonFileOrSeed<View[]>(VIEWS_FILE, DEFAULT_VIEWS)
+              const byId = new Map(views.map((view) => [view.id, view]))
+              const reordered = orderedIds
+                .map((id) => byId.get(id))
+                .filter((view): view is View => view !== undefined)
+              // Any view missing from a stale/partial payload keeps its
+              // relative position, appended after the reordered ones,
+              // instead of silently disappearing from views.json.
+              const reorderedIds = new Set(reordered.map((view) => view.id))
+              const remaining = views.filter((view) => !reorderedIds.has(view.id))
+              const result = [...reordered, ...remaining]
+              await writeConfigJsonFile(VIEWS_FILE, result)
+              return sendJson(res, 200, result)
+            }
+          }
+
           if (segments[0] === 'views' && segments.length === 2) {
             const id = segments[1]
             const views = await readConfigJsonFileOrSeed<View[]>(VIEWS_FILE, DEFAULT_VIEWS)
