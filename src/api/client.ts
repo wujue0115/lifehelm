@@ -91,4 +91,6 @@ export const api = {
   updateView: (id: string, input: Partial<View>) =>
     request<View>(`/api/views/${id}`, { method: 'PUT', body: JSON.stringify(input) }),
   deleteView: (id: string) => request<void>(`/api/views/${id}`, { method: 'DELETE' }),
+  reorderViews: (ids: string[]) =>
+    request<View[]>('/api/views/reorder', { method: 'PUT', body: JSON.stringify({ ids }) }),
 }

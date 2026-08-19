@@ -2,11 +2,13 @@
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import { VueDraggable } from 'vue-draggable-plus'
 import { useViewsStore } from '@/stores/views'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import SwitchToggle from '@/components/SwitchToggle.vue'
 import ActionIcon from '@/components/ActionIcon.vue'
 import SortIcon from '@/components/SortIcon.vue'
+import type { View } from '@/types/view'
 
 type SortKey = 'name' | 'pinned'
 
@@ -42,6 +44,16 @@ function toggleSort(key: SortKey): void {
 
 function sortDirFor(key: SortKey): 'asc' | 'desc' | 'none' {
   return sortKey.value === key ? sortDir.value : 'none'
+}
+
+// Drag reordering writes straight to the sidebar/table's underlying array
+// order (see reorderViews in stores/views.ts) — only meaningful in the
+// unsorted table view, since dragging a row under an active Name/Pinned
+// sort would visually snap back the moment the new order re-sorts.
+const dragDisabled = computed(() => sortKey.value !== null)
+
+async function reorderRows(newOrder: View[]): Promise<void> {
+  await viewsStore.reorderViews(newOrder.map((view) => view.id))
 }
 
 onMounted(() => {
@@ -84,6 +96,7 @@ async function confirmDelete(): Promise<void> {
       <table v-if="sortedViews.length" class="table">
         <thead>
           <tr class="type-label">
+            <th class="drag-col"></th>
             <th
               class="sortable"
               :aria-sort="
@@ -111,8 +124,23 @@ async function confirmDelete(): Promise<void> {
             <th>{{ t('templates.columnActions') }}</th>
           </tr>
         </thead>
-        <tbody>
+        <VueDraggable
+          tag="tbody"
+          :model-value="sortedViews"
+          :disabled="dragDisabled"
+          filter="a, button, input"
+          :animation="150"
+          @update:model-value="reorderRows"
+        >
           <tr v-for="view in sortedViews" :key="view.id">
+            <td class="drag-col">
+              <span
+                class="row-drag-handle"
+                :class="{ disabled: dragDisabled }"
+                :title="t(dragDisabled ? 'templates.dragRowDisabled' : 'templates.dragRow')"
+                >⠿</span
+              >
+            </td>
             <td>
               <RouterLink :to="`/views/${view.id}/edit`" class="view-link type-body">
                 {{ view.name }}
@@ -151,7 +179,7 @@ async function confirmDelete(): Promise<void> {
               </button>
             </td>
           </tr>
-        </tbody>
+        </VueDraggable>
       </table>
       <p v-else class="type-body empty">{{ t('templates.empty') }}</p>
     </div>
@@ -225,6 +253,27 @@ async function confirmDelete(): Promise<void> {
 
 .table tr:last-child td {
   border-bottom: none;
+}
+
+.drag-col {
+  width: 32px;
+  padding-right: 0;
+}
+
+.row-drag-handle {
+  display: inline-flex;
+  cursor: grab;
+  color: var(--color-ink-muted);
+}
+
+.row-drag-handle:hover {
+  color: var(--color-ink);
+}
+
+.row-drag-handle.disabled {
+  cursor: not-allowed;
+  color: var(--color-ink-muted);
+  opacity: 0.4;
 }
 
 .view-link {

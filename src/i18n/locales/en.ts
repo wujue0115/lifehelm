@@ -221,6 +221,8 @@ export default {
     columnName: 'Name',
     columnPinned: 'Sidebar',
     columnActions: 'Actions',
+    dragRow: 'Drag to reorder — controls sidebar order',
+    dragRowDisabled: 'Clear the column sort to drag-reorder',
   },
   view: {
     rename: 'Rename',
