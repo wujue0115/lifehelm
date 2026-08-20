@@ -226,6 +226,7 @@ export default {
   },
   view: {
     rename: 'Rename',
+    changeIcon: 'Change sidebar icon',
     duplicate: 'Duplicate',
     duplicateNameSuffix: '{name} copy',
     delete: 'Delete',

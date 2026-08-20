@@ -5,7 +5,7 @@ import { useTheme } from '@/composables/useTheme'
 import { useSidebar, SIDEBAR_COLLAPSED_WIDTH } from '@/composables/useSidebar'
 import { useLocale } from '@/composables/useLocale'
 import ThemeSettingsPanel from '@/components/ThemeSettingsPanel.vue'
-import TemplateTypeIcon from '@/components/TemplateTypeIcon.vue'
+import ViewIcon from '@/components/ViewIcon.vue'
 import ChevronIcon from '@/components/ChevronIcon.vue'
 import { useViewsStore } from '@/stores/views'
 
@@ -62,7 +62,7 @@ function startResize(event: MouseEvent): void {
         class="nav-item type-nav-item"
         active-class="active"
       >
-        <TemplateTypeIcon class="icon" :type="view.templateType" />
+        <ViewIcon class="icon" :icon="view.icon" :template-type="view.templateType" />
         <span class="label">{{ view.name }}</span>
       </RouterLink>
 

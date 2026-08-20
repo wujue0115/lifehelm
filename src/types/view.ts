@@ -99,4 +99,6 @@ export interface View {
   layout: WidgetLayoutEntry[]
   /** When false, widgets keep their explicit colStart/rowStart instead of auto-packing. Defaults to true. */
   layoutFlow?: boolean
+  /** Sidebar icon override (see ViewIcon.vue's icon id set). Unset falls back to an icon derived from templateType. */
+  icon?: string
 }
