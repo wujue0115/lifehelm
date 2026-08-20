@@ -119,8 +119,6 @@ export default {
     exportDatePositionAfter: '日期在標題後',
     exportSaveFormat: '儲存格式',
     exportTitleWrapLabel: '標題前後綴',
-    exportTitlePrefixPlaceholder: '[',
-    exportTitleSuffixPlaceholder: ']',
     count: '共 {filtered} / {total} 筆工作項目',
     columnTitle: '標題',
     columnStatus: '狀態',

@@ -44,13 +44,13 @@ const DEFAULT_THEME_CONFIG: ThemeConfig = {
 const DEFAULT_EXPORT_CONFIG: ExportConfig = {
   groupBy: 'status',
   prefixStyle: 'number',
-  prefixSuffix: '.',
+  prefixSuffix: '. ',
   titlePrefix: '',
-  titleSuffix: '',
+  titleSuffix: ' ',
   showDate: false,
   dateFormat: 'M/D',
   datePosition: 'after',
-  dateSeparator: '-',
+  dateSeparator: ' - ',
 }
 
 // Same id format as tags (randomUUID, not a semantic string) — status/

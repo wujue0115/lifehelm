@@ -120,8 +120,6 @@ export default {
     exportDatePositionAfter: 'Date after title',
     exportSaveFormat: 'Save format',
     exportTitleWrapLabel: 'Title prefix/suffix',
-    exportTitlePrefixPlaceholder: '[',
-    exportTitleSuffixPlaceholder: ']',
     count: '{filtered} / {total} work items',
     columnTitle: 'Title',
     columnStatus: 'Status',

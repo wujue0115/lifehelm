@@ -28,17 +28,17 @@ type GroupBy = 'status' | 'priority' | 'tag'
 const groupBy = ref<GroupBy>('status')
 const showDate = ref(false)
 const dateFormat = ref('M/D')
-const dateSeparator = ref('-')
+const dateSeparator = ref(' - ')
 
 type DatePosition = 'before' | 'after'
 const datePosition = ref<DatePosition>('after')
 
 type PrefixStyle = 'number' | 'dash' | 'asterisk' | 'bullet' | 'none'
 const prefixStyle = ref<PrefixStyle>('number')
-const prefixSuffix = ref('.')
+const prefixSuffix = ref('. ')
 
 const titlePrefix = ref('')
-const titleSuffix = ref('')
+const titleSuffix = ref(' ')
 
 const {
   config: savedExportConfig,
@@ -130,7 +130,8 @@ function prefixSymbol(index: number): string {
 }
 
 // A single date, or a start–end range when both ends are set, joined with
-// the user's own configurable `dateSeparator` (default `-`) — a compact
+// the user's own configurable `dateSeparator` (default `' - '`, spaces
+// baked into the value itself rather than added here) — a compact
 // plaintext export, not the app's usual `~`-separated on-screen date range.
 // Empty when neither end is set, even with `showDate` on, rather than
 // printing an empty trailing space.
@@ -188,12 +189,17 @@ const exportText = computed(() =>
         const prefix = symbol ? `${symbol}${prefixSuffix.value}` : ''
         const wrappedTitle = `${titlePrefix.value}${item.title}${titleSuffix.value}`
         const dateText = showDate.value ? formatItemDate(item) : ''
+        // No space injected between date and title — `titlePrefix`/
+        // `titleSuffix` already sit right where a "before"/"after" date
+        // would attach, so a leading/trailing space typed into those
+        // fields (default: a single trailing space on `titleSuffix`, for
+        // the default "after" position) is what supplies it.
         const titlePart = !dateText
           ? wrappedTitle
           : datePosition.value === 'before'
-            ? `${dateText} ${wrappedTitle}`
-            : `${wrappedTitle} ${dateText}`
-        return prefix ? `${prefix} ${titlePart}` : titlePart
+            ? `${dateText}${wrappedTitle}`
+            : `${wrappedTitle}${dateText}`
+        return `${prefix}${titlePart}`
       })
       return [group.label, ...lines].join('\n')
     })
@@ -259,16 +265,8 @@ async function saveFormat(): Promise<void> {
         <div class="field">
           <span class="type-body row-label">{{ t('list.exportTitleWrapLabel') }}</span>
           <div class="date-controls">
-            <input
-              v-model="titlePrefix"
-              class="input type-body-sm prefix-suffix-input"
-              :placeholder="t('list.exportTitlePrefixPlaceholder')"
-            />
-            <input
-              v-model="titleSuffix"
-              class="input type-body-sm prefix-suffix-input"
-              :placeholder="t('list.exportTitleSuffixPlaceholder')"
-            />
+            <input v-model="titlePrefix" class="input type-body-sm prefix-suffix-input" />
+            <input v-model="titleSuffix" class="input type-body-sm prefix-suffix-input" />
           </div>
         </div>
       </div>
