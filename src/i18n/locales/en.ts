@@ -109,6 +109,7 @@ export default {
     exportDateFormatPlaceholder: 'M/D',
     exportDateFormatHelp:
       'YYYY/YY = year, MM/M = month, DD/D = day. Two letters pad with a zero, one letter doesn’t. Example: M/D → 8/7, YYYY/MM/DD → 2026/08/07.',
+    exportDateSeparatorPlaceholder: 'Separator (-)',
     exportPrefixLabel: 'Item prefix',
     exportPrefixNumber: 'Number (1, 2, 3)',
     exportPrefixDash: 'Dash (-)',

@@ -11,6 +11,7 @@ export const DEFAULT_EXPORT_CONFIG: ExportConfig = {
   showDate: false,
   dateFormat: 'M/D',
   datePosition: 'after',
+  dateSeparator: '-',
 }
 
 const config = reactive<ExportConfig>({ ...DEFAULT_EXPORT_CONFIG })

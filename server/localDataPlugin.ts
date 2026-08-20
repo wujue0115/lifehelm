@@ -50,6 +50,7 @@ const DEFAULT_EXPORT_CONFIG: ExportConfig = {
   showDate: false,
   dateFormat: 'M/D',
   datePosition: 'after',
+  dateSeparator: '-',
 }
 
 // Same id format as tags (randomUUID, not a semantic string) — status/
