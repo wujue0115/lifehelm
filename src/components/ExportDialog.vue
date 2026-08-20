@@ -28,6 +28,7 @@ type GroupBy = 'status' | 'priority' | 'tag'
 const groupBy = ref<GroupBy>('status')
 const showDate = ref(false)
 const dateFormat = ref('M/D')
+const dateSeparator = ref('-')
 
 type DatePosition = 'before' | 'after'
 const datePosition = ref<DatePosition>('after')
@@ -63,6 +64,7 @@ watch(
     showDate.value = savedExportConfig.showDate
     dateFormat.value = savedExportConfig.dateFormat
     datePosition.value = savedExportConfig.datePosition
+    dateSeparator.value = savedExportConfig.dateSeparator
   },
   { immediate: true },
 )
@@ -127,15 +129,15 @@ function prefixSymbol(index: number): string {
   }
 }
 
-// A single date, or a start–end range when both ends are set (the same
-// literal `-` join the user's own spec asked for — a compact plaintext
-// export, not the app's usual `~`-separated on-screen date range). Empty
-// when neither end is set, even with `showDate` on, rather than printing
-// an empty trailing space.
+// A single date, or a start–end range when both ends are set, joined with
+// the user's own configurable `dateSeparator` (default `-`) — a compact
+// plaintext export, not the app's usual `~`-separated on-screen date range.
+// Empty when neither end is set, even with `showDate` on, rather than
+// printing an empty trailing space.
 function formatItemDate(item: WorkItem): string {
   const start = item.startDate ? formatDateTime(item.startDate, dateFormat.value) : ''
   const due = item.dueDate ? formatDateTime(item.dueDate, dateFormat.value) : ''
-  if (start && due) return start === due ? start : `${start}-${due}`
+  if (start && due) return start === due ? start : `${start}${dateSeparator.value}${due}`
   return start || due
 }
 
@@ -223,6 +225,7 @@ async function saveFormat(): Promise<void> {
     showDate: showDate.value,
     dateFormat: dateFormat.value,
     datePosition: datePosition.value,
+    dateSeparator: dateSeparator.value,
   }
   await saveExportConfig(next)
   if (saveError.value) return
@@ -278,6 +281,13 @@ async function saveFormat(): Promise<void> {
             v-model="dateFormat"
             class="input type-body-sm date-format-input"
             :placeholder="t('list.exportDateFormatPlaceholder')"
+            :disabled="!showDate"
+          />
+          <input
+            v-model="dateSeparator"
+            class="input type-body-sm date-separator-input"
+            :placeholder="t('list.exportDateSeparatorPlaceholder')"
+            :title="t('list.exportDateSeparatorPlaceholder')"
             :disabled="!showDate"
           />
           <div class="date-position" :class="{ disabled: !showDate }">
@@ -386,6 +396,10 @@ async function saveFormat(): Promise<void> {
 
 .prefix-suffix-input {
   width: 56px;
+}
+
+.date-separator-input {
+  width: 48px;
 }
 
 .date-position {

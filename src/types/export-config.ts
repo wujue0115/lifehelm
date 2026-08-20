@@ -7,4 +7,5 @@ export interface ExportConfig {
   showDate: boolean
   dateFormat: string
   datePosition: 'before' | 'after'
+  dateSeparator: string
 }

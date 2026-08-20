@@ -108,6 +108,7 @@ export default {
     exportDateFormatPlaceholder: 'M/D',
     exportDateFormatHelp:
       'YYYY/YY = 年,MM/M = 月,DD/D = 日。兩個字母會補零,一個字母不會。範例:M/D → 8/7,YYYY/MM/DD → 2026/08/07。',
+    exportDateSeparatorPlaceholder: '分隔符號 (-)',
     exportPrefixLabel: '項目符號',
     exportPrefixNumber: '數字 (1, 2, 3)',
     exportPrefixDash: '短橫線 (-)',
