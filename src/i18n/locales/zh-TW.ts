@@ -224,6 +224,7 @@ export default {
   },
   view: {
     rename: '重新命名',
+    changeIcon: '更改側邊欄圖示',
     duplicate: '複製',
     duplicateNameSuffix: '{name} 複本',
     delete: '刪除',

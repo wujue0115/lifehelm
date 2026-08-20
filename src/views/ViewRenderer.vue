@@ -9,6 +9,7 @@ import WidgetPicker from '@/components/WidgetPicker.vue'
 import ActionIcon from '@/components/ActionIcon.vue'
 import ChevronIcon from '@/components/ChevronIcon.vue'
 import SwitchToggle from '@/components/SwitchToggle.vue'
+import ViewIconPicker from '@/components/ViewIconPicker.vue'
 import type { View, WidgetLayoutEntry } from '@/types/view'
 
 const route = useRoute()
@@ -27,6 +28,7 @@ const view = computed(() => viewsStore.views.find((v) => v.id === route.params.v
 // Edits are staged here and only sent to the server on explicit Save, so
 // dragging/resizing widgets doesn't fire a request per mouse-move.
 const draftName = ref('')
+const draftIcon = ref<string | undefined>(undefined)
 const draftLayout = ref<WidgetLayoutEntry[]>([])
 const draftFlow = ref(true)
 const saving = ref(false)
@@ -34,6 +36,7 @@ const saveError = ref<string | null>(null)
 
 function applyViewToDraft(v: View): void {
   draftName.value = v.name
+  draftIcon.value = v.icon
   draftLayout.value = v.layout.map((entry) => ({ ...entry }))
   draftFlow.value = v.layoutFlow ?? true
   saveError.value = null
@@ -51,6 +54,7 @@ const isDirty = computed(() => {
   if (!view.value) return false
   return (
     draftName.value !== view.value.name ||
+    draftIcon.value !== view.value.icon ||
     draftFlow.value !== (view.value.layoutFlow ?? true) ||
     JSON.stringify(draftLayout.value) !== JSON.stringify(view.value.layout)
   )
@@ -63,6 +67,7 @@ async function saveChanges(): Promise<void> {
   try {
     await viewsStore.updateView(view.value.id, {
       name: draftName.value,
+      icon: draftIcon.value,
       layout: draftLayout.value,
       layoutFlow: draftFlow.value,
     })
@@ -106,6 +111,7 @@ function finishRenameView(): void {
   </div>
   <main v-else class="view-page">
     <div v-if="editable" class="name-header">
+      <ViewIconPicker v-model="draftIcon" :template-type="view.templateType" />
       <input
         v-if="editingName"
         v-model="nameInput"
