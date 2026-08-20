@@ -5,13 +5,13 @@ import type { ExportConfig } from '@/types/export-config'
 export const DEFAULT_EXPORT_CONFIG: ExportConfig = {
   groupBy: 'status',
   prefixStyle: 'number',
-  prefixSuffix: '.',
+  prefixSuffix: '. ',
   titlePrefix: '',
-  titleSuffix: '',
+  titleSuffix: ' ',
   showDate: false,
   dateFormat: 'M/D',
   datePosition: 'after',
-  dateSeparator: '-',
+  dateSeparator: ' - ',
 }
 
 const config = reactive<ExportConfig>({ ...DEFAULT_EXPORT_CONFIG })
