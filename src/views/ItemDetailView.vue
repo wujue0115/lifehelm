@@ -165,15 +165,23 @@ async function handleDelete(): Promise<void> {
     await router.push('/')
   }
 }
+
+// Return to whichever view launched this form (with its filters/scroll
+// intact) rather than always the default list — falls back to '/' only when
+// the form was opened directly with no in-app history to go back to.
+function goBack(): void {
+  if (window.history.state?.back) router.back()
+  else router.push('/')
+}
 </script>
 
 <template>
   <main class="detail-view">
     <div class="header">
-      <RouterLink to="/" class="btn btn-secondary">
+      <button type="button" class="btn btn-secondary" @click="goBack">
         <ChevronIcon direction="back" />
         <span class="icon-label">{{ t('itemDetail.backToList') }}</span>
-      </RouterLink>
+      </button>
     </div>
 
     <p v-if="loading" class="type-body">{{ t('common.loading') }}</p>

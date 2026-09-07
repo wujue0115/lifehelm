@@ -81,6 +81,22 @@ async function saveChanges(): Promise<void> {
 
 function onLayoutChange(layout: WidgetLayoutEntry[]): void {
   draftLayout.value = layout
+  // In normal view mode this handler only ever fires for a widget's own
+  // config change — a list's filters/sort, a panel's color overrides — which
+  // is edited inline with no edit-mode "Save" gate (structural add/move/
+  // resize/remove are edit-mode only). Persist it straight to the server so
+  // it survives leaving the view, e.g. opening "add item" and pressing back;
+  // otherwise the change lives only in `draftLayout` and is lost on unmount.
+  // The widget panels already debounce their emits, so this is one write per
+  // settled change, and their unmount-flush (useConfigPersist) means a
+  // change made right before navigating still reaches here.
+  if (!editable.value && view.value && isDirty.value) {
+    // Fire-and-forget: a failed filter write just means the next filter
+    // tweak retries it, not worth interrupting the view for.
+    viewsStore
+      .updateView(view.value.id, { layout: draftLayout.value.map((entry) => ({ ...entry })) })
+      .catch(() => {})
+  }
 }
 function onAddWidget(widgetId: string): void {
   draftLayout.value = [...draftLayout.value, defaultLayoutEntry(widgetId)]

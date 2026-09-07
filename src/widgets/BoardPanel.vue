@@ -14,6 +14,7 @@ import DateFilter from '@/components/DateFilter.vue'
 import SelectMenu from '@/components/SelectMenu.vue'
 import MultiSelectMenu from '@/components/MultiSelectMenu.vue'
 import { usePriorityLabel } from '@/composables/usePriorityLabel'
+import { useConfigPersist } from '@/composables/useConfigPersist'
 import { resolveColor } from '@/utils/colors'
 import { resolveDateFilterRange, itemMatchesDateRange } from '@/utils/dateFilterPresets'
 import type { DateFilterPreset } from '@/utils/dateFilterPresets'
@@ -51,24 +52,23 @@ const dateFilterPreset = ref<DateFilterPreset>(cfg.dateFilterPreset ?? 'all')
 const dateFilterCustomStart = ref(cfg.dateFilterCustomStart ?? '')
 const dateFilterCustomEnd = ref(cfg.dateFilterCustomEnd ?? '')
 
-let persistTimer: ReturnType<typeof setTimeout> | undefined
+const { schedule: schedulePersistConfig } = useConfigPersist((config) =>
+  emit('update:config', config),
+)
 function schedulePersist(): void {
-  clearTimeout(persistTimer)
-  persistTimer = setTimeout(() => {
-    emit('update:config', {
-      groupBy: groupBy.value,
-      statusColors: statusColors.value,
-      priorityColors: priorityColors.value,
-      tagColors: tagColors.value,
-      search: search.value,
-      statusFilter: statusFilter.value,
-      priorityFilter: priorityFilter.value,
-      tagFilter: tagFilter.value,
-      dateFilterPreset: dateFilterPreset.value,
-      dateFilterCustomStart: dateFilterCustomStart.value,
-      dateFilterCustomEnd: dateFilterCustomEnd.value,
-    })
-  }, 400)
+  schedulePersistConfig(() => ({
+    groupBy: groupBy.value,
+    statusColors: statusColors.value,
+    priorityColors: priorityColors.value,
+    tagColors: tagColors.value,
+    search: search.value,
+    statusFilter: statusFilter.value,
+    priorityFilter: priorityFilter.value,
+    tagFilter: tagFilter.value,
+    dateFilterPreset: dateFilterPreset.value,
+    dateFilterCustomStart: dateFilterCustomStart.value,
+    dateFilterCustomEnd: dateFilterCustomEnd.value,
+  }))
 }
 watch(groupBy, schedulePersist)
 watch([statusColors, priorityColors, tagColors], schedulePersist, { deep: true })

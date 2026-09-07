@@ -9,6 +9,7 @@ import { getDueStatus } from '@/utils/dueDate'
 import { resolveColor } from '@/utils/colors'
 import { buildMonthWeeks, startOfMonth, type CalendarCell } from '@/utils/calendarGrid'
 import { usePriorityLabel } from '@/composables/usePriorityLabel'
+import { useConfigPersist } from '@/composables/useConfigPersist'
 import ChevronIcon from '@/components/ChevronIcon.vue'
 import ActionIcon from '@/components/ActionIcon.vue'
 import ColorSettings from '@/components/ColorSettings.vue'
@@ -66,23 +67,22 @@ const dateFilterPreset = ref<DateFilterPreset>(cfg.dateFilterPreset ?? 'all')
 const dateFilterCustomStart = ref(cfg.dateFilterCustomStart ?? '')
 const dateFilterCustomEnd = ref(cfg.dateFilterCustomEnd ?? '')
 
-let persistTimer: ReturnType<typeof setTimeout> | undefined
+const { schedule: schedulePersistConfig } = useConfigPersist((config) =>
+  emit('update:config', config),
+)
 function schedulePersist(): void {
-  clearTimeout(persistTimer)
-  persistTimer = setTimeout(() => {
-    emit('update:config', {
-      statusColors: statusColors.value,
-      priorityColors: priorityColors.value,
-      tagColors: tagColors.value,
-      search: search.value,
-      statusFilter: statusFilter.value,
-      priorityFilter: priorityFilter.value,
-      tagFilter: tagFilter.value,
-      dateFilterPreset: dateFilterPreset.value,
-      dateFilterCustomStart: dateFilterCustomStart.value,
-      dateFilterCustomEnd: dateFilterCustomEnd.value,
-    })
-  }, 400)
+  schedulePersistConfig(() => ({
+    statusColors: statusColors.value,
+    priorityColors: priorityColors.value,
+    tagColors: tagColors.value,
+    search: search.value,
+    statusFilter: statusFilter.value,
+    priorityFilter: priorityFilter.value,
+    tagFilter: tagFilter.value,
+    dateFilterPreset: dateFilterPreset.value,
+    dateFilterCustomStart: dateFilterCustomStart.value,
+    dateFilterCustomEnd: dateFilterCustomEnd.value,
+  }))
 }
 watch([statusColors, priorityColors, tagColors], schedulePersist, { deep: true })
 watch(

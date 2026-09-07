@@ -17,6 +17,7 @@ import StatusBadge from '@/components/StatusBadge.vue'
 import PriorityBadge from '@/components/PriorityBadge.vue'
 import TagPill from '@/components/TagPill.vue'
 import { usePriorityLabel } from '@/composables/usePriorityLabel'
+import { useConfigPersist } from '@/composables/useConfigPersist'
 import { resolveColor } from '@/utils/colors'
 import { resolveDateFilterRange, itemMatchesDateRange } from '@/utils/dateFilterPresets'
 import type { DateFilterPreset } from '@/utils/dateFilterPresets'
@@ -64,25 +65,24 @@ onMounted(() => {
   store.fetchAll()
 })
 
-let persistTimer: ReturnType<typeof setTimeout> | undefined
+const { schedule: schedulePersistConfig } = useConfigPersist((config) =>
+  emit('update:config', config),
+)
 function schedulePersist(): void {
-  clearTimeout(persistTimer)
-  persistTimer = setTimeout(() => {
-    emit('update:config', {
-      search: search.value,
-      statusFilter: statusFilter.value,
-      priorityFilter: priorityFilter.value,
-      tagFilter: tagFilter.value,
-      dateFilterPreset: dateFilterPreset.value,
-      dateFilterCustomStart: dateFilterCustomStart.value,
-      dateFilterCustomEnd: dateFilterCustomEnd.value,
-      sortKey: sortKey.value,
-      sortDir: sortDir.value,
-      statusColors: statusColors.value,
-      priorityColors: priorityColors.value,
-      tagColors: tagColors.value,
-    })
-  }, 400)
+  schedulePersistConfig(() => ({
+    search: search.value,
+    statusFilter: statusFilter.value,
+    priorityFilter: priorityFilter.value,
+    tagFilter: tagFilter.value,
+    dateFilterPreset: dateFilterPreset.value,
+    dateFilterCustomStart: dateFilterCustomStart.value,
+    dateFilterCustomEnd: dateFilterCustomEnd.value,
+    sortKey: sortKey.value,
+    sortDir: sortDir.value,
+    statusColors: statusColors.value,
+    priorityColors: priorityColors.value,
+    tagColors: tagColors.value,
+  }))
 }
 watch(
   [
