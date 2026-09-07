@@ -74,7 +74,13 @@ const options = computed<Option[]>(() => {
   const available = (props.suggestions ?? []).filter(
     (tag) => !props.modelValue.includes(tag) && (q === '' || tag.toLowerCase().includes(q)),
   )
-  const result: Option[] = available.slice(0, 8).map((tag) => ({
+  // No cap — every not-yet-picked suggestion is listed, matching what the
+  // List/Board tag *filter* (MultiSelectMenu) shows from the same
+  // `store.allTags`. `.dropdown` is a fixed-height scroll container, so a
+  // long tag list scrolls rather than overflowing; an arbitrary
+  // `slice(0, 8)` here just silently hid tags that sort past the 8th
+  // (e.g. "PCR / PCN") until the user happened to type a matching substring.
+  const result: Option[] = available.map((tag) => ({
     value: tag,
     label: tag,
     isCreate: false,
