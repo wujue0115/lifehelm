@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useAnchoredPopover } from '@/composables/useAnchoredPopover'
 
 const props = withDefaults(
   defineProps<{
@@ -33,6 +34,7 @@ const inputRef = ref<HTMLInputElement | null>(null)
 const wrapperEl = ref<HTMLElement | null>(null)
 const triggerEl = ref<HTMLButtonElement | null>(null)
 const popoverEl = ref<HTMLElement | null>(null)
+const dropdownEl = ref<HTMLElement | null>(null)
 
 // Teleported to <body> (see template) for the same reason as
 // SelectMenu/DateFilter's own popovers: any ancestor with clipped overflow
@@ -40,52 +42,28 @@ const popoverEl = ref<HTMLElement | null>(null)
 // used for inline tag editing inside table rows in `bare` mode) would
 // otherwise cut the popover/dropdown off. Anchored to the trigger button in
 // `bare` mode, to the inline input box otherwise.
-const popoverPos = ref({ top: 0, left: 0, width: 0 })
-function updatePopoverPosition(): void {
-  const anchor = props.bare ? triggerEl.value : wrapperEl.value
-  const rect = anchor?.getBoundingClientRect()
-  if (!rect) return
-  popoverPos.value = { top: rect.bottom + 4, left: rect.left, width: rect.width }
-}
-// Adding/removing a tag while the popover is open doesn't just change the
-// popover's own content — in `bare` mode it also changes what the trigger
-// itself renders (the pill list, via `#trigger`, updates live off the same
-// `modelValue`), and `.bare-trigger` wraps (`flex-wrap: wrap`), so picking
-// up a second row of pills grows the trigger's own height right under the
-// popover. Scroll/resize listeners alone don't catch that — the window
-// never scrolled or resized, only the trigger did — so the popover would
-// stay pinned at its original `top` and start overlapping the now-taller
-// trigger. A `ResizeObserver` on the anchor element catches this (and any
-// other reflow that changes its box) generically, without having to
-// enumerate every state that could grow it.
-let resizeObserver: ResizeObserver | undefined
+//
+// `useAnchoredPopover` also flips the card above the anchor when it won't
+// fit below and shifts it to stay on-screen, and its ResizeObserver on the
+// anchor catches the `bare`-mode case where picking a tag grows the trigger
+// itself: the pill list (via `#trigger`) updates live off `modelValue` and
+// `.bare-trigger` wraps, so a second row of pills pushes the anchor's
+// bottom edge down under the card — a plain scroll/resize listener wouldn't
+// fire for that since neither the window nor the viewport changed.
+const { floatingStyles } = useAnchoredPopover({
+  anchor: () => (props.bare ? triggerEl.value : wrapperEl.value),
+  popover: () => (props.bare ? popoverEl.value : dropdownEl.value),
+  open,
+  width: props.bare ? 'min-anchor' : 'anchor',
+})
+
 watch(open, (isOpen) => {
-  if (!isOpen) {
-    window.removeEventListener('scroll', updatePopoverPosition, true)
-    window.removeEventListener('resize', updatePopoverPosition)
-    resizeObserver?.disconnect()
-    resizeObserver = undefined
-    return
-  }
-  updatePopoverPosition()
-  window.addEventListener('scroll', updatePopoverPosition, true)
-  window.addEventListener('resize', updatePopoverPosition)
-  const anchor = props.bare ? triggerEl.value : wrapperEl.value
-  if (anchor) {
-    resizeObserver = new ResizeObserver(updatePopoverPosition)
-    resizeObserver.observe(anchor)
-  }
   // In bare mode the input only exists once the popover is open (it's part
   // of the Teleported popover, not the always-visible trigger) — focus it
   // each time, not just once on mount, since this component now stays
   // mounted across repeated open/close cycles instead of being remounted
   // per edit.
-  if (props.bare) nextTick(() => inputRef.value?.focus())
-})
-onBeforeUnmount(() => {
-  window.removeEventListener('scroll', updatePopoverPosition, true)
-  window.removeEventListener('resize', updatePopoverPosition)
-  resizeObserver?.disconnect()
+  if (isOpen && props.bare) nextTick(() => inputRef.value?.focus())
 })
 
 type Option = { value: string; label: string; isCreate: boolean }
@@ -247,15 +225,7 @@ function handleBarePopoverFocusOut(event: FocusEvent): void {
         @keydown.esc="open = false"
       />
       <Teleport to="body">
-        <ul
-          v-if="open && options.length"
-          class="dropdown"
-          :style="{
-            top: `${popoverPos.top}px`,
-            left: `${popoverPos.left}px`,
-            width: `${popoverPos.width}px`,
-          }"
-        >
+        <ul v-if="open && options.length" ref="dropdownEl" class="dropdown" :style="floatingStyles">
           <li
             v-for="(option, index) in options"
             :key="option.value"
@@ -275,11 +245,7 @@ function handleBarePopoverFocusOut(event: FocusEvent): void {
         v-if="open"
         ref="popoverEl"
         class="popover"
-        :style="{
-          top: `${popoverPos.top}px`,
-          left: `${popoverPos.left}px`,
-          minWidth: `${popoverPos.width}px`,
-        }"
+        :style="floatingStyles"
         @focusout="handleBarePopoverFocusOut"
       >
         <div class="tags-input popover-edit-box" @mousedown="focusInput">
@@ -433,14 +399,11 @@ function handleBarePopoverFocusOut(event: FocusEvent): void {
   padding: 2px 0;
 }
 
-/* Teleported to <body> and `position: fixed` — see the script comment on
-   `popoverPos` for why. top/left/width come from that inline style, not
-   CSS — a plain `right: 0` (matching the trigger's width by spanning
-   between two anchored edges) only worked back when this was `position:
-   absolute` inside the trigger's own containing block; fixed positioning
-   has no such block to anchor `right` against. z-index 110 matches
-   SelectMenu's own (above ModalOverlay's 100), in case this ever ends up
-   inside a dialog too. */
+/* Teleported to <body> and `position: fixed` — see the `useAnchoredPopover`
+   call in the script for why. top/left/width come from its `floatingStyles`
+   inline, not CSS — fixed positioning has no trigger-anchored containing
+   block to hang a plain `right: 0` off. z-index 110 matches SelectMenu's own
+   (above ModalOverlay's 100), in case this ever ends up inside a dialog. */
 .dropdown {
   position: fixed;
   z-index: 110;

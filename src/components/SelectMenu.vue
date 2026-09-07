@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { useAnchoredPopover } from '@/composables/useAnchoredPopover'
 
 // A drop-in replacement for a native `<select>` — same v-model contract
 // (a plain string value) — styled like every other custom popover in this
@@ -47,23 +48,22 @@ const selectedOption = computed<SelectMenuOption>(
   () => props.options[selectedIndex.value] ?? { value: props.modelValue, label: '' },
 )
 
-// Same Teleport-to-<body> + getBoundingClientRect positioning as
-// DateFilter.vue's popover, for the same reason: every widget's
-// `.widget-body` clips overflow on every side (see DESIGN.md "Touch
-// Targets"), and this component is used inside those bodies routinely
-// (status/priority/tag/sort filters). `minWidth` is tracked here too (not
-// left to CSS `min-width: 100%`) — for a `position: fixed` box, percentage
-// widths resolve against the viewport, not the trigger, so a plain
-// `min-width: 100%` doesn't match the trigger's width at all — it's just
-// "100% of the viewport," which also silently wins over `max-width: 280px`
-// (min-width > max-width makes the box use min-width) and had the popover
-// rendering nearly viewport-wide.
-const popoverPos = ref({ top: 0, left: 0, minWidth: 0 })
-function updatePopoverPosition(): void {
-  const rect = wrapperEl.value?.getBoundingClientRect()
-  if (!rect) return
-  popoverPos.value = { top: rect.bottom + 4, left: rect.left, minWidth: rect.width }
-}
+// Teleported to <body> + `position: fixed` so it isn't clipped by an
+// ancestor's `overflow` — every widget's `.widget-body` clips on every side
+// (see DESIGN.md "Touch Targets"), and this component is used inside those
+// bodies routinely (status/priority/tag/sort filters). `useAnchoredPopover`
+// owns the actual coordinates: it flips the card above the trigger when it
+// won't fit below, shifts it horizontally to stay on-screen, and tracks
+// scroll/resize. `min-anchor` width is tracked there too (not left to CSS
+// `min-width: 100%`) — for a `position: fixed` box, percentage widths
+// resolve against the viewport, not the trigger, so `min-width: 100%` would
+// be "100% of the viewport" and silently win over `max-width: 280px`.
+const { floatingStyles } = useAnchoredPopover({
+  anchor: wrapperEl,
+  popover: popoverEl,
+  open,
+  width: 'min-anchor',
+})
 
 function onEscapeKeydown(event: KeyboardEvent): void {
   if (event.key === 'Escape') close()
@@ -71,21 +71,14 @@ function onEscapeKeydown(event: KeyboardEvent): void {
 
 watch(open, (isOpen) => {
   if (!isOpen) {
-    window.removeEventListener('scroll', updatePopoverPosition, true)
-    window.removeEventListener('resize', updatePopoverPosition)
     document.removeEventListener('keydown', onEscapeKeydown)
     return
   }
   highlightedIndex.value = selectedIndex.value === -1 ? 0 : selectedIndex.value
-  updatePopoverPosition()
-  window.addEventListener('scroll', updatePopoverPosition, true)
-  window.addEventListener('resize', updatePopoverPosition)
   document.addEventListener('keydown', onEscapeKeydown)
 })
 
 onBeforeUnmount(() => {
-  window.removeEventListener('scroll', updatePopoverPosition, true)
-  window.removeEventListener('resize', updatePopoverPosition)
   document.removeEventListener('keydown', onEscapeKeydown)
 })
 
@@ -169,11 +162,7 @@ function handleTriggerKeydown(event: KeyboardEvent): void {
         v-if="open"
         ref="popoverEl"
         class="popover"
-        :style="{
-          top: `${popoverPos.top}px`,
-          left: `${popoverPos.left}px`,
-          minWidth: `${popoverPos.minWidth}px`,
-        }"
+        :style="floatingStyles"
         @focusout="handleFocusOut"
       >
         <button

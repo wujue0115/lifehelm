@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useAnchoredPopover } from '@/composables/useAnchoredPopover'
 
 // A checkbox-driven multi-value counterpart to `SelectMenu` — same popover
 // shell (Teleported bordered card, same positioning), but picking an option
@@ -69,15 +70,16 @@ const selectedOptions = computed(() =>
     : props.options.filter((option) => props.modelValue.includes(option.value)),
 )
 
-// Same Teleport-to-<body> + getBoundingClientRect positioning as
-// SelectMenu's own popover, for the same reason (every widget's
-// `.widget-body` clips overflow on every side).
-const popoverPos = ref({ top: 0, left: 0, minWidth: 0 })
-function updatePopoverPosition(): void {
-  const rect = wrapperEl.value?.getBoundingClientRect()
-  if (!rect) return
-  popoverPos.value = { top: rect.bottom + 4, left: rect.left, minWidth: rect.width }
-}
+// Same Teleport-to-<body> + `useAnchoredPopover` positioning as SelectMenu's
+// own popover, for the same reason (every widget's `.widget-body` clips
+// overflow on every side) — the card flips above the trigger when it won't
+// fit below and shifts to stay on-screen.
+const { floatingStyles } = useAnchoredPopover({
+  anchor: wrapperEl,
+  popover: popoverEl,
+  open,
+  width: 'min-anchor',
+})
 
 function onEscapeKeydown(event: KeyboardEvent): void {
   if (event.key === 'Escape') close()
@@ -85,21 +87,14 @@ function onEscapeKeydown(event: KeyboardEvent): void {
 
 watch(open, (isOpen) => {
   if (!isOpen) {
-    window.removeEventListener('scroll', updatePopoverPosition, true)
-    window.removeEventListener('resize', updatePopoverPosition)
     document.removeEventListener('keydown', onEscapeKeydown)
     return
   }
   highlightedIndex.value = -1
-  updatePopoverPosition()
-  window.addEventListener('scroll', updatePopoverPosition, true)
-  window.addEventListener('resize', updatePopoverPosition)
   document.addEventListener('keydown', onEscapeKeydown)
 })
 
 onBeforeUnmount(() => {
-  window.removeEventListener('scroll', updatePopoverPosition, true)
-  window.removeEventListener('resize', updatePopoverPosition)
   document.removeEventListener('keydown', onEscapeKeydown)
 })
 
@@ -222,11 +217,7 @@ function handleTriggerKeydown(event: KeyboardEvent): void {
         v-if="open"
         ref="popoverEl"
         class="popover"
-        :style="{
-          top: `${popoverPos.top}px`,
-          left: `${popoverPos.left}px`,
-          minWidth: `${popoverPos.minWidth}px`,
-        }"
+        :style="floatingStyles"
         @focusout="handleFocusOut"
       >
         <button

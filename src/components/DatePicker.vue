@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useAnchoredPopover } from '@/composables/useAnchoredPopover'
 import { buildMonthWeeks, startOfMonth } from '@/utils/calendarGrid'
 import { formatDateTime } from '@/utils/date'
 import ChevronIcon from './ChevronIcon.vue'
@@ -39,7 +40,29 @@ const { t, locale } = useI18n()
 
 const open = ref(false)
 const wrapperEl = ref<HTMLElement | null>(null)
+const popoverEl = ref<HTMLElement | null>(null)
 const hoverKey = ref<string | null>(null)
+
+// Standalone (non-`inline`) mode Teleports the popover to <body> and pins it
+// with `position: fixed` so no ancestor's `overflow` clips it — the same
+// treatment SelectMenu/DateFilter already use. `useAnchoredPopover` flips
+// the calendar above the trigger when it won't fit below (the date field
+// sits low in the "add item" form) and shifts it left to stay on-screen in
+// a narrow column. `inline` mode renders in place, so positioning is off.
+const { floatingStyles } = useAnchoredPopover({
+  anchor: wrapperEl,
+  popover: popoverEl,
+  open: () => !props.inline && open.value,
+})
+
+function onEscapeKeydown(event: KeyboardEvent): void {
+  if (event.key === 'Escape') close()
+}
+watch(open, (isOpen) => {
+  if (isOpen) document.addEventListener('keydown', onEscapeKeydown)
+  else document.removeEventListener('keydown', onEscapeKeydown)
+})
+onBeforeUnmount(() => document.removeEventListener('keydown', onEscapeKeydown))
 // Both modes preview the clicked day(s) here without committing — only
 // confirm() emits, so clicking around and then closing without pressing
 // Confirm (outside click, Escape) discards the preview.
@@ -182,7 +205,9 @@ function close(): void {
 // outside clicks/tabs, not for day/nav button presses.
 function handleFocusOut(event: FocusEvent): void {
   const next = event.relatedTarget as Node | null
-  if (!next || !wrapperEl.value?.contains(next)) close()
+  // The popover is Teleported out of `wrapperEl`'s subtree in standalone
+  // mode, so a genuine Tab into it has to be checked separately.
+  if (!next || (!wrapperEl.value?.contains(next) && !popoverEl.value?.contains(next))) close()
 }
 
 // Range picking: the first click after a complete (or empty) range starts a
@@ -313,28 +338,45 @@ function granularCellState(key: string, toGranular: (dateKey: string) => string)
       </span>
     </button>
 
-    <div v-if="inline || open" class="popover" :class="{ inline }">
-      <div class="nav">
-        <button
-          type="button"
-          class="icon-btn"
-          :title="t('calendar.prevMonth')"
-          @mousedown.prevent
-          @click="headerPrev"
-        >
-          <ChevronIcon direction="prev" />
-        </button>
-        <div class="header-labels">
-          <template v-if="viewMode === 'day'">
+    <Teleport to="body" :disabled="inline">
+      <div
+        v-if="inline || open"
+        ref="popoverEl"
+        class="popover"
+        :class="{ inline }"
+        :style="inline ? undefined : floatingStyles"
+      >
+        <div class="nav">
+          <button
+            type="button"
+            class="icon-btn"
+            :title="t('calendar.prevMonth')"
+            @mousedown.prevent
+            @click="headerPrev"
+          >
+            <ChevronIcon direction="prev" />
+          </button>
+          <div class="header-labels">
+            <template v-if="viewMode === 'day'">
+              <button
+                type="button"
+                class="header-label type-body-sm clickable"
+                @mousedown.prevent
+                @click="viewMode = 'month'"
+              >
+                {{ monthLabel }}
+              </button>
+              <button
+                type="button"
+                class="header-label type-body-sm clickable"
+                @mousedown.prevent
+                @click="viewMode = 'year'"
+              >
+                {{ yearLabel }}
+              </button>
+            </template>
             <button
-              type="button"
-              class="header-label type-body-sm clickable"
-              @mousedown.prevent
-              @click="viewMode = 'month'"
-            >
-              {{ monthLabel }}
-            </button>
-            <button
+              v-else-if="viewMode === 'month'"
               type="button"
               class="header-label type-body-sm clickable"
               @mousedown.prevent
@@ -342,106 +384,97 @@ function granularCellState(key: string, toGranular: (dateKey: string) => string)
             >
               {{ yearLabel }}
             </button>
-          </template>
+            <span v-else class="header-label type-body-sm">{{ yearBlockLabel }}</span>
+          </div>
           <button
-            v-else-if="viewMode === 'month'"
             type="button"
-            class="header-label type-body-sm clickable"
+            class="icon-btn"
+            :title="t('calendar.nextMonth')"
             @mousedown.prevent
-            @click="viewMode = 'year'"
+            @click="headerNext"
           >
-            {{ yearLabel }}
+            <ChevronIcon direction="next" />
           </button>
-          <span v-else class="header-label type-body-sm">{{ yearBlockLabel }}</span>
-        </div>
-        <button
-          type="button"
-          class="icon-btn"
-          :title="t('calendar.nextMonth')"
-          @mousedown.prevent
-          @click="headerNext"
-        >
-          <ChevronIcon direction="next" />
-        </button>
-      </div>
-
-      <template v-if="viewMode === 'day'">
-        <div class="weekday-row">
-          <span v-for="label in weekdayLabels" :key="label" class="type-caption weekday">{{
-            label
-          }}</span>
         </div>
 
-        <div class="grid">
+        <template v-if="viewMode === 'day'">
+          <div class="weekday-row">
+            <span v-for="label in weekdayLabels" :key="label" class="type-caption weekday">{{
+              label
+            }}</span>
+          </div>
+
+          <div class="grid">
+            <button
+              v-for="cell in weeks.flat()"
+              :key="cell.key"
+              type="button"
+              class="day type-body-sm"
+              :class="[cellState(cell.key), { 'out-of-month': !cell.inMonth, today: cell.isToday }]"
+              @mousedown.prevent
+              @mouseenter="hoverKey = cell.key"
+              @click="selectDay(cell.key)"
+            >
+              {{ cell.date.getDate() }}
+            </button>
+          </div>
+        </template>
+
+        <div v-else-if="viewMode === 'month'" class="grid grid-12">
           <button
-            v-for="cell in weeks.flat()"
-            :key="cell.key"
+            v-for="(label, index) in monthOptionLabels"
+            :key="label"
             type="button"
-            class="day type-body-sm"
-            :class="[cellState(cell.key), { 'out-of-month': !cell.inMonth, today: cell.isToday }]"
+            class="cell type-body-sm"
+            :class="[
+              monthCellState(index),
+              { current: index === viewMonth.getMonth(), 'this-month': isThisMonth(index) },
+            ]"
             @mousedown.prevent
-            @mouseenter="hoverKey = cell.key"
-            @click="selectDay(cell.key)"
+            @click="selectMonth(index)"
           >
-            {{ cell.date.getDate() }}
+            {{ label }}
           </button>
         </div>
-      </template>
 
-      <div v-else-if="viewMode === 'month'" class="grid grid-12">
-        <button
-          v-for="(label, index) in monthOptionLabels"
-          :key="label"
-          type="button"
-          class="cell type-body-sm"
-          :class="[
-            monthCellState(index),
-            { current: index === viewMonth.getMonth(), 'this-month': isThisMonth(index) },
-          ]"
-          @mousedown.prevent
-          @click="selectMonth(index)"
-        >
-          {{ label }}
-        </button>
-      </div>
-
-      <div v-else class="grid grid-12">
-        <button
-          v-for="year in yearOptions"
-          :key="year"
-          type="button"
-          class="cell type-body-sm"
-          :class="[
-            yearCellState(year),
-            { current: year === viewMonth.getFullYear(), 'this-year': isThisYear(year) },
-          ]"
-          @mousedown.prevent
-          @click="selectYear(year)"
-        >
-          {{ year }}
-        </button>
-      </div>
-
-      <div v-if="!inline" class="footer">
-        <div class="footer-left">
-          <button type="button" class="link-btn type-body-sm" @mousedown.prevent @click="goToday">
-            {{ t('calendar.today') }}
-          </button>
-          <button type="button" class="link-btn type-body-sm" @mousedown.prevent @click="clear">
-            {{ t('datePicker.clear') }}
+        <div v-else class="grid grid-12">
+          <button
+            v-for="year in yearOptions"
+            :key="year"
+            type="button"
+            class="cell type-body-sm"
+            :class="[
+              yearCellState(year),
+              { current: year === viewMonth.getFullYear(), 'this-year': isThisYear(year) },
+            ]"
+            @mousedown.prevent
+            @click="selectYear(year)"
+          >
+            {{ year }}
           </button>
         </div>
-        <button
-          type="button"
-          class="btn btn-primary confirm-btn type-body-sm"
-          :disabled="mode === 'range' && !pendingStart"
-          @mousedown.prevent
-          @click="confirm"
-        >
-          {{ t('datePicker.confirm') }}
-        </button>
+
+        <div v-if="!inline" class="footer">
+          <div class="footer-left">
+            <button type="button" class="link-btn type-body-sm" @mousedown.prevent @click="goToday">
+              {{ t('calendar.today') }}
+            </button>
+            <button type="button" class="link-btn type-body-sm" @mousedown.prevent @click="clear">
+              {{ t('datePicker.clear') }}
+            </button>
+          </div>
+          <button
+            type="button"
+            class="btn btn-primary confirm-btn type-body-sm"
+            :disabled="mode === 'range' && !pendingStart"
+            @mousedown.prevent
+            @click="confirm"
+          >
+            {{ t('datePicker.confirm') }}
+          </button>
+        </div>
       </div>
-    </div>
+    </Teleport>
   </div>
 </template>
 
@@ -463,11 +496,13 @@ function granularCellState(key: string, toGranular: (dateKey: string) => string)
   color: var(--color-ink-muted);
 }
 
+/* Teleported to <body> and `position: fixed`, with top/left set inline from
+   `useAnchoredPopover` (see script) — not a CSS-anchored absolute box — so
+   it escapes every ancestor's clipping. z-index matches the other popovers
+   it shares the "add item" form with (SelectMenu/TagsInput, 110). */
 .popover {
-  position: absolute;
-  top: calc(100% + var(--space-xxs));
-  left: 0;
-  z-index: 20;
+  position: fixed;
+  z-index: 110;
   width: 260px;
   padding: var(--space-sm);
   background: var(--color-canvas-surface);

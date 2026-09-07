@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useAnchoredPopover } from '@/composables/useAnchoredPopover'
 import DatePicker from './DatePicker.vue'
 import { resolveDateFilterRange, type DateFilterPreset } from '@/utils/dateFilterPresets'
 import { formatDateTime } from '@/utils/date'
@@ -39,16 +40,17 @@ const wrapperEl = ref<HTMLElement | null>(null)
 const popoverEl = ref<HTMLElement | null>(null)
 const calendarColEl = ref<HTMLElement | null>(null)
 
-// Fixed-position coordinates for the teleported popover, computed from the
-// trigger's viewport position — `right`, not `left`, to keep the same
-// "grows left from the trigger's right edge" placement as before
-// teleporting (see .popover's comment below for why).
-const popoverPos = ref({ top: 0, right: 0 })
-function updatePopoverPosition(): void {
-  const rect = wrapperEl.value?.getBoundingClientRect()
-  if (!rect) return
-  popoverPos.value = { top: rect.bottom + 4, right: window.innerWidth - rect.right }
-}
+// `align: 'end'` keeps the same "grows leftward from the trigger's right
+// edge" placement this wide two-column popover has always needed (see
+// .popover's comment below) — `useAnchoredPopover` then also flips it above
+// the trigger when it won't fit below, clamps it inside the viewport, and
+// tracks scroll/resize.
+const { floatingStyles } = useAnchoredPopover({
+  anchor: wrapperEl,
+  popover: popoverEl,
+  open,
+  align: 'end',
+})
 
 function onEscapeKeydown(event: KeyboardEvent): void {
   if (event.key === 'Escape') close()
@@ -66,14 +68,9 @@ watch(open, (isOpen) => {
   if (!isOpen) {
     calendarResizeObserver?.disconnect()
     calendarResizeObserver = null
-    window.removeEventListener('scroll', updatePopoverPosition, true)
-    window.removeEventListener('resize', updatePopoverPosition)
     document.removeEventListener('keydown', onEscapeKeydown)
     return
   }
-  updatePopoverPosition()
-  window.addEventListener('scroll', updatePopoverPosition, true)
-  window.addEventListener('resize', updatePopoverPosition)
   document.addEventListener('keydown', onEscapeKeydown)
   // The popover only mounts (and calendarColEl only exists) once `open` is
   // true, so the observer has to be (re)created here rather than once at
@@ -89,8 +86,6 @@ watch(open, (isOpen) => {
 
 onBeforeUnmount(() => {
   calendarResizeObserver?.disconnect()
-  window.removeEventListener('scroll', updatePopoverPosition, true)
-  window.removeEventListener('resize', updatePopoverPosition)
   document.removeEventListener('keydown', onEscapeKeydown)
 })
 
@@ -232,7 +227,7 @@ const inlineEnd = computed({
       v-if="open"
       ref="popoverEl"
       class="popover"
-      :style="{ top: `${popoverPos.top}px`, right: `${popoverPos.right}px` }"
+      :style="floatingStyles"
       @focusout="handleFocusOut"
     >
       <div class="popover-body">
@@ -314,8 +309,8 @@ const inlineEnd = computed({
    range ("8/3/2026 – 8/10/2026"-ish) up front so nothing shifts. No
    `position: relative` here — the popover is Teleported to <body> and
    positioned via fixed pixel coordinates computed from this element's own
-   `getBoundingClientRect()` (see updatePopoverPosition in the script), not
-   via CSS containing-block anchoring. */
+   `getBoundingClientRect()` (see the `useAnchoredPopover` call in the
+   script), not via CSS containing-block anchoring. */
 .date-filter {
   flex: 0 0 190px;
 }
@@ -340,17 +335,15 @@ const inlineEnd = computed({
   color: var(--color-ink-muted);
 }
 
-/* Teleported to <body> (see template) and `position: fixed` with top/right
-   set inline from updatePopoverPosition — not a CSS-anchored absolute
-   popover like DatePicker's own — so it escapes every ancestor's clipping,
-   in particular each widget's `.widget-body` (`overflow-y: auto`, which
-   per the CSS overflow spec also forces `overflow-x` to `auto`) that would
-   otherwise cut this one off: it's wide enough (two columns plus an
-   embedded calendar) to routinely hit that. Anchored via `right`, not
-   `left`, growing leftward from the trigger's right edge — same reasoning
-   as before teleporting: this popover is wide enough that left-aligning
-   under a trigger anywhere but the row's left edge would push it off the
-   viewport. */
+/* Teleported to <body> (see template) and `position: fixed` with top/left
+   set inline from `useAnchoredPopover` — not a CSS-anchored absolute
+   popover — so it escapes every ancestor's clipping, in particular each
+   widget's `.widget-body` (`overflow-y: auto`, which per the CSS overflow
+   spec also forces `overflow-x` to `auto`) that would otherwise cut this
+   one off: it's wide enough (two columns plus an embedded calendar) to
+   routinely hit that. `align: 'end'` grows it leftward from the trigger's
+   right edge — this popover is wide enough that left-aligning under a
+   trigger anywhere but the row's left edge would push it off the viewport. */
 .popover {
   position: fixed;
   z-index: 20;
