@@ -3,11 +3,12 @@ import type { ViewConfig } from '@/types/view'
 
 // The List/Board/Calendar widgets debounce their filter/sort/color changes
 // before emitting `update:config` upward, so a burst of edits (dragging a
-// color slider, retyping a search) settles into one write rather than
-// dozens. Crucially the pending write is also flushed on unmount: a filter
-// changed right before navigating away — opening "add item" and pressing
-// back — would otherwise be lost with the cleared timer, and the view would
-// look like it reset the filter on its own.
+// color slider, retyping a search) settles into one emit rather than dozens.
+// Crucially the pending emit is also flushed on unmount: a filter changed
+// right before navigating away — opening "add item" and pressing back —
+// would otherwise be lost with the cleared timer, and the view would look
+// like it reset the filter on its own. Where the parent routes that config
+// (session-only state, or a persisted save) is the parent's call.
 //
 // `buildConfig` is called when the debounce actually fires (or is flushed),
 // not when it's scheduled, so the newest values always win.

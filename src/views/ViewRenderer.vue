@@ -10,7 +10,8 @@ import ActionIcon from '@/components/ActionIcon.vue'
 import ChevronIcon from '@/components/ChevronIcon.vue'
 import SwitchToggle from '@/components/SwitchToggle.vue'
 import ViewIconPicker from '@/components/ViewIconPicker.vue'
-import type { View, WidgetLayoutEntry } from '@/types/view'
+import { useViewSession } from '@/composables/useViewSession'
+import type { View, ViewConfig, WidgetLayoutEntry } from '@/types/view'
 
 const route = useRoute()
 const router = useRouter()
@@ -18,6 +19,8 @@ const { t } = useI18n()
 const viewsStore = useViewsStore()
 
 const editable = computed(() => route.name === 'view-edit')
+
+const { getConfig: getSessionConfig, setConfig: setSessionConfig } = useViewSession()
 
 onMounted(() => {
   if (viewsStore.views.length === 0) viewsStore.fetchAll()
@@ -79,23 +82,36 @@ async function saveChanges(): Promise<void> {
   }
 }
 
+// Structural layout changes (add/move/resize/remove widgets) — only happen
+// in edit mode and are persisted on Save.
 function onLayoutChange(layout: WidgetLayoutEntry[]): void {
   draftLayout.value = layout
-  // In normal view mode this handler only ever fires for a widget's own
-  // config change — a list's filters/sort, a panel's color overrides — which
-  // is edited inline with no edit-mode "Save" gate (structural add/move/
-  // resize/remove are edit-mode only). Persist it straight to the server so
-  // it survives leaving the view, e.g. opening "add item" and pressing back;
-  // otherwise the change lives only in `draftLayout` and is lost on unmount.
-  // The widget panels already debounce their emits, so this is one write per
-  // settled change, and their unmount-flush (useConfigPersist) means a
-  // change made right before navigating still reaches here.
-  if (!editable.value && view.value && isDirty.value) {
-    // Fire-and-forget: a failed filter write just means the next filter
-    // tweak retries it, not worth interrupting the view for.
-    viewsStore
-      .updateView(view.value.id, { layout: draftLayout.value.map((entry) => ({ ...entry })) })
-      .catch(() => {})
+}
+
+// The layout GridLayout actually renders: the draft, plus — in normal view
+// mode — each widget's session-only config override laid on top (see
+// useViewSession). Edit mode ignores those overrides so the template is
+// always edited from its saved state.
+const effectiveLayout = computed<WidgetLayoutEntry[]>(() => {
+  const viewId = view.value?.id
+  if (editable.value || !viewId) return draftLayout.value
+  return draftLayout.value.map((entry) => {
+    const override = getSessionConfig(viewId, entry.instanceId)
+    return override ? { ...entry, config: override } : entry
+  })
+})
+
+// A widget changed its own config (filters/sort/colors). In edit mode that's
+// a template edit — fold it into the draft so Save persists it. In normal
+// view mode it's session-only: kept in memory so it survives navigating away
+// and back, but never written to views.json (a reload clears it).
+function onWidgetConfigChange(instanceId: string, config: ViewConfig): void {
+  if (editable.value) {
+    draftLayout.value = draftLayout.value.map((entry) =>
+      entry.instanceId === instanceId ? { ...entry, config } : entry,
+    )
+  } else if (view.value) {
+    setSessionConfig(view.value.id, instanceId, config)
   }
 }
 function onAddWidget(widgetId: string): void {
@@ -169,10 +185,12 @@ function finishRenameView(): void {
       </div>
     </div>
     <GridLayout
-      :layout="draftLayout"
+      :key="editable ? 'edit' : 'view'"
+      :layout="effectiveLayout"
       :editable="editable"
       :flow="draftFlow"
       @update:layout="onLayoutChange"
+      @update:config="onWidgetConfigChange"
     />
   </main>
 </template>

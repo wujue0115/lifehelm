@@ -10,7 +10,13 @@ const props = defineProps<{
   editable: boolean
   flow: boolean
 }>()
-const emit = defineEmits<{ 'update:layout': [WidgetLayoutEntry[]] }>()
+const emit = defineEmits<{
+  'update:layout': [WidgetLayoutEntry[]]
+  // A widget's own config (filters/sort/colors) is routed separately from
+  // structural layout changes — the parent persists layout edits but keeps
+  // view-mode config changes in session-only state.
+  'update:config': [instanceId: string, config: ViewConfig]
+}>()
 
 const GRID_COLUMNS = 12
 
@@ -153,10 +159,7 @@ function removeWidget(instanceId: string): void {
 }
 
 function updateConfig(instanceId: string, config: ViewConfig): void {
-  emit(
-    'update:layout',
-    props.layout.map((entry) => (entry.instanceId === instanceId ? { ...entry, config } : entry)),
-  )
+  emit('update:config', instanceId, config)
 }
 
 // An empty/whitespace-only title clears the override (falls back to the
