@@ -342,6 +342,42 @@ function startMove(event: MouseEvent): void {
   overflow-y: auto;
 }
 
+/* Slimmer scrollbars for everything that scrolls inside a widget — the
+   `.widget-body` itself and any nested scroller (List's `.table-card`,
+   Board's column strip, …). The OS-default ~15px bar overlaps the panel's
+   own right-edge controls (an inline SelectMenu chevron, a row's action
+   icons); 8px stays comfortably grabbable without eating into them.
+   `scrollbar-width`/`scrollbar-color` inherit, so setting them on
+   `.widget-body` covers every descendant for Firefox; the `::-webkit-*`
+   pseudo-elements don't inherit, hence the `:deep(*)` reach for Chrome/
+   Safari. */
+.widget-body {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-strong) transparent;
+}
+
+.widget-body::-webkit-scrollbar,
+.widget-body :deep(*)::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.widget-body::-webkit-scrollbar-track,
+.widget-body :deep(*)::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.widget-body::-webkit-scrollbar-thumb,
+.widget-body :deep(*)::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: var(--rounded-full);
+}
+
+.widget-body::-webkit-scrollbar-thumb:hover,
+.widget-body :deep(*)::-webkit-scrollbar-thumb:hover {
+  background: var(--color-ink-muted);
+}
+
 .resize-handle {
   position: absolute;
   z-index: 2;
