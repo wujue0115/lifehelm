@@ -670,15 +670,26 @@ async function confirmDelete(): Promise<void> {
   min-width: 0;
 }
 
-/* Row count size sits left, the page jumps sit right — they collapse onto
-   separate lines together once the panel gets narrow. */
+/* Pinned to the bottom of the widget body — it floats over the table, which
+   scrolls underneath it, so the page controls stay reachable without
+   scrolling to the end of a long page. Per-page size sits left, the page
+   jumps right; they wrap onto separate lines together once the panel gets
+   narrow. `bottom: -4px` sinks it past the widget body's own 4px bottom
+   padding (WidgetChrome) so scrolling rows can't peek beneath the bar; no
+   bottom padding of its own since that 4px already spaces it off the edge. */
 .pagination {
+  position: sticky;
+  bottom: -4px;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-md);
-  margin-top: var(--space-md);
   flex-wrap: wrap;
+  margin-top: var(--space-sm);
+  padding-top: var(--space-sm);
+  background: var(--color-canvas-surface);
+  border-top: 1px solid var(--color-border-subtle);
   color: var(--color-ink-secondary);
 }
 
