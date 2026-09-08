@@ -55,6 +55,10 @@ export interface ListViewConfig extends ColorConfig, FilterConfig {
   dateFilterCustomEnd: string
   sortKey: string
   sortDir: 'asc' | 'desc'
+  /** When true the table shows a fixed page of rows at a time with prev/next controls; off shows every matching row in one scroll. */
+  paginated: boolean
+  /** Rows per page while `paginated` is on. One of the widget's offered sizes; falls back to the default if an unknown value is stored. */
+  pageSize: number
 }
 
 export type BoardGroupBy = 'status' | 'priority' | 'tag'
@@ -87,6 +91,8 @@ export const DEFAULT_LIST_CONFIG: ListViewConfig = {
   dateFilterCustomEnd: '',
   sortKey: 'updatedAt',
   sortDir: 'desc',
+  paginated: false,
+  pageSize: 25,
 }
 
 export interface View {

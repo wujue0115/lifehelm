@@ -9,6 +9,9 @@ import WorkItemRow from '@/components/WorkItemRow.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import SortIcon from '@/components/SortIcon.vue'
 import ActionIcon from '@/components/ActionIcon.vue'
+import ChevronIcon from '@/components/ChevronIcon.vue'
+import SwitchToggle from '@/components/SwitchToggle.vue'
+import SelectMenu from '@/components/SelectMenu.vue'
 import ColorSettings from '@/components/ColorSettings.vue'
 import ExportDialog from '@/components/ExportDialog.vue'
 import DateFilter from '@/components/DateFilter.vue'
@@ -26,6 +29,8 @@ type SortKey = 'title' | 'status' | 'priority' | 'tags' | 'dueDate' | 'updatedAt
 
 const DEFAULT_SORT_KEY: SortKey = 'updatedAt'
 const DEFAULT_SORT_DIR: 'asc' | 'desc' = 'desc'
+const PAGE_SIZE_OPTIONS = [5, 10, 15, 20, 25, 50, 100]
+const DEFAULT_PAGE_SIZE = 25
 
 defineOptions({ inheritAttrs: false })
 
@@ -54,6 +59,22 @@ const dateFilterCustomStart = ref(cfg.dateFilterCustomStart ?? '')
 const dateFilterCustomEnd = ref(cfg.dateFilterCustomEnd ?? '')
 const sortKey = ref<SortKey>((cfg.sortKey as SortKey) ?? DEFAULT_SORT_KEY)
 const sortDir = ref<'asc' | 'desc'>(cfg.sortDir ?? DEFAULT_SORT_DIR)
+const paginated = ref(cfg.paginated ?? false)
+const pageSize = ref(
+  PAGE_SIZE_OPTIONS.includes(cfg.pageSize ?? DEFAULT_PAGE_SIZE)
+    ? (cfg.pageSize ?? DEFAULT_PAGE_SIZE)
+    : DEFAULT_PAGE_SIZE,
+)
+const currentPage = ref(1)
+
+const pageSizeOptions = PAGE_SIZE_OPTIONS.map((n) => ({ value: String(n), label: String(n) }))
+// SelectMenu speaks plain strings; the slicing math wants a number.
+const pageSizeModel = computed({
+  get: () => String(pageSize.value),
+  set: (value: string) => {
+    pageSize.value = Number(value)
+  },
+})
 const pendingDeleteId = ref<string | null>(null)
 const statusColors = ref<Record<string, TagColorKey>>({ ...cfg.statusColors })
 const priorityColors = ref<Partial<Record<Priority, TagColorKey>>>({ ...cfg.priorityColors })
@@ -79,6 +100,8 @@ function schedulePersist(): void {
     dateFilterCustomEnd: dateFilterCustomEnd.value,
     sortKey: sortKey.value,
     sortDir: sortDir.value,
+    paginated: paginated.value,
+    pageSize: pageSize.value,
     statusColors: statusColors.value,
     priorityColors: priorityColors.value,
     tagColors: tagColors.value,
@@ -95,8 +118,28 @@ watch(
     dateFilterCustomEnd,
     sortKey,
     sortDir,
+    paginated,
+    pageSize,
   ],
   schedulePersist,
+)
+
+// Reset to the first page whenever the filtered set changes underneath the
+// pagination (a filter/search/sort edit), and clamp back into range when it
+// simply shrinks (an item deleted while on the last page).
+watch(
+  [
+    search,
+    statusFilter,
+    priorityFilter,
+    tagFilter,
+    dateFilterPreset,
+    dateFilterCustomStart,
+    dateFilterCustomEnd,
+  ],
+  () => {
+    currentPage.value = 1
+  },
 )
 watch([statusColors, priorityColors, tagColors], schedulePersist, { deep: true })
 
@@ -208,6 +251,43 @@ const sortedItems = computed(() => {
   })
   return list
 })
+
+const pageCount = computed(() => Math.max(1, Math.ceil(sortedItems.value.length / pageSize.value)))
+
+// The rows actually rendered: a single page when pagination is on, the whole
+// sorted list otherwise. Export and the count line still work off the full
+// `sortedItems`, so paging never changes what "12 / 40 work items" reports
+// or what a CSV export contains.
+const pagedItems = computed(() => {
+  if (!paginated.value) return sortedItems.value
+  const start = (currentPage.value - 1) * pageSize.value
+  return sortedItems.value.slice(start, start + pageSize.value)
+})
+
+watch(pageCount, (count) => {
+  if (currentPage.value > count) currentPage.value = count
+})
+
+// The page buttons to render: first and last page always, the current page
+// with one neighbour on each side, and a 'gap' marker standing in for the
+// runs collapsed between them. Up to 7 pages show in full with no gaps.
+const pageList = computed<(number | 'gap')[]>(() => {
+  const total = pageCount.value
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+  const current = currentPage.value
+  const from = Math.max(2, current - 1)
+  const to = Math.min(total - 1, current + 1)
+  const list: (number | 'gap')[] = [1]
+  if (from > 2) list.push('gap')
+  for (let page = from; page <= to; page++) list.push(page)
+  if (to < total - 1) list.push('gap')
+  list.push(total)
+  return list
+})
+
+function goToPage(page: number | 'gap'): void {
+  if (page !== 'gap') currentPage.value = page
+}
 
 function toggleSort(key: SortKey): void {
   if (sortKey.value !== key) {
@@ -361,9 +441,19 @@ async function confirmDelete(): Promise<void> {
       {{ t('common.error', { message: store.error }) }}
     </p>
     <template v-else>
-      <p class="count type-caption">
-        {{ t('list.count', { filtered: sortedItems.length, total: store.items.length }) }}
-      </p>
+      <div class="list-meta">
+        <p class="count type-caption">
+          {{ t('list.count', { filtered: sortedItems.length, total: store.items.length }) }}
+        </p>
+        <label class="paginate-toggle">
+          <span class="type-caption">{{ t('list.paginate') }}</span>
+          <SwitchToggle
+            :model-value="paginated"
+            :label="t('list.paginate')"
+            @update:model-value="(v) => (paginated = v)"
+          />
+        </label>
+      </div>
       <div class="table-card">
         <table v-if="sortedItems.length" class="table">
           <thead>
@@ -433,7 +523,7 @@ async function confirmDelete(): Promise<void> {
           </thead>
           <tbody>
             <WorkItemRow
-              v-for="item in sortedItems"
+              v-for="item in pagedItems"
               :key="item.id"
               :item="item"
               :status-name="item.status || t('list.noStatus')"
@@ -452,6 +542,48 @@ async function confirmDelete(): Promise<void> {
           </tbody>
         </table>
         <p v-else class="type-body empty">{{ t('list.empty') }}</p>
+      </div>
+
+      <div v-if="paginated" class="pagination">
+        <span class="per-page">
+          <span class="type-caption">{{ t('list.perPage') }}</span>
+          <SelectMenu v-model="pageSizeModel" class="per-page-select" :options="pageSizeOptions" />
+        </span>
+
+        <nav v-if="pageCount > 1" class="page-nav" :aria-label="t('list.pagination')">
+          <button
+            type="button"
+            class="btn btn-secondary page-btn"
+            :disabled="currentPage <= 1"
+            :aria-label="t('list.prevPage')"
+            @click="currentPage--"
+          >
+            <ChevronIcon direction="prev" />
+          </button>
+          <template v-for="(page, index) in pageList" :key="`${page}-${index}`">
+            <span v-if="page === 'gap'" class="page-gap" aria-hidden="true">…</span>
+            <button
+              v-else
+              type="button"
+              class="btn page-btn page-number"
+              :class="page === currentPage ? 'btn-primary' : 'btn-ghost'"
+              :aria-label="t('list.goToPage', { page })"
+              :aria-current="page === currentPage ? 'page' : undefined"
+              @click="goToPage(page)"
+            >
+              {{ page }}
+            </button>
+          </template>
+          <button
+            type="button"
+            class="btn btn-secondary page-btn"
+            :disabled="currentPage >= pageCount"
+            :aria-label="t('list.nextPage')"
+            @click="currentPage++"
+          >
+            <ChevronIcon direction="next" />
+          </button>
+        </nav>
       </div>
     </template>
 
@@ -503,9 +635,78 @@ async function confirmDelete(): Promise<void> {
   min-height: auto;
 }
 
+.list-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-sm);
+}
+
 .count {
   color: var(--color-ink-secondary);
-  margin-bottom: var(--space-sm);
+}
+
+.paginate-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--color-ink-secondary);
+  cursor: pointer;
+}
+
+.per-page {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--color-ink-secondary);
+}
+
+/* SelectMenu's trigger carries a 140px min-width meant for status/priority
+   labels — far wider than a two-digit row count needs, so pull it back to
+   just fit "100" plus its chevron. */
+.per-page-select :deep(.trigger) {
+  min-width: 0;
+}
+
+/* Row count size sits left, the page jumps sit right — they collapse onto
+   separate lines together once the panel gets narrow. */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  margin-top: var(--space-md);
+  flex-wrap: wrap;
+  color: var(--color-ink-secondary);
+}
+
+.page-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+/* A control's own padding, fixed — same as the global `.btn` class never
+   scales its own padding/min-height (see DESIGN.md "Appearance spacing"). */
+.page-btn {
+  padding: 6px 10px;
+  min-height: auto;
+}
+
+/* Numbered pages are square-ish so a row of them reads as a set, and stay
+   the same width whether the label is "1" or "20". */
+.page-number {
+  min-width: 32px;
+  padding: 6px 8px;
+}
+
+.page-gap {
+  padding: 0 4px;
+  color: var(--color-ink-muted);
+  user-select: none;
 }
 
 .table-card {
