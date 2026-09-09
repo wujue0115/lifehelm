@@ -415,10 +415,12 @@ const weekdayLabels = computed(() => {
   color: var(--color-ink-secondary);
 }
 
-/* flex:1 on both this and .week below is what spreads any extra height the
-   widget has beyond the calendar's natural content size evenly across
-   every week row (and so every day cell, which shares its week's height) —
-   instead of leaving it as dead space under the grid. */
+/* flex-grow on both this and .week below spreads any height the widget has
+   *beyond* the calendar's natural content size evenly across every week row
+   (and so every day cell) instead of leaving dead space under the grid.
+   When the widget is instead too *short* for the weeks at their natural
+   height, `.week`'s `flex-shrink: 0` keeps them from squashing (which was
+   clipping bar-segments) and this box scrolls. */
 .calendar {
   display: flex;
   flex-direction: column;
@@ -427,7 +429,7 @@ const weekdayLabels = computed(() => {
   background: var(--color-canvas-surface);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--rounded-md);
-  overflow: hidden;
+  overflow: hidden auto;
 }
 
 .week {
@@ -436,8 +438,10 @@ const weekdayLabels = computed(() => {
   column-gap: 0;
   row-gap: 4px;
   border-top: 1px solid var(--color-border-subtle);
-  flex: 1 1 auto;
-  min-height: 0;
+  /* grow to fill spare height, but never shrink below the row's own content
+     (day-number row + one row per bar-segment lane) — that's what makes the
+     calendar scroll rather than squash when the widget is short. */
+  flex: 1 0 auto;
 }
 
 .week:first-child {
