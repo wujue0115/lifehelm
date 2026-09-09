@@ -127,6 +127,7 @@ export default {
     goToPage: 'Go to page {page}',
     prevPage: 'Previous page',
     nextPage: 'Next page',
+    columnIndex: '#',
     columnTitle: 'Title',
     columnStatus: 'Status',
     columnPriority: 'Priority',

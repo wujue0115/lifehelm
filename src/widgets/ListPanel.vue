@@ -264,6 +264,10 @@ const pagedItems = computed(() => {
   return sortedItems.value.slice(start, start + pageSize.value)
 })
 
+// Serial number of the first rendered row minus one — a plain running count
+// that follows the current sort/page, unrelated to any item field.
+const rowOffset = computed(() => (paginated.value ? (currentPage.value - 1) * pageSize.value : 0))
+
 watch(pageCount, (count) => {
   if (currentPage.value > count) currentPage.value = count
 })
@@ -464,6 +468,7 @@ async function confirmDelete(): Promise<void> {
         <table v-if="sortedItems.length" class="table">
           <thead>
             <tr class="type-label">
+              <th class="index-col">{{ t('list.columnIndex') }}</th>
               <th
                 class="sortable"
                 :aria-sort="
@@ -529,9 +534,10 @@ async function confirmDelete(): Promise<void> {
           </thead>
           <tbody>
             <WorkItemRow
-              v-for="item in pagedItems"
+              v-for="(item, i) in pagedItems"
               :key="item.id"
               :item="item"
+              :index="rowOffset + i + 1"
               :status-name="item.status || t('list.noStatus')"
               :is-completed="store.isItemCompleted(item)"
               :status-color="resolveColor(item.status, store.statuses, statusColors)"
@@ -765,6 +771,12 @@ async function confirmDelete(): Promise<void> {
 .table th.sortable {
   cursor: pointer;
   user-select: none;
+}
+
+.table th.index-col {
+  white-space: nowrap;
+  text-align: center;
+  color: var(--color-ink-muted);
 }
 
 .table th.sortable:hover {

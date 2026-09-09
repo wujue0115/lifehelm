@@ -13,6 +13,7 @@ import TagsInput from './TagsInput.vue'
 const { t } = useI18n()
 const props = defineProps<{
   item: WorkItem
+  index: number
   statusName: string
   isCompleted: boolean
   statusColor?: TagColorKey
@@ -43,6 +44,7 @@ function onTagsChange(tags: string[]): void {
 
 <template>
   <tr class="row">
+    <td class="index-cell type-caption">{{ index }}</td>
     <td class="type-body-sm">
       <RouterLink :to="`/items/${item.id}`" class="title-link">{{ item.title }}</RouterLink>
     </td>
@@ -147,6 +149,13 @@ function onTagsChange(tags: string[]): void {
 .row td {
   padding: 10px 12px;
   vertical-align: middle;
+}
+
+.row td.index-cell {
+  color: var(--color-ink-muted);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .title-link {

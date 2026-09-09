@@ -126,6 +126,7 @@ export default {
     goToPage: '前往第 {page} 頁',
     prevPage: '上一頁',
     nextPage: '下一頁',
+    columnIndex: '序號',
     columnTitle: '標題',
     columnStatus: '狀態',
     columnPriority: '優先級',
