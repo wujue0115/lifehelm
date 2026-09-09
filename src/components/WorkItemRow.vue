@@ -26,6 +26,7 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{
   delete: [id: string]
+  duplicate: [id: string]
   update: [id: string, patch: Partial<Pick<WorkItem, 'status' | 'priority' | 'tags'>>]
 }>()
 
@@ -114,6 +115,14 @@ function onTagsChange(tags: string[]): void {
       >
         <ActionIcon type="edit" />
       </RouterLink>
+      <button
+        type="button"
+        class="btn btn-ghost action-btn"
+        :title="t('list.duplicate')"
+        @click="emit('duplicate', item.id)"
+      >
+        <ActionIcon type="duplicate" />
+      </button>
       <button
         type="button"
         class="btn btn-ghost action-btn"

@@ -134,6 +134,8 @@ export default {
     columnDate: 'Date',
     columnActions: 'Actions',
     empty: 'No work items match the current filters.',
+    duplicate: 'Duplicate',
+    duplicateNameSuffix: '{title} copy',
     deleteConfirmTitle: 'Delete work item',
     deleteConfirmMessage: 'Are you sure you want to delete this work item? This cannot be undone.',
   },

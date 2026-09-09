@@ -117,6 +117,23 @@ export const useWorkItemsStore = defineStore('workItems', () => {
     items.value = items.value.filter((item) => item.id !== id)
   }
 
+  // Copies the editable fields only — the new item starts with a fresh
+  // discussion/attachment/time-tracking history (mirrors views.ts#duplicateView,
+  // which likewise re-keys rather than deep-cloning attached state).
+  async function duplicateItem(id: string, title: string): Promise<WorkItem> {
+    const source = items.value.find((item) => item.id === id)
+    if (!source) throw new Error('work item not found')
+    return createItem({
+      title,
+      description: source.description,
+      status: source.status,
+      priority: source.priority,
+      tags: [...source.tags],
+      startDate: source.startDate,
+      dueDate: source.dueDate,
+    })
+  }
+
   async function updateStatuses(newStatuses: StatusOption[]): Promise<void> {
     statuses.value = await api.updateStatuses(newStatuses)
   }
@@ -246,6 +263,7 @@ export const useWorkItemsStore = defineStore('workItems', () => {
     updateItem,
     endCelebration,
     deleteItem,
+    duplicateItem,
     updateStatuses,
     setStatusColor,
     updateTags,

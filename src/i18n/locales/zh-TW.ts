@@ -133,6 +133,8 @@ export default {
     columnDate: '日期',
     columnActions: '操作',
     empty: '沒有符合條件的工作項目。',
+    duplicate: '複製',
+    duplicateNameSuffix: '{title} 複本',
     deleteConfirmTitle: '刪除工作項目',
     deleteConfirmMessage: '確定要刪除這個工作項目嗎？此動作無法復原。',
   },

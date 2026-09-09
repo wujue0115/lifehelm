@@ -351,6 +351,12 @@ function requestDelete(id: string): void {
   pendingDeleteId.value = id
 }
 
+async function duplicateItem(id: string): Promise<void> {
+  const source = store.items.find((item) => item.id === id)
+  if (!source) return
+  await store.duplicateItem(id, t('list.duplicateNameSuffix', { title: source.title }))
+}
+
 async function confirmDelete(): Promise<void> {
   if (pendingDeleteId.value) await store.deleteItem(pendingDeleteId.value)
   pendingDeleteId.value = null
@@ -537,6 +543,7 @@ async function confirmDelete(): Promise<void> {
               :priority-color-map="priorityColorMap"
               :all-tags="store.allTags"
               @delete="requestDelete"
+              @duplicate="duplicateItem"
               @update="handleInlineUpdate"
             />
           </tbody>
