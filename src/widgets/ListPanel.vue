@@ -16,6 +16,7 @@ import ColorSettings from '@/components/ColorSettings.vue'
 import ExportDialog from '@/components/ExportDialog.vue'
 import DateFilter from '@/components/DateFilter.vue'
 import MultiSelectMenu from '@/components/MultiSelectMenu.vue'
+import AdvancedFilterButton from '@/components/advanced-filter/AdvancedFilterButton.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import PriorityBadge from '@/components/PriorityBadge.vue'
 import TagPill from '@/components/TagPill.vue'
@@ -24,6 +25,8 @@ import { useConfigPersist } from '@/composables/useConfigPersist'
 import { resolveColor } from '@/utils/colors'
 import { resolveDateFilterRange, itemMatchesDateRange } from '@/utils/dateFilterPresets'
 import type { DateFilterPreset } from '@/utils/dateFilterPresets'
+import type { AdvancedFilterGroup } from '@/types/advanced-filter'
+import { evaluateAdvancedFilter, normalizeAdvancedFilter } from '@/utils/advancedFilter'
 
 type SortKey = 'title' | 'status' | 'priority' | 'tags' | 'dueDate' | 'updatedAt'
 
@@ -57,6 +60,9 @@ const tagFilter = ref(normalizeFilterValues(cfg.tagFilter))
 const dateFilterPreset = ref<DateFilterPreset>(cfg.dateFilterPreset ?? 'all')
 const dateFilterCustomStart = ref(cfg.dateFilterCustomStart ?? '')
 const dateFilterCustomEnd = ref(cfg.dateFilterCustomEnd ?? '')
+const advancedFilter = ref<AdvancedFilterGroup | undefined>(
+  normalizeAdvancedFilter(cfg.advancedFilter),
+)
 const sortKey = ref<SortKey>((cfg.sortKey as SortKey) ?? DEFAULT_SORT_KEY)
 const sortDir = ref<'asc' | 'desc'>(cfg.sortDir ?? DEFAULT_SORT_DIR)
 const paginated = ref(cfg.paginated ?? false)
@@ -98,6 +104,7 @@ function schedulePersist(): void {
     dateFilterPreset: dateFilterPreset.value,
     dateFilterCustomStart: dateFilterCustomStart.value,
     dateFilterCustomEnd: dateFilterCustomEnd.value,
+    advancedFilter: advancedFilter.value,
     sortKey: sortKey.value,
     sortDir: sortDir.value,
     paginated: paginated.value,
@@ -116,6 +123,7 @@ watch(
     dateFilterPreset,
     dateFilterCustomStart,
     dateFilterCustomEnd,
+    advancedFilter,
     sortKey,
     sortDir,
     paginated,
@@ -136,6 +144,7 @@ watch(
     dateFilterPreset,
     dateFilterCustomStart,
     dateFilterCustomEnd,
+    advancedFilter,
   ],
   () => {
     currentPage.value = 1
@@ -165,6 +174,15 @@ const priorityFilterOptions = computed(() =>
   })),
 )
 const tagFilterOptions = computed(() => store.allTags.map((tag) => ({ value: tag, label: tag })))
+
+// Option lists the advanced-filter dialog's rule rows need for their
+// select/tag value pickers — same {value,label} shape as the filter
+// dropdowns above.
+const advancedFilterContext = computed(() => ({
+  statusOptions: statusFilterOptions.value,
+  priorityOptions: priorityFilterOptions.value,
+  tagOptions: tagFilterOptions.value,
+}))
 
 // Every status/priority's resolved color, keyed by name — not just the
 // current row's own status/priority like resolveColor's usual call site,
@@ -217,6 +235,7 @@ const filteredItems = computed(() => {
       !itemMatchesDateRange(item.startDate, item.dueDate, dateFilterRange.value)
     )
       return false
+    if (advancedFilter.value && !evaluateAdvancedFilter(item, advancedFilter.value)) return false
     if (
       query &&
       !item.title.toLowerCase().includes(query) &&
@@ -409,6 +428,7 @@ async function confirmDelete(): Promise<void> {
           v-model:custom-start="dateFilterCustomStart"
           v-model:custom-end="dateFilterCustomEnd"
         />
+        <AdvancedFilterButton v-model="advancedFilter" :context="advancedFilterContext" />
       </div>
       <div class="toolbar-actions">
         <button

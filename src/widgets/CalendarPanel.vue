@@ -15,8 +15,11 @@ import ActionIcon from '@/components/ActionIcon.vue'
 import ColorSettings from '@/components/ColorSettings.vue'
 import DateFilter from '@/components/DateFilter.vue'
 import MultiSelectMenu from '@/components/MultiSelectMenu.vue'
+import AdvancedFilterButton from '@/components/advanced-filter/AdvancedFilterButton.vue'
 import { resolveDateFilterRange, itemMatchesDateRange } from '@/utils/dateFilterPresets'
 import type { DateFilterPreset } from '@/utils/dateFilterPresets'
+import type { AdvancedFilterGroup } from '@/types/advanced-filter'
+import { evaluateAdvancedFilter, normalizeAdvancedFilter } from '@/utils/advancedFilter'
 
 interface DateRange {
   fromKey: string
@@ -66,6 +69,9 @@ const tagFilter = ref(normalizeFilterValues(cfg.tagFilter))
 const dateFilterPreset = ref<DateFilterPreset>(cfg.dateFilterPreset ?? 'all')
 const dateFilterCustomStart = ref(cfg.dateFilterCustomStart ?? '')
 const dateFilterCustomEnd = ref(cfg.dateFilterCustomEnd ?? '')
+const advancedFilter = ref<AdvancedFilterGroup | undefined>(
+  normalizeAdvancedFilter(cfg.advancedFilter),
+)
 
 const { schedule: schedulePersistConfig } = useConfigPersist((config) =>
   emit('update:config', config),
@@ -82,6 +88,7 @@ function schedulePersist(): void {
     dateFilterPreset: dateFilterPreset.value,
     dateFilterCustomStart: dateFilterCustomStart.value,
     dateFilterCustomEnd: dateFilterCustomEnd.value,
+    advancedFilter: advancedFilter.value,
   }))
 }
 watch([statusColors, priorityColors, tagColors], schedulePersist, { deep: true })
@@ -94,6 +101,7 @@ watch(
     dateFilterPreset,
     dateFilterCustomStart,
     dateFilterCustomEnd,
+    advancedFilter,
   ],
   schedulePersist,
 )
@@ -115,6 +123,11 @@ const priorityFilterOptions = computed(() =>
   })),
 )
 const tagFilterOptions = computed(() => store.allTags.map((tag) => ({ value: tag, label: tag })))
+const advancedFilterContext = computed(() => ({
+  statusOptions: statusFilterOptions.value,
+  priorityOptions: priorityFilterOptions.value,
+  tagOptions: tagFilterOptions.value,
+}))
 
 // Same filter semantics as ListPanel/BoardPanel — narrows which items can
 // appear as bar-segments.
@@ -130,6 +143,7 @@ const filteredItems = computed(() => {
       !itemMatchesDateRange(item.startDate, item.dueDate, dateFilterRange.value)
     )
       return false
+    if (advancedFilter.value && !evaluateAdvancedFilter(item, advancedFilter.value)) return false
     if (
       query &&
       !item.title.toLowerCase().includes(query) &&
@@ -272,6 +286,7 @@ const weekdayLabels = computed(() => {
         v-model:custom-start="dateFilterCustomStart"
         v-model:custom-end="dateFilterCustomEnd"
       />
+      <AdvancedFilterButton v-model="advancedFilter" :context="advancedFilterContext" />
     </div>
 
     <div class="toolbar">

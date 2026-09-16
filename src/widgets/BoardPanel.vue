@@ -13,11 +13,14 @@ import ColorSettings from '@/components/ColorSettings.vue'
 import DateFilter from '@/components/DateFilter.vue'
 import SelectMenu from '@/components/SelectMenu.vue'
 import MultiSelectMenu from '@/components/MultiSelectMenu.vue'
+import AdvancedFilterButton from '@/components/advanced-filter/AdvancedFilterButton.vue'
 import { usePriorityLabel } from '@/composables/usePriorityLabel'
 import { useConfigPersist } from '@/composables/useConfigPersist'
 import { resolveColor } from '@/utils/colors'
 import { resolveDateFilterRange, itemMatchesDateRange } from '@/utils/dateFilterPresets'
 import type { DateFilterPreset } from '@/utils/dateFilterPresets'
+import type { AdvancedFilterGroup } from '@/types/advanced-filter'
+import { evaluateAdvancedFilter, normalizeAdvancedFilter } from '@/utils/advancedFilter'
 
 const props = defineProps<{ instanceId: string; config?: ViewConfig }>()
 const emit = defineEmits<{ 'update:config': [ViewConfig] }>()
@@ -51,6 +54,9 @@ const tagFilter = ref(normalizeFilterValues(cfg.tagFilter))
 const dateFilterPreset = ref<DateFilterPreset>(cfg.dateFilterPreset ?? 'all')
 const dateFilterCustomStart = ref(cfg.dateFilterCustomStart ?? '')
 const dateFilterCustomEnd = ref(cfg.dateFilterCustomEnd ?? '')
+const advancedFilter = ref<AdvancedFilterGroup | undefined>(
+  normalizeAdvancedFilter(cfg.advancedFilter),
+)
 
 const { schedule: schedulePersistConfig } = useConfigPersist((config) =>
   emit('update:config', config),
@@ -68,6 +74,7 @@ function schedulePersist(): void {
     dateFilterPreset: dateFilterPreset.value,
     dateFilterCustomStart: dateFilterCustomStart.value,
     dateFilterCustomEnd: dateFilterCustomEnd.value,
+    advancedFilter: advancedFilter.value,
   }))
 }
 watch(groupBy, schedulePersist)
@@ -81,6 +88,7 @@ watch(
     dateFilterPreset,
     dateFilterCustomStart,
     dateFilterCustomEnd,
+    advancedFilter,
   ],
   schedulePersist,
 )
@@ -102,6 +110,11 @@ const priorityFilterOptions = computed(() =>
   })),
 )
 const tagFilterOptions = computed(() => store.allTags.map((tag) => ({ value: tag, label: tag })))
+const advancedFilterContext = computed(() => ({
+  statusOptions: statusFilterOptions.value,
+  priorityOptions: priorityFilterOptions.value,
+  tagOptions: tagFilterOptions.value,
+}))
 const groupByOptions = computed(() => [
   { value: 'status', label: t('board.groupByStatus') },
   { value: 'priority', label: t('board.groupByPriority') },
@@ -132,6 +145,7 @@ const filteredItems = computed(() => {
       !itemMatchesDateRange(item.startDate, item.dueDate, dateFilterRange.value)
     )
       return false
+    if (advancedFilter.value && !evaluateAdvancedFilter(item, advancedFilter.value)) return false
     if (
       query &&
       !item.title.toLowerCase().includes(query) &&
@@ -481,6 +495,7 @@ async function confirmRemoveColumn(): Promise<void> {
           v-model:custom-start="dateFilterCustomStart"
           v-model:custom-end="dateFilterCustomEnd"
         />
+        <AdvancedFilterButton v-model="advancedFilter" :context="advancedFilterContext" />
       </div>
       <div class="toolbar-actions">
         <div class="group-by">

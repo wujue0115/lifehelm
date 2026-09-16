@@ -1,6 +1,7 @@
 import type { Priority } from './work-item.js'
 import type { TagColorKey } from '../config/tagColors.js'
 import type { DateFilterPreset } from '../utils/dateFilterPresets.js'
+import type { AdvancedFilterGroup } from './advanced-filter.js'
 
 export type ViewTemplateType = 'list' | 'board' | 'calendar' | 'dashboard'
 
@@ -43,6 +44,12 @@ export interface FilterConfig {
   dateFilterPreset?: DateFilterPreset
   dateFilterCustomStart?: string
   dateFilterCustomEnd?: string
+  // The Notion-style condition tree (src/types/advanced-filter.ts), edited
+  // via AdvancedFilterButton's dialog. AND-combined with every field above.
+  // Undefined / an empty tree means "no advanced filter" — it's never
+  // required, so it stays optional on ListViewConfig and out of
+  // DEFAULT_LIST_CONFIG.
+  advancedFilter?: AdvancedFilterGroup
 }
 
 export interface ListViewConfig extends ColorConfig, FilterConfig {
