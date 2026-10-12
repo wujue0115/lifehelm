@@ -319,7 +319,12 @@ function goBack(): void {
 <style scoped>
 .detail-view {
   padding: var(--space-xl);
-  max-width: 720px;
+  /* Fixed floor, fluid above it: never narrower than 720px (App's .content
+     column scrolls sideways below that rather than squeezing the form), and
+     past that it tracks the column width, capped at 1200px so description
+     lines and screenshots don't sprawl across an ultrawide window. */
+  min-width: 720px;
+  max-width: 1200px;
 }
 
 .header {
