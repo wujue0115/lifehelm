@@ -1,4 +1,5 @@
 import type { WorkItem } from '@/types/work-item'
+import { toPlainText } from '@/utils/richText'
 import type {
   AdvancedFilterField,
   AdvancedFilterFieldType,
@@ -150,7 +151,7 @@ function matchesRule(item: WorkItem, rule: AdvancedFilterRule): boolean {
   const { operator } = rule
 
   if (type === 'text') {
-    const raw = rule.field === 'description' ? item.description : item.title
+    const raw = rule.field === 'description' ? toPlainText(item.description) : item.title
     if (operator === 'isEmpty') return raw.trim() === ''
     if (operator === 'isNotEmpty') return raw.trim() !== ''
     const haystack = raw.toLowerCase()

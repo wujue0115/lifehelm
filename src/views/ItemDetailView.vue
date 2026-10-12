@@ -11,6 +11,7 @@ import ActionIcon from '@/components/ActionIcon.vue'
 import CommentList from '@/components/CommentList.vue'
 import AttachmentList from '@/components/AttachmentList.vue'
 import TimeTracker from '@/components/TimeTracker.vue'
+import RichTextEditor from '@/components/rich-text/RichTextEditor.vue'
 import TagsInput from '@/components/TagsInput.vue'
 import DatePicker from '@/components/DatePicker.vue'
 import SelectMenu from '@/components/SelectMenu.vue'
@@ -19,6 +20,8 @@ import PriorityBadge from '@/components/PriorityBadge.vue'
 import TagPill from '@/components/TagPill.vue'
 import ChevronIcon from '@/components/ChevronIcon.vue'
 import { resolveColor } from '@/utils/colors'
+import { readFileAsBase64 } from '@/utils/file'
+import { api } from '@/api/client'
 
 const route = useRoute()
 const router = useRouter()
@@ -159,6 +162,30 @@ async function handleSubmit(): Promise<void> {
   }
 }
 
+// Images pasted/dropped into the description are stored as ordinary item
+// attachments (so they also show in the attachment list) and referenced by
+// URL from the description HTML. Only available once the item exists.
+const descriptionImageOptions = computed(() =>
+  (currentItem.value?.attachments ?? [])
+    .filter((attachment) => attachment.mimeType.startsWith('image/'))
+    .map((attachment) => ({ src: api.attachmentUrl(attachment.id), name: attachment.filename })),
+)
+
+async function uploadDescriptionImage(file: File): Promise<string> {
+  const id = itemId.value
+  if (!id) throw new Error(t('richText.imageUnavailable'))
+  const before = new Set(currentItem.value?.attachments.map((attachment) => attachment.id))
+  const updated = await store.addAttachment(
+    id,
+    file.name || 'image.png',
+    file.type || 'application/octet-stream',
+    await readFileAsBase64(file),
+  )
+  const added = updated.attachments.find((attachment) => !before.has(attachment.id))
+  if (!added) throw new Error(t('richText.imageUploadFailed'))
+  return api.attachmentUrl(added.id)
+}
+
 async function handleDelete(): Promise<void> {
   if (itemId.value) {
     await store.deleteItem(itemId.value)
@@ -193,10 +220,16 @@ function goBack(): void {
           <input v-model="form.title" class="input type-body" type="text" required />
         </label>
 
-        <label class="field">
+        <!-- div, not label: a label forwards clicks to its first labelable
+             descendant, which here would be the toolbar's first button. -->
+        <div class="field">
           <span class="type-label">{{ t('itemDetail.fieldDescription') }}</span>
-          <textarea v-model="form.description" class="input type-body" rows="4"></textarea>
-        </label>
+          <RichTextEditor
+            v-model="form.description"
+            :upload-image="currentItem ? uploadDescriptionImage : undefined"
+            :image-options="descriptionImageOptions"
+          />
+        </div>
 
         <div class="row">
           <div class="field">

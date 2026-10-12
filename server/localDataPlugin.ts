@@ -284,11 +284,18 @@ export function localDataPlugin(): Plugin {
             if (!stored) return sendJson(res, 404, { error: 'not found' })
             const buffer = Buffer.from(stored.dataBase64, 'base64')
             const asciiFallback = stored.filename.replace(/[^\x20-\x7E]/g, '_')
+            // Images are shown in-page (attachment thumbnails, description
+            // <img>s) and opened in a tab; everything else downloads. SVG is
+            // excluded since served inline it can run script on this origin.
+            const disposition =
+              stored.mimeType.startsWith('image/') && stored.mimeType !== 'image/svg+xml'
+                ? 'inline'
+                : 'attachment'
             res.statusCode = 200
             res.setHeader('Content-Type', stored.mimeType)
             res.setHeader(
               'Content-Disposition',
-              `attachment; filename="${asciiFallback}"; filename*=UTF-8''${encodeURIComponent(stored.filename)}`,
+              `${disposition}; filename="${asciiFallback}"; filename*=UTF-8''${encodeURIComponent(stored.filename)}`,
             )
             res.setHeader('Content-Length', buffer.length)
             res.end(buffer)

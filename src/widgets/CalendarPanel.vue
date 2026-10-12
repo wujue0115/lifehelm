@@ -20,6 +20,7 @@ import { resolveDateFilterRange, itemMatchesDateRange } from '@/utils/dateFilter
 import type { DateFilterPreset } from '@/utils/dateFilterPresets'
 import type { AdvancedFilterGroup } from '@/types/advanced-filter'
 import { evaluateAdvancedFilter, normalizeAdvancedFilter } from '@/utils/advancedFilter'
+import { toPlainText } from '@/utils/richText'
 
 interface DateRange {
   fromKey: string
@@ -147,7 +148,7 @@ const filteredItems = computed(() => {
     if (
       query &&
       !item.title.toLowerCase().includes(query) &&
-      !item.description.toLowerCase().includes(query)
+      !toPlainText(item.description).toLowerCase().includes(query)
     ) {
       return false
     }

@@ -15,6 +15,10 @@
     "format": "oxfmt src/ server/"
   },
   "dependencies": {
+    "@tiptap/extension-image": "3.31.4",
+    "@tiptap/pm": "3.31.4",
+    "@tiptap/starter-kit": "3.31.4",
+    "@tiptap/vue-3": "3.31.4",
     "@tsparticles/basic": "4.3.2",
     "@tsparticles/engine": "^4.3.2",
     "@tsparticles/plugin-emitters": "4.3.2",
